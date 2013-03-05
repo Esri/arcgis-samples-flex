@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using RelationshipInspector (edit)">
+    <!--
+    Description:
+    This sample demonstrates how to use the RelationshipInspector
+    component to view and edit related records of a feature.
+    Click an incident to select and view its related record information.
+
+    The first selection which is made by a single click on the map selects
+    graphic in the FeatureLayer.  The selected graphic is then assigned to the RelationshipInspector
+    and the RelationshipInspector is assigned to the map's infoWindow content property.  The
+    graphic's location is then used to display the map's InfoWindow.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/RelationshipInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#mode
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/queryrelatedrecords.html
+
+    ArcGIS for Desktop documentation:
+    About relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_joining_and_relating_tables/005s0000002n000000/
+    Essentials of relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Essentials_of_relating_tables/005s0000002t000000/
+    Relating the attributes in one table to another
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Relating_the_attributes_in_one_table_to_another/005s0000002v000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.MapPoint;
+
+            import mx.controls.Alert;
+
+            public var mapClickPoint:MapPoint;
+            public var selectedGraphic:Graphic;
+
+            protected function myMap_mapClickHandler(event:MapMouseEvent):void
+            {
+                mapClickPoint = event.mapPoint;
+                if (event.originalTarget is Graphic || event.originalTarget.parent is Graphic) // for PictureMarkerSymbol target is not graphic(graphic contains a child object)
+                {
+                    if (event.originalTarget is Graphic)
+                    {
+                        selectedGraphic = Graphic(event.originalTarget);
+                    }
+                    else if (event.originalTarget.parent is Graphic) //check for PictureMarkerSymbol
+                    {
+                        selectedGraphic = Graphic(event.originalTarget.parent);
+                    }
+                    map.infoWindow.content = relationshipInspector;
+                    relationshipInspector.infoWindowLabel = "Type: " + selectedGraphic.attributes["req_type"];
+                    relationshipInspector.graphic = selectedGraphic;
+                    map.infoWindow.show(mapClickPoint);
+                }
+                else
+                {
+                    map.infoWindow.hide();
+                    Alert.show("No incidents found here, please try somewhere else.", "No features");
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:RelationshipInspector id="relationshipInspector"
+                                    width="350" height="300"
+                                    editEnabled="true"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the RelationshipInspector
+            component to view and edit related records of a feature.
+            Click an incident to select and view its related record information.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map" mapClick="myMap_mapClickHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13626000" ymin="4549000" xmax="-13625000" ymax="4551000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer id="incidentLayer"
+                           disableClientCaching="true"
+                           mode="onDemand"
+                           outFields="[req_type]"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer/0"/>
+    </esri:Map>
+
+</s:Application>

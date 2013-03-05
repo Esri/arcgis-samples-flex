@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:samples="com.esri.ags.samples.*"
+               backgroundColor="0xEEEEEE"
+               pageTitle="Turning individual layers on/off for a WMS map service">
+    <!--
+    Description:
+    This sample demonstrates how to create a custom Table of Contents (TOC)
+    component to use with a WMSLayer in your ArcGIS API for Flex application.
+    The custom TOC is used to control visibility of layers available in the
+    WMSLayer.
+
+    Problem:
+    Allow end-users to easily turn on/off layers for any WMS service.
+
+    Solution:
+    By default, the visible layers (as defined in the service) are used.
+
+    In this example, a datagrid (WMSLayerTOC) with checkboxes for every layer in
+    the current service is displayed.  The datagrid itemrenderer (WMSLayerVizRenderer)
+    will update the map service as users selects/clears checkboxes.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WMSLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/WMSLayerInfo.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/DataGrid.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/gridClasses/GridColumn.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/gridClasses/GridColumn.html#itemRenderer
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/gridClasses/GridItemRenderer.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/WMSLayerTOC.mxml
+    com/esri/ags/samples/WMSLayerVizRenderer.mxml
+    com/esri/ags/samples/WMSLayerVisibility.as
+    -->
+    <s:layout>
+        <s:HorizontalLayout/>
+    </s:layout>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create a custom Table of Contents (TOC)
+            component to use with a WMSLayer in your ArcGIS API for Flex application.
+            The custom TOC is used to control visibility of layers available in the
+            WMSLayer.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:WMSLayer id="myWMS" url="http://sampleserver1.arcgisonline.com/arcgis/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?EXCEPTIONS=INIMAGE">
+            <esri:visibleLayers>
+                <s:ArrayList>
+                    <!--States-->
+                    <fx:String>0</fx:String>
+                </s:ArrayList>
+            </esri:visibleLayers>
+        </esri:WMSLayer>
+    </esri:Map>
+    <samples:WMSLayerTOC width="210" height="100%"
+                         wmsLayer="{myWMS}"/>
+</s:Application>

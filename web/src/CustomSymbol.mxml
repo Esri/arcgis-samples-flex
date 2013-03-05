@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:symbols="com.esri.ags.samples.symbols.*">
+    <!--
+    Description:
+    This sample demonstrates how to create a custom symbol that supports
+    the map's wrap around mode (wrapAround180="true").
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/Symbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#wrapAround180
+
+    This sample also uses the following file:
+    com/esri/ags/samples/symbols/CustomMarkerSymbol.as
+    -->
+
+    <fx:Declarations>
+        <symbols:CustomMarkerSymbol id="customSymbol"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create a custom symbol that supports
+            the map's wrap around mode (wrapAround180="true").
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map width="100%" height="100%"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:GraphicsLayer id="graphicsLayer" symbol="{customSymbol}">
+            <esri:Graphic>
+                <esri:Multipoint>
+                    <esri:MapPoint x="0" y="0"/>
+                    <esri:MapPoint x="10000000" y="10000000"/>
+                </esri:Multipoint>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:Multipoint/>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:Polyline/>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:Polygon/>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+</s:Application>

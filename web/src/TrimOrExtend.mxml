@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="TrimOrExtend example">
+    <!--
+    Description:
+    This sample demonstrates how to take advantage of the trimExtend() method
+    on a GeometryService by imitating a planned sailing route in an attempt
+    to stay on the water.  To begin: draw a line starting anywhere in the water
+    and draw it to the nearest island.  If your line goes on top of land, it will
+    be 'trimmed' to only go to the coastline.  If your line almost reaches the
+    coastline, it will be 'extended' to finish exactly on the coastline.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polygon.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polyline.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/TrimExtendParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/geometryserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/trimExtend.html
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.Polygon;
+            import com.esri.ags.geometry.Polyline;
+            import com.esri.ags.tasks.QueryTask;
+            import com.esri.ags.tasks.supportClasses.Query;
+            import com.esri.ags.tasks.supportClasses.TrimExtendParameters;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+
+            public var boundary:Polyline;
+
+            protected function myMap_loadHandler():void
+            {
+                var queryTask:QueryTask = new QueryTask("http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/2");
+                queryTask.useAMF = false;
+                var query:Query = new Query();
+                query.outSpatialReference = myMap.spatialReference;
+                query.where = "STATE_NAME = 'Hawaii'";
+                query.returnGeometry = true;
+                queryTask.execute(query, new AsyncResponder(onResult, onFault));
+
+                function onResult(featureSet:FeatureSet, token:Object = null):void
+                {
+                    for each (var myGraphic:Graphic in featureSet.features)
+                    {
+                        // convert the polygon into polyline to get the boundary
+                        boundary = polygonToPolyline(myGraphic.geometry as Polygon);
+                    }
+                    myGraphicsLayer.add(new Graphic(boundary, sls));
+                }
+                function onFault(info:Object, token:Object = null):void
+                {
+                    Alert.show(info.toString());
+                }
+
+                drawTool.activate(DrawTool.FREEHAND_POLYLINE);
+            }
+
+            private function polygonToPolyline(polygon:Polygon):Polyline
+            {
+                const polyline:Polyline = new Polyline;
+                for each (var ring:Array in polygon.rings)
+                {
+                    polyline.addPath(ring);
+                }
+                return polyline;
+            }
+
+            protected function drawTool_drawEndHandler(event:DrawEvent):void
+            {
+                const inputPolyline:Polyline = event.graphic.geometry as Polyline;
+                inputPolyline.spatialReference = myMap.spatialReference;
+
+                const trimExtendParameters:TrimExtendParameters = new TrimExtendParameters;
+                trimExtendParameters.polylines = [ inputPolyline ];
+                trimExtendParameters.trimExtendPolyline = boundary;
+                trimExtendParameters.extendHow = TrimExtendParameters.DEFAULT_CURVE_EXTENSION;
+
+                geometryService.trimExtend(trimExtendParameters);
+            }
+
+            protected function geometryService_trimExtendCompleteHandler(event:GeometryServiceEvent):void
+            {
+                for each (var geometry:Geometry in event.result)
+                {
+                    trimExtendResultGraphicsLayer.add(new Graphic(geometry, trimExtendSymbol));
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleLineSymbol id="sls"
+                               width="6"
+                               color="0x7593C8"/>
+        <esri:SimpleLineSymbol id="trimExtendSymbol"
+                               width="4"
+                               color="0xFF0000"/>
+        <esri:DrawTool id="drawTool"
+                       drawEnd="drawTool_drawEndHandler(event)"
+                       lineSymbol="{new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0xFFFC17, 1, 3)}"
+                       map="{myMap}"/>
+        <esri:GeometryService id="geometryService"
+                              trimExtendComplete="geometryService_trimExtendCompleteHandler(event)"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to take advantage of the trimExtend() method
+            on a GeometryService by imitating a planned sailing route in an attempt
+            to stay on the water.  To begin: draw a line starting anywhere in the water
+            and draw it to the nearest island.  If your line goes on top of land, it will
+            be 'trimmed' to only go to the coastline.  If your line almost reaches the
+            coastline, it will be 'extended' to finish exactly on the coastline.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" load="myMap_loadHandler()">
+        <esri:extent>
+            <esri:Extent xmin="-17901000" ymin="2061000" xmax="-17154000" ymax="2607000">
+                <esri:spatialReference>
+                    <esri:SpatialReference wkid="102100"/>
+                </esri:spatialReference>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+        <esri:GraphicsLayer id="trimExtendResultGraphicsLayer"/>
+    </esri:Map>
+</s:Application>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="application_initializeHandler(event)"
+               pageTitle="Editor component with toolbar">
+    <!--
+    Description:
+    This sample demonstrates how to use the editor component with a toolbar.
+    By default, the "toolbar" displays below the template picker, but you can change this with the skin parts.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarVisible
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/featureserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/fslayer.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_feature_service/0154000002w8000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/Using_feature_services_in_a_client_application/0154000005sq000000/
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|InfoWindow
+        {
+            background-color : #FFFFFF;
+            border-thickness : 2;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.tasks.GeometryService;
+
+            import mx.events.FlexEvent;
+
+            protected function application_initializeHandler(event:FlexEvent):void
+            {
+                myEditor.featureLayers = [ points, fireAreas ];
+            }
+
+            protected function getFeatureCount(value:Array):int
+            {
+                return value.length;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:BorderContainer width="100%" backgroundColor="#D7D7D7">
+        <s:layout>
+            <s:VerticalLayout paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the editor component with a toolbar.
+            By default, the "toolbar" displays below the template picker, but you can change this with the skin parts.
+        </s:RichText>
+        <s:Label width="100%"
+                 paddingLeft="3"
+                 text="Two feature layers with {points.numGraphics} ({getFeatureCount(points.selectedFeatures)}) points and {fireAreas.numGraphics} ({getFeatureCount(fireAreas.selectedFeatures)}) fire areas (showing selected feature count in parenthesis)."/>
+    </s:BorderContainer>
+
+    <s:HGroup width="100%" height="100%"
+              paddingLeft="5"
+              paddingTop="5">
+        <esri:Editor id="myEditor"
+                     width="266"
+                     geometryService="{new GeometryService('http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer')}"
+                     map="{myMap}"
+                     toolbarVisible="true"/>
+        <esri:Map id="myMap" wrapAround180="true">
+            <esri:extent>
+                <esri:Extent id="sheepfire"
+                             xmin="-13144000" ymin="4033000" xmax="-13066000" ymax="4099000">
+                    <esri:SpatialReference wkid="102100"/>
+                </esri:Extent>
+            </esri:extent>
+            <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+            <esri:FeatureLayer id="fireAreas"
+                               mode="snapshot"
+                               outFields="*"
+                               url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Fire/Sheep/FeatureServer/2"/>
+            <esri:FeatureLayer id="points"
+                               mode="snapshot"
+                               outFields="*"
+                               url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Fire/Sheep/FeatureServer/0"/>
+        </esri:Map>
+    </s:HGroup>
+</s:Application>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               width="500" height="300"
+               close="onClose(event)"
+               title="Elevation Profile">
+    <s:layout>
+        <s:VerticalLayout/>
+    </s:layout>
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.GraphicsLayer;
+
+            import mx.charts.events.ChartItemEvent;
+            import mx.events.CloseEvent;
+
+
+            [Bindable(event="chartDataChanged")]
+            private var _aryData:Array;
+
+            [Inspectable]
+            public var glProfileLine:GraphicsLayer;
+
+            private var _gpcHilitedDataPoint:Graphic;
+
+            [Inspectable(type="Array")]
+            public function set chartData(aryData:Array):void
+            {
+                _aryData = aryData;
+                dispatchEvent(new Event("chartDataChanged"));
+            }
+
+            protected function onClose(event:CloseEvent):void
+            {
+                // Here, just remove the cross marker; the line will be cleared
+                // and the popup removed by the calling module's event handler
+                glProfileLine.remove(_gpcHilitedDataPoint);
+            }
+
+            protected function onChartPointRollOver(event:ChartItemEvent):void
+            {
+                if (_gpcHilitedDataPoint)
+                {
+                    glProfileLine.remove(_gpcHilitedDataPoint);
+                }
+                // Create a graphic for the data point map position
+                var pt:MapPoint = new MapPoint(event.hitData.item.geometry[0], event.hitData.item.geometry[1]);
+                _gpcHilitedDataPoint = new Graphic(pt, smsDataPointLoc);
+                glProfileLine.add(_gpcHilitedDataPoint);
+            }
+        ]]>
+    </fx:Script>
+    <mx:AreaChart id="chtProfile"
+                  width="100%" height="100%"
+                  color="#000000"
+                  dataProvider="{_aryData}"
+                  dataTipRenderer="{DataTipRenderer}"
+                  itemRollOver="onChartPointRollOver(event)"
+                  showDataTips="true">
+        <mx:fill>
+            <s:LinearGradient rotation="270">
+                <s:entries>
+                    <s:GradientEntry color="#66AAFF"/>
+                    <s:GradientEntry color="#FFFFFF"/>
+                </s:entries>
+            </s:LinearGradient>
+        </mx:fill>
+        <mx:series>
+            <mx:AreaSeries minField="elevationMin"
+                           xField="distance"
+                           yField="elevation">
+                <mx:areaStroke>
+                    <s:SolidColorStroke color="#0000AA" weight="2"/>
+                </mx:areaStroke>
+                <mx:areaFill>
+                    <s:LinearGradient rotation="270">
+                        <s:entries>
+                            <s:GradientEntry color="#FFDEAD"/>
+                            <s:GradientEntry color="#8B4513"/>
+                        </s:entries>
+                    </s:LinearGradient>
+                </mx:areaFill>
+            </mx:AreaSeries>
+        </mx:series>
+        <mx:verticalAxis>
+            <mx:LinearAxis baseAtZero="true" title="Height/Depth (meters)"/>
+        </mx:verticalAxis>
+        <mx:horizontalAxis>
+            <mx:LinearAxis title="Distance along profile (kilometers)"/>
+        </mx:horizontalAxis>
+    </mx:AreaChart>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:SimpleMarkerSymbol id="smsDataPointLoc"
+                                 color="0xB5804E"
+                                 size="16"
+                                 style="circle">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="3" color="0x1B009F"/>
+            </esri:outline>
+        </esri:SimpleMarkerSymbol>
+    </fx:Declarations>
+</s:TitleWindow>

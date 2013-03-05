@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="InfoSymbols with states">
+    <!--
+    Description:
+    This sample demonstrates how to create an interactive InfoSymbol
+    containing multiple states with transition effects.  When the info
+    symbol changes states you visually experience the effect of the
+    transition during the state change.
+
+    There are several things of interest in this sample:
+
+    1. The infoSymbol uses a custom renderer(InfoRendererWithStates), which has multiple states:
+    * "normal" state (an airport icon)
+    - an image containing an airport icon from a swf.
+    * titleState (on rollover, display name of airport)
+    - adds a label and an "expand" icon.
+    * detailState (when clicked, display city and country names)
+    - removes the "expand" icon and adds a "close" icon.
+
+    2. Note the use of a swf which contains multiple symbols ("icons"):
+    - the airport icon (shows in all "states")
+    <s:Image source="@Embed(source='assets/skins.swf', symbol='Icon_airport')" height="18" width="18" />
+
+    3. The "close" and "expand" buttons use skins containing Path fxg elements created with Adobe Fireworks.
+    - the expand button (in "titleState")
+    <s:Button id="expandButton" height="18" width="18" skinClass="com.esri.ags.samples.skins.InfoExpandButtonSkin"/>
+    - the close button (in "DetailsState")
+    <s:Button id="closeButton" height="18" width="18" skinClass="com.esri.ags.samples.skins.InfoCloseButtonSkin"/>
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html#infoRenderer
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/Object.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/InfoRendererWithStates.mxml
+    com/esri/ags/samples/skins/InfoExpandButtonSkin.mxml
+    com/esri/ags/samples/skins/InfoCloseButtonSkin.mxml
+    -->
+
+    <fx:Declarations>
+        <esri:InfoSymbol id="infoSymbolWithStates" infoRenderer="com.esri.ags.samples.InfoRendererWithStates"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create an interactive InfoSymbol
+            containing multiple states with transition effects.  When the info
+            symbol changes states you visually experience the effect of the
+            transition during the state change.  Mouse over the airport symbol near
+            Nairobi to see the interactive info symbol.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-4400104" ymin="-5078570" xmax="9767041" ymax="6133825">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer>
+            <esri:Graphic symbol="{infoSymbolWithStates}">
+                <esri:geometry>
+                    <esri:MapPoint x="4110750" y="-146850"/>
+                </esri:geometry>
+                <esri:attributes>
+                    <fx:Object>
+                        <fx:theName>Jomo Kenyatta Airport</fx:theName>
+                        <fx:thePlaceName>Nairobi, Kenya</fx:thePlaceName>
+                    </fx:Object>
+                </esri:attributes>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+</s:Application>

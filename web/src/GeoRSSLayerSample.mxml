@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using GeoRSSLayer">
+    <!--
+    Description:
+    This sample demonstrates how to use the GeoRSSLayer as an operational
+    layer in your ArcGIS API for Flex application.  The sample uses
+    a georss feed from the NOAA National Weather Service Pacific
+    Region Headquarters website that contains tsunami warnings for the
+    Pacific Ocean.
+
+    Feed provided by NOAA, NWS Pacific Region Headquarters
+    http://www.nws.noaa.gov/rss/
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#center
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#level
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#style:headerColor
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#style:headerBackgroundColor
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#style:backgroundColor
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#style:shadowAlpha
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#style:shadowDistance
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorMapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GeoRSSLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#attributionVisible
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#copyright
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:load
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:loadError
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/SimpleRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/PictureMarkerSymbol.html
+
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Types_of_layers/017p00000027000000/
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|InfoWindow
+        {
+            backgroundColor: #2962A9;
+            shadowAlpha: 0.5;
+            shadowDistance: 10;
+        }
+
+        esri|ContentNavigator
+        {
+            chromeColor: #2962A9;
+            color: #FFFFFF;
+            headerColor: #FFFFFF;
+            headerBackgroundColor: #2962A9;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.FeatureLayer;
+            import com.esri.ags.renderers.SimpleRenderer;
+
+            import mx.controls.Alert;
+
+            protected function geoRSSLayer_loadHandler(event:LayerEvent):void
+            {
+                FeatureLayer(geoRSSLayer.featureLayers[0]).renderer = new SimpleRenderer(tsunamiPMS);
+            }
+
+            protected function geoRSSLayer_loadErrorHandler(event:LayerEvent):void
+            {
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:PictureMarkerSymbol id="tsunamiPMS"
+                                  width="32" height="32"
+                                  source="@Embed(source='assets/i_tsunami.png')"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the GeoRSSLayer as an operational
+            layer in your ArcGIS API for Flex application.  The sample uses
+            a georss feed from the NOAA National Weather Service Pacific
+            Region Headquarters website that contains tsunami warnings for the
+            Pacific Ocean.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              level="2"
+              wrapAround180="true">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-171.009636" lat="27.355359"/>
+        </esri:center>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:GeoRSSLayer id="geoRSSLayer"
+                          copyright="NOAA, NWS, Pacific Region Headquarters"
+                          load="geoRSSLayer_loadHandler(event)"
+                          loadError="geoRSSLayer_loadErrorHandler(event)"
+                          url="http://www.prh.noaa.gov/ptwc/feeds/ptwc_rss_pacific.xml"/>
+    </esri:Map>
+
+    <s:BorderContainer width="150"
+                       right="30" bottom="60"
+                       backgroundColor="0x2962A9"
+                       borderColor="0xFFFFFF"
+                       borderWeight="2"
+                       buttonMode="true"
+                       click="navigateToURL(new URLRequest('http://www.prh.noaa.gov'), '_blank')"
+                       cornerRadius="5">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+        <s:Label width="100%"
+                 color="0xFFFFFF"
+                 fontWeight="bold"
+                 text="Tsunami warnings and information provided by NOAA, NWS"/>
+    </s:BorderContainer>
+</s:Application>

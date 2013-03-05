@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               creationComplete="application_creationCompleteHandler(event)"
+               pageTitle="Using AttachmentInspector">
+    <!--
+    Description:
+    This sample demonstrates how to use the AttachmentInspector component.
+    In order to use this sample on your own, you need:
+    To have an editable Feature service that contains at least one layer where 'Has Attachments: "True"'
+    Your layer in this service will need to have attachments enabled at the data level (geodatabase).
+    The AttachmentInspector, FeatureLayer, and FeatureService will the rest of the work for you.
+    AttachmentInspector -> FeatureLayer -> FeatureService -> Geodatabase -> Featureclass -> Attachments
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttachmentInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/AttachmentEvent.html
+    com.esri.ags.skins.supportClasses.AttachmentMouseEvent - Source code included in the API download
+
+    ArcGIS for Server - Authoring feature services
+    http://resources.arcgis.com/en/help/main/10.1/#/Authoring_feature_services/0154000003nt000000/
+
+    ArcGIS for Desktop Help - Enabling Attachments
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//01m90000000r000000
+    ArcGIS for Desktop Help - Enable Attachments (Data Management)
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//001700000153000000
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.AttachmentEvent;
+            import com.esri.ags.events.IdentifyEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.skins.supportClasses.AttachmentMouseEvent;
+            import com.esri.ags.tasks.supportClasses.IdentifyResult;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            private function application_creationCompleteHandler(event:FlexEvent):void
+            {
+                map.infoWindow.addEventListener(Event.CLOSE, infoWindow_closeHandler);
+
+                // Listen for bubbling events from the attachment inspector list
+                addEventListener(AttachmentMouseEvent.ATTACHMENT_DOUBLE_CLICK, attachmentDoubleClickHandler);
+            }
+
+            private function map_mapClickHandler(event:MapMouseEvent):void
+            {
+                map.infoWindow.hide();
+                identifyParameters.geometry = event.mapPoint;
+                identifyTask.execute(identifyParameters);
+            }
+
+            private function identifyTask_executeCompleteHandler(event:IdentifyEvent):void
+            {
+                if (event.identifyResults.length > 0)
+                {
+                    const identifyResult:IdentifyResult = event.identifyResults[0];
+                    for (var key:String in identifyResult.feature.attributes)
+                    {
+                        // replace alias name with the field name(Object Id -> objectid)
+                        if (key === "Object ID")
+                        {
+                            const val:Number = identifyResult.feature.attributes[key];
+
+                            delete identifyResult.feature.attributes[key];
+                            identifyResult.feature.attributes["objectid"] = val;
+                        }
+                    }
+                    attachmentInspector.showAttachments(identifyResult.feature, featureLayer);
+                    map.infoWindow.show(identifyResult.feature.geometry as MapPoint);
+                }
+            }
+
+            private function attachmentDoubleClickHandler(event:AttachmentMouseEvent):void
+            {
+                navigateToURL(new URLRequest(event.attachmentInfo.url));
+            }
+
+            private function attachmentInspector_faultHandler(event:FaultEvent):void
+            {
+                status.text = event.fault.faultString;
+                Alert.show(event.fault.message, "Fault");
+            }
+
+            private function infoWindow_closeHandler(event:Event):void
+            {
+                attachmentInspector.clear();
+                status.text = '';
+            }
+
+            private function attachmentInspector_addAttachmentCompleteHandler(event:AttachmentEvent):void
+            {
+                status.text = event.featureEditResult.success ? 'Attachment Added' : 'Error adding attachment';
+            }
+
+            private function attachmentInspector_deleteAttachmentsCompleteHandler(event:AttachmentEvent):void
+            {
+                status.text = event.featureEditResult.success ? 'Attachment Deleted' : 'Error deleting attachment';
+            }
+
+            private function attachmentInspector_queryAttachmentInfosCompleteHandler(event:AttachmentEvent):void
+            {
+                status.text = 'Query attachment infos complete';
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:IdentifyParameters id="identifyParameters"
+                                 width="{map.width}" height="{map.height}"
+                                 mapExtent="{map.extent}"
+                                 returnGeometry="true"
+                                 spatialReference="{map.spatialReference}"
+                                 tolerance="11"/>
+        <esri:IdentifyTask id="identifyTask"
+                           executeComplete="identifyTask_executeCompleteHandler(event)"
+                           showBusyCursor="true"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/MapServer"/>
+        <esri:FeatureLayer id="featureLayer" url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer/0"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the AttachmentInspector to allow viewing, adding, or deleting attachments associated
+            with a feature contained within a service.
+        </s:RichText>
+        <s:HGroup>
+            <s:Label text="Status: "/>
+            <s:Label id="status" width="100%"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map" mapClick="map_mapClickHandler(event)">
+        <esri:extent>
+            <esri:WebMercatorExtent minlon="-122.4306" minlat="37.7666" maxlon="-122.4231" maxlat="37.7719"/>
+        </esri:extent>
+        <esri:infoWindowContent>
+            <esri:AttachmentInspector id="attachmentInspector"
+                                      addAttachmentComplete="attachmentInspector_addAttachmentCompleteHandler(event)"
+                                      deleteAttachmentsComplete="attachmentInspector_deleteAttachmentsCompleteHandler(event)"
+                                      fault="attachmentInspector_faultHandler(event)"
+                                      queryAttachmentInfosComplete="attachmentInspector_queryAttachmentInfosCompleteHandler(event)"/>
+        </esri:infoWindowContent>
+        <esri:ArcGISTiledMapServiceLayer id="basemap" url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="incidents" url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/MapServer"/>
+    </esri:Map>
+</s:Application>

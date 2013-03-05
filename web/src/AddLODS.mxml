@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Adding LODs to provide more zoom levels">
+    <!--
+    Description:
+    This example demonstrates how to use a tiled basemap at certain levels,
+    but when zoomed in use a dynamic service.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LOD.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.layers.supportClasses.LOD;
+
+            private function addLODs():void
+            {
+                // make sure the resolution makes sense for tile schema of the base layer
+                // both resolution and scale are required fields
+                // About NaN: The lods are automatically sorted based on scale, so setting level isn't necessary.
+                var lods:Array = myMap.lods;
+                lods.push(new LOD(NaN, 0.6, 3000));
+                lods.push(new LOD(NaN, 0.3, 1500));
+                lods.push(new LOD(NaN, 0.1, 500));
+                myMap.lods = lods;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            Zoom in past 1:4,500 and you'll notice the basemap switching.
+            When zoomed out, ArcGIS Online Street Map is used, but when zoomed in a dynamic service for Louisville, KY will display parcels, landuse, and planning.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" load="addLODs()">
+        <esri:extent>
+            <esri:Extent xmin="-9551990" ymin="4617767" xmax="-9550520" ymax="4618606">
+                <esri:SpatialReference wkid="102100"/>
+                <!-- same as tiled map service below -->
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer maxScale="4500" url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer minScale="4500" url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_LandRecords_Louisville/MapServer"/>
+    </esri:Map>
+
+</s:Application>

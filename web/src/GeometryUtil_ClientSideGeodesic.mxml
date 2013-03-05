@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               currentState="drawingSelectionState"
+               pageTitle="Client side geodesic measurements (areas and lengths)">
+    <!--
+    Description:
+    This sample demonstrates how to measure line distances correctly and demonstrates the ability to perform
+    client-side (no server call is made) calculations for geographic areas and lengths.
+
+    Workflow for this sample:
+    1. Draw a line or area using the DrawTool
+    2. Convert the geometry of the Graphic returned from the DrawEvent to geographic using WebMercatorUtil
+        If geometry was not web mercator or geographic, it would need to be reprojected (use the GeometryService).
+    3. For Polyline call GeometryUtil.geodesicLengths to calculate the length, then display the measurement to the user.
+    4. For Polygon check to make sure it is not self intersecting (GeometryUtil.polygonSelfIntersecting)
+        If the polygon is self intersecting use the GeometryService to simplify
+    5. For polygons that are not intersecting or have been simplified, display measurement to the user.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html#polygonSelfIntersecting()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#simplify()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html#geodesicLengths()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html#geodesicAreas()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Units.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/simplify.html
+    -->
+
+    <!-- STATES -->
+    <s:states>
+        <s:State name="drawingSelectionState"/>
+        <s:State name="drawingLineState"/>
+        <s:State name="drawingAreaState"/>
+        <s:State name="geometryProcessingState"/>
+    </s:states>
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+        @namespace s "library://ns.adobe.com/flex/spark";
+        s|Panel
+        {
+            backgroundColor: #578DB8;
+            chromeColor: #1B009F;
+            color: #FFFFFF;
+        }
+        s|ButtonBar
+        {
+            chromeColor: #1B009F;
+        }
+        s|DropDownList
+        {
+            contentBackgroundColor: #1B009F;
+        }
+        esri|InfoSymbolWindow
+        {
+
+            backgroundColor: #1B009F;
+            border-color: #578DB8;
+            border-thickness: 2;
+            info-placement: bottom;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.Units;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.geometry.Polygon;
+            import com.esri.ags.geometry.Polyline;
+            import com.esri.ags.tasks.GeometryService;
+            import com.esri.ags.tools.DrawTool;
+            import com.esri.ags.utils.GeometryUtil;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import mx.collections.IList;
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+
+            private var selectedLinearUnits:Object = { data: Units.KILOMETERS, label: "Kilometers" };
+            private var selectedAreaUnits:Object = { data: Units.SQUARE_KILOMETERS, label: "Square Kilometers" };
+            private var measurementGraphic:Graphic;
+            private var calculatedAttributes:Object;
+            private var pt:MapPoint;
+
+            protected function drawTypeSelectedChangeHandler(event:IndexChangeEvent):void
+            {
+                drawGraphicsLayer.clear();
+                graphicsLayer.clear();
+                var selectedItem:Object = ButtonBar(event.currentTarget).selectedItem as Object;
+                if (selectedItem)
+                {
+                    drawTool.activate(selectedItem.data);
+                    selectedItem.data == DrawTool.FREEHAND_POLYLINE ? currentState = "drawingLineState" : currentState = "drawingAreaState"
+                }
+            }
+
+            protected function drawTool_drawEndHandler(event:DrawEvent):void
+            {
+                var userGeometry:Geometry = event.graphic.geometry;
+                var geographicGeometry:Geometry;
+                var userGeographicLine:Polyline;
+                var userGeographicArea:Polygon;
+
+                if (userGeometry.spatialReference.wkid == 102100)
+                {
+                    geographicGeometry = WebMercatorUtil.webMercatorToGeographic(userGeometry);
+                }
+                else if (userGeometry.spatialReference.wkid == 4326)
+                {
+                    geographicGeometry = userGeometry; //user geometry from drawTool operation is in geographic
+                }
+                else
+                {
+                    //throw a nasty error (or call project from the GeometryService) if the graphic returned from the drawtool is not geographic (4326) or web mercator (102100)
+                    return;
+                }
+                if (userGeometry.type == Geometry.POLYLINE)
+                {
+                    var lengthsArr:Array;
+                    userGeographicLine = geographicGeometry as Polyline;
+                    lengthsArr = GeometryUtil.geodesicLengths([ userGeographicLine ], selectedLinearUnits.data);
+
+                    if (Polyline(userGeometry).paths[0].length > 2)
+                    {
+                        var mid:int = Polyline(userGeometry).paths[0].length / 2;
+                        pt = Polyline(userGeometry).paths[0][mid];
+                    }
+                    else
+                    {
+                        pt = Polyline(userGeometry).paths[0][0];
+
+                    }
+                    calculatedAttributes = { distance: numberFormatter.format(lengthsArr[0]) + " " + selectedLinearUnits.label, featureType: "line" };
+                    measurementGraphic = new Graphic(pt, myInfoSymbol, calculatedAttributes);
+                    graphicsLayer.add(measurementGraphic);
+                    currentState = 'drawingSelectionState';
+                }
+                else if (userGeometry.type == Geometry.POLYGON)
+                {
+                    var areasArr:Array;
+                    userGeographicArea = geographicGeometry as Polygon;
+                    var isSelfIntersecting:Boolean = GeometryUtil.polygonSelfIntersecting(userGeographicArea);
+                    if (isSelfIntersecting)
+                    {
+                        setProgress("Simplifying self intersecting polygons....");
+                        currentState = 'geometryProcessingState';
+                        geometryService.simplify([ userGeographicArea ]);
+                    }
+                    else
+                    {
+                        areasArr = GeometryUtil.geodesicAreas([ userGeographicArea ], selectedAreaUnits.data);
+                        calculatedAttributes = { distance: numberFormatter.format(areasArr[0]) + " " + selectedAreaUnits.label, featureType: "area" };
+                        pt = userGeometry.extent.center;
+                        measurementGraphic = new Graphic(pt, myInfoSymbol, calculatedAttributes);
+                        graphicsLayer.add(measurementGraphic);
+                        currentState = 'drawingSelectionState';
+                    }
+
+                }
+
+                drawingButtonBar.selectedIndex = -1;
+                drawTool.deactivate();
+
+
+            }
+
+            protected function simplifyPolygonsCompleteHandler(event:GeometryServiceEvent):void
+            {
+                // Note: GeometryService returns geometries instead of graphics as of Flex API 2.0
+                if (event.result)
+                {
+                    for (var i:int = 0; i < event.result.length; i++)
+                    {
+
+                        var _polygon:Polygon = event.result[i] as Polygon;
+                        for (var j:int = 0; j < _polygon.rings.length; j++)
+                        {
+                            var rings:Array = [ _polygon.rings[j]];
+                            var polygon:Polygon = new Polygon(rings);
+                            var areasArr:Array = GeometryUtil.geodesicAreas([ polygon ], selectedAreaUnits.data);
+                            var calculatedAttributes:Object = { distance: numberFormatter.format(areasArr[0]) + " " + selectedAreaUnits.label, featureType: "area" };
+                            var pt:MapPoint = WebMercatorUtil.geographicToWebMercator(polygon.extent.center) as MapPoint;
+                            var simplifiedGraphic:Graphic = new Graphic(pt, myInfoSymbol, calculatedAttributes);
+                            graphicsLayer.add(simplifiedGraphic);
+                        }
+                    }
+
+                }
+                currentState = 'drawingAreaState';
+            }
+
+            protected function esriServiceFaultHandler(event:FaultEvent):void
+            {
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+                currentState = 'drawingSelectionState';
+            }
+
+            protected function setProgress(value:String):void
+            {
+                if (progressBar)
+                {
+                    progressBar.label = value;
+                }
+            }
+
+            protected function getSelectedItem(dp:IList, value:String):Object
+            {
+                if (dp && dp.length > 0)
+                {
+                    for (var i:int = 0; i < dp.length; i++)
+                    {
+                        var item:Object = dp.getItemAt(i) as Object;
+                        if (value == "linear")
+                        {
+                            if (item.data == selectedLinearUnits.data)
+                            {
+                                return item;
+                            }
+                        }
+                        else if (value == "area")
+                        {
+                            if (item.data == selectedAreaUnits.data)
+                            {
+                                return item;
+                            }
+                        }
+
+                    }
+
+                }
+                return null;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:GeometryService id="geometryService"
+                              fault="esriServiceFaultHandler(event)"
+                              simplifyComplete="simplifyPolygonsCompleteHandler(event)"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+        <esri:DrawTool id="drawTool"
+                       drawEnd="drawTool_drawEndHandler(event)"
+                       fillSymbol="{drawFillColor}"
+                       graphicsLayer="{drawGraphicsLayer}"
+                       lineSymbol="{drawLineColor}"
+                       map="{map}"/>
+        <esri:SimpleLineSymbol id="drawLineColor"
+                               width="4"
+                               alpha="0.7"
+                               color="0x1B009F"/>
+        <esri:SimpleFillSymbol id="drawFillColor"
+                               alpha="0.7"
+                               color="0x1B009F"
+                               outline="{smsOutline}"/>
+        <esri:SimpleLineSymbol id="smsOutline"
+                               width="2"
+                               color="0x578DB8"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="measuredAreaSFS" color="0xAA0000">
+            <esri:SimpleLineSymbol width="2" color="0xAA0000"/>
+        </esri:SimpleFillSymbol>
+        <!-- InfoSymbol for graphic measurement -->
+        <esri:InfoSymbol id="myInfoSymbol">
+            <esri:infoRenderer>
+                <fx:Component>
+                    <s:DataRenderer>
+                        <s:Label color="0xFFFFFF"
+                                 fontSize="14"
+                                 paddingBottom="3"
+                                 paddingLeft="3"
+                                 paddingRight="3"
+                                 paddingTop="3"
+                                 text="This {data.featureType} is {data.distance}"/>
+                    </s:DataRenderer>
+                </fx:Component>
+            </esri:infoRenderer>
+        </esri:InfoSymbol>
+        <!-- http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html -->
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="0"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to measure line distance correctly and demonstrates the ability to perform
+            client-side (no server call is made) calculations for geographic areas and lengths.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-11785617" ymin="2254275" xmax="-8028584" ymax="3628918"
+                         spatialReference="{new SpatialReference(102100)}"/>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+        <esri:GraphicsLayer id="drawGraphicsLayer"/>
+        <esri:GraphicsLayer id="graphicsLayer"/>
+    </esri:Map>
+    <s:Panel width="340" height="180"
+             right="20" top="20"
+             title="Perform geodesic measurements without using a service">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingLeft="10"
+                              paddingTop="10"/>
+        </s:layout>
+        <s:Group id="drawingState">
+            <s:layout>
+                <s:VerticalLayout gap="10"
+                                  paddingLeft="10"
+                                  paddingTop="10"/>
+            </s:layout>
+            <s:Label width="100%"
+                     fontSize="14"
+                     text.drawingAreaState="Draw a region on the map to measure the area"
+                     text.drawingLineState="Draw a line on the map to measure the linear distance"
+                     text.drawingSelectionState="Select a method below..."/>
+
+            <s:ButtonBar id="drawingButtonBar" change="drawTypeSelectedChangeHandler(event)">
+                <s:ArrayList>
+                    <fx:Object data="{DrawTool.FREEHAND_POLYLINE}" label="Freehand line"/>
+                    <fx:Object data="{DrawTool.FREEHAND_POLYGON}" label="Area / Region"/>
+                </s:ArrayList>
+            </s:ButtonBar>
+            <s:HGroup width="100%"
+                      includeIn="drawingLineState,drawingAreaState"
+                      verticalAlign="middle">
+                <s:Label text="Units: "/>
+                <s:DropDownList id="ddlLine"
+                                change="{selectedLinearUnits = DropDownList(event.target).selectedItem}"
+                                includeIn="drawingLineState"
+                                requireSelection="true"
+                                selectedItem="{getSelectedItem(ddlLine.dataProvider,'linear')}">
+                    <s:ArrayList>
+                        <fx:Object data="{Units.METERS}" label="Meters"/>
+                        <fx:Object data="{Units.NAUTICAL_MILES}" label="Nautical Miles"/>
+                        <fx:Object data="{Units.FEET}" label="Feet"/>
+                        <fx:Object data="{Units.KILOMETERS}" label="Kilometers"/>
+                    </s:ArrayList>
+                </s:DropDownList>
+                <s:DropDownList id="ddlArea"
+                                width="60%"
+                                change="{selectedAreaUnits = DropDownList(event.target).selectedItem}"
+                                includeIn="drawingAreaState"
+                                requireSelection="true"
+                                selectedItem="{getSelectedItem(ddlArea.dataProvider,'area')}">
+                    <s:ArrayList>
+                        <fx:Object data="{Units.SQUARE_METERS}" label="Square Meters"/>
+                        <fx:Object data="{Units.SQUARE_FEET}" label="Square Feet"/>
+                        <fx:Object data="{Units.SQUARE_MILES}" label="Square Miles"/>
+                        <fx:Object data="{Units.ACRES}" label="Acres"/>
+                        <fx:Object data="{Units.SQUARE_KILOMETERS}" label="Square Kilometers"/>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:HGroup>
+        </s:Group>
+        <mx:ProgressBar id="progressBar"
+                        width="80%"
+                        includeIn="geometryProcessingState"
+                        indeterminate="true"/>
+    </s:Panel>
+</s:Application>

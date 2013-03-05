@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Select and Zoom">
+    <!--
+    Description:
+    This sample demonstrates how to select or deselect a graphic
+    in a graphics layer.  This is accomplished by using a QueryTask to
+    add features to a graphics layer, or remove graphics from the graphics
+    layer by clicking on that graphic.  The GraphicUtil class is also used
+    in this sample to get the extent of all the graphics in the graphics
+    layer and adjust the map extent and scale based upon if the features
+    are contained within the current extent.
+
+    Problem:
+    When using LODs and zooming to a specific extent, for example for a query results,
+    the result extent is not always shown.  This is because the map will zoom to the
+    nearest LOD, thus sometimes the extent will be inside the map and sometimes not.
+    So, how do I make sure that my extent is always fully shown?
+
+    Solution:
+    After zooming to your result extent, check that the new map extent is inside your
+    result extent.  If it's not, zoom out one level.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#level
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html#contains()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#add()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#remove()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LOD.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GraphicUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/MouseEvent.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.events.QueryEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.utils.GraphicUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.collections.ArrayList;
+
+            private var mapClickToggler:Boolean = true;
+
+            private function mapClickHandler(event:MapMouseEvent):void
+            {
+                if (mapClickToggler)
+                {
+                    query.geometry = event.mapPoint;
+                    queryTask.execute(query);
+                }
+            }
+
+            private function executeCompleteHandler(event:QueryEvent):void
+            {
+                for each (var myGraphic:Graphic in event.featureSet.features)
+                {
+                    myGraphic.addEventListener(MouseEvent.CLICK, unselectGraphic);
+                    myGraphic.addEventListener(MouseEvent.ROLL_OVER, toggleMapClick);
+                    myGraphic.addEventListener(MouseEvent.ROLL_OUT, toggleMapClick);
+                    myGraphicsLayer.add(myGraphic);
+                }
+                zoomToGraphics();
+            }
+
+            private function zoomToGraphics():void
+            {
+                var graphicProvider:ArrayCollection = myGraphicsLayer.graphicProvider as ArrayCollection;
+                var graphicsExtent:Extent = GraphicUtil.getGraphicsExtent(graphicProvider.toArray());
+
+                if (graphicsExtent)
+                {
+                    myMap.extent = graphicsExtent;
+
+                    // make sure the whole extent is visible
+                    if (!myMap.extent.contains(graphicsExtent))
+                    {
+                        myMap.level--;
+                    }
+                }
+            }
+
+            private function unselectGraphic(event:MouseEvent):void
+            {
+                myGraphicsLayer.remove(event.currentTarget as Graphic);
+                zoomToGraphics();
+            }
+
+            private function toggleMapClick(event:MouseEvent):void
+            {
+                mapClickToggler = !mapClickToggler;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:QueryTask id="queryTask"
+                        executeComplete="executeCompleteHandler(event)"
+                        url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/5"
+                        useAMF="false"/>
+        <esri:Query id="query"
+                    outSpatialReference="{myMap.spatialReference}"
+                    returnGeometry="true"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to select or deselect a graphic
+            in a graphics layer.  This is accomplished by using a QueryTask to
+            add features to a graphics layer, or remove graphics from the graphics
+            layer by clicking on that graphic.  The GraphicUtil class is also used
+            in this sample to get the extent of all the graphics in the graphics
+            layer and adjust the map extent and scale based upon if the features
+            are contained within the current extent.
+            Click on a state to select or unselect it.  The map will zoom to current selection.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" mapClick="mapClickHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13901000" ymin="3292000" xmax="-8812000" ymax="6154000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer" visibleLayers="{new ArrayList([5])}"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+
+</s:Application>

@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Explore polygon symbols">
+    <!--
+    Description:
+    This sample demonstrates how to create symbology for polygons
+    using the SimpleFillSymbol class in both mxml and ActionScript.
+    Adjust the properties in the "Simple Fill Properties" panel and view
+    the changes in the "mxml and ActionScript" panels.
+    This sample allows you to explore symbolizing polygons interactively,
+    then copy and paste the mxml or ActionScript code into your application.
+
+    Polygons are graphics which have Geometry and Symbol.
+    They can be symbolized as either SimpleFillSymbol or PictureFillSymbol.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleFillSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            private function toHex(item:Number):String
+            {
+                var hex:String = item.toString(16);
+                return ("00000" + hex.toUpperCase()).substr(-6);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleFillSymbol id="mySymbol"
+                               alpha="{fillAlpha.value}"
+                               color="{fillColor.selectedColor}"
+                               style="{fillStyle.selectedItem}">
+            <esri:SimpleLineSymbol width="{outlineWidth.value}"
+                                   alpha="{outlineAlpha.value}"
+                                   color="{outlineColor.selectedColor}"
+                                   style="{outlineStyle.selectedItem}"/>
+        </esri:SimpleFillSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create symbology for polygons
+            using the SimpleFillSymbol class in both mxml and ActionScript.
+            Adjust the properties in the "Simple Fill Properties" panel and view
+            the changes in the "mxml and ActionScript" panels.
+            This sample allows you to explore symbolizing polygons interactively,
+            then copy and paste the mxml or ActionScript code into your application.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:GraphicsLayer symbol="{mySymbol}" toolTip="Change this polygon using the wizard on the right">
+            <esri:Graphic>
+                <esri:Polygon spatialReference="{new SpatialReference(102100)}">
+                    <fx:Array>
+                        <fx:Array>
+                            <esri:MapPoint id="Malmo"
+                                           x="1447100" y="7477200"/>
+                            <esri:MapPoint id="CapeTown"
+                                           x="2050500" y="-4018100"/>
+                            <esri:MapPoint id="Rio"
+                                           x="-4812300" y="-2619900"/>
+                        </fx:Array>
+                    </fx:Array>
+                </esri:Polygon>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:Polygon spatialReference="{new SpatialReference(102100)}">
+                        <fx:Array>
+                            <fx:Array>
+                                <esri:MapPoint id="NY"
+                                               x="-8237600" y="5012300"/>
+                                <esri:MapPoint id="MI"
+                                               x="-8905500" y="2999100"/>
+                                <esri:MapPoint id="R"
+                                               x="-13024300" y="4028800"/>
+                            </fx:Array>
+                        </fx:Array>
+                    </esri:Polygon>
+                </esri:geometry>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+    <s:Panel right="5" top="5"
+             title="Simple Fill Properties">
+        <s:Form backgroundColor="0xEEEEEE">
+            <s:layout>
+                <s:FormLayout gap="-12"/>
+            </s:layout>
+            <s:FormItem label="Color">
+                <mx:ColorPicker id="fillColor" selectedColor="0x00FF66"/>
+            </s:FormItem>
+            <s:FormItem label="Alpha:">
+                <s:HSlider id="fillAlpha"
+                           width="100"
+                           liveDragging="true"
+                           maximum="1.00"
+                           minimum="0.00"
+                           snapInterval="0.01"
+                           value="0.5"/>
+            </s:FormItem>
+            <s:FormItem label="Style:">
+                <s:DropDownList id="fillStyle"
+                                top="35"
+                                cornerRadius="0"
+                                fontWeight="normal"
+                                horizontalCenter="0"
+                                selectedIndex="0">
+                    <s:ArrayList>
+                        <fx:String>solid</fx:String>
+                        <fx:String>cross</fx:String>
+                        <fx:String>diagonalcross</fx:String>
+                        <fx:String>horizontal</fx:String>
+                        <fx:String>vertical</fx:String>
+                        <fx:String>backwarddiagonal</fx:String>
+                        <fx:String>forwarddiagonal</fx:String>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:FormItem>
+            <s:FormItem label="Outline Color">
+                <mx:ColorPicker id="outlineColor" selectedColor="0x006600"/>
+            </s:FormItem>
+            <s:FormItem label="Outline Width:">
+                <s:HSlider id="outlineWidth"
+                           width="100"
+                           liveDragging="true"
+                           maximum="20"
+                           minimum="0"
+                           snapInterval="1"
+                           value="4"/>
+            </s:FormItem>
+            <s:FormItem label="Outline Alpha:">
+                <s:HSlider id="outlineAlpha"
+                           width="100"
+                           liveDragging="true"
+                           maximum="1.00"
+                           minimum="0.00"
+                           snapInterval="0.01"
+                           value="1"/>
+            </s:FormItem>
+            <s:FormItem label="Outline Style:">
+                <s:DropDownList id="outlineStyle"
+                                top="35"
+                                cornerRadius="0"
+                                fontWeight="normal"
+                                horizontalCenter="0"
+                                selectedIndex="4">
+                    <s:ArrayList>
+                        <fx:String>dash</fx:String>
+                        <fx:String>dashdot</fx:String>
+                        <fx:String>dashdotdot</fx:String>
+                        <fx:String>dot</fx:String>
+                        <fx:String>solid</fx:String>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:FormItem>
+        </s:Form>
+    </s:Panel>
+    <s:HGroup width="100%" height="140"
+              bottom="60"
+              paddingLeft="10"
+              paddingRight="10">
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="SimpleFillSymbol mxml">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="sfsMXMLTextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="sfsMXMLTextArea.selectAll();System.setClipboard(sfsMXMLTextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>&lt;esri:SimpleFillSymbol color=&quot;0x{toHex(fillColor.selectedColor)}&quot; alpha=&quot;{fillAlpha.value}&quot; style=&quot;{fillStyle.selectedItem}&quot;&gt;&#xd;&lt;esri:SimpleLineSymbol color=&quot;0x{toHex(outlineColor.selectedColor)}&quot; width=&quot;{outlineWidth.value}&quot; alpha=&quot;{outlineAlpha.value}&quot; style=&quot;{outlineStyle.selectedItem}&quot; /&gt;&#xd;
+&lt;/esri:SimpleFillSymbol&gt;</s:text>
+            </s:TextArea>
+        </s:Panel>
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="SimpleFillSymbol ActionScript">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="sfsAS3TextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="sfsAS3TextArea.selectAll();System.setClipboard(sfsAS3TextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>var sls:SimpleLineSymbol = new SimpleLineSymbol()&#59;&#xd;sls.alpha = {outlineAlpha.value}&#59;&#xd;sls.color = 0x{toHex(outlineColor.selectedColor)}&#59;&#xd;sls.style = &quot;{outlineStyle.selectedItem}&quot;&#59;&#xd;sls.width = {outlineWidth.value}&#59;&#xd;&#xd;var sfs:SimpleFillSymbol = new SimpleFillSymbol()&#59;&#xd;sfs.alpha = {fillAlpha.value}&#59;&#xd;sfs.color = 0x{toHex(fillColor.selectedColor)}&#59;&#xd;sfs.outline = sls&#59;&#xd;sfs.style = &quot;{fillStyle.selectedItem}&quot;&#59;</s:text>
+            </s:TextArea>
+        </s:Panel>
+    </s:HGroup>
+</s:Application>

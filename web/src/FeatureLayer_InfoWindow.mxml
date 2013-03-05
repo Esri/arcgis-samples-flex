@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using InfoWindows on FeatureLayers">
+    <!--
+    Description:
+    This sample demonstrates how to add InfoWindows to a feature layer
+    and style them using CSS.  When user clicks on one of the point
+    features, the CSS-styled info window popup will show.
+
+    Note about FeatureLayer.selectionColor versus Map.infoWindowRendererHighlightColor:
+    When you make selections using the FeatureLayer, the feature layer's selection color is used which is
+    different from the highlight color on the info window when you click on the map and the info window
+    for that feature is displayed.  This sample also shows how you can remove the highlight color for the map
+    when an info window is displayed.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#style:infoWindowRendererHighlightColor
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#selectionColor
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#infoWindowRenderer
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/core/ClassFactory.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/LabelDataRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/UniqueValueRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/UniqueValueInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/CompositeSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+        esri|ContentNavigator
+        {
+            headerColor: #FFFFFF;
+            headerBackgroundAlpha: 1.0;
+            headerBackgroundColor: #6D0010;
+        }
+
+        esri|InfoWindow
+        {
+            border-thickness: 0;
+            background-color: #353930;
+            backgroundAlpha: 0.8;
+            font-size: 16;
+            upper-right-radius: 0;
+            info-placement: top;
+            info-offset-y: 20;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            protected function tbHighlightColor_clickHandler(event:MouseEvent):void
+            {
+                if (tbHighlightColor.selected)
+                {
+                    map.setStyle('infoWindowRendererHighlightColor', NaN);
+                }
+                else
+                {
+                    map.setStyle('infoWindowRendererHighlightColor', 0x00FFFF);
+                }
+                map.infoWindow.hide();
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add InfoWindows to a feature layer
+            and style them using CSS.  When user clicks on one of the point
+            features, the CSS-styled info window popup will show.
+            Click on a city to see an infoWindow with more information.
+        </s:RichText>
+        <s:ToggleButton id="tbHighlightColor"
+                        click="tbHighlightColor_clickHandler(event)"
+                        label="{tbHighlightColor.selected ? 'Restore highlight color on the info window' : 'Remove highlight color on the info window'}"/>
+    </s:controlBarContent>
+
+    <fx:Declarations>
+        <esri:SimpleLineSymbol id="smsOutline"
+                               width="1.5"
+                               alpha="0.5"
+                               color="0x72827F"/>
+    </fx:Declarations>
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-8925000" ymin="3305000" xmax="-13625000" ymax="5605000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:FeatureLayer definitionExpression="TYPE='city' AND POP1990 &gt; 50000"
+                           outFields="[CITY_NAME,CAPITAL,DIVORCED,POP1990,MALES,FEMALES]"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/0">
+            <esri:infoWindowRenderer>
+                <fx:Component>
+                    <esri:LabelDataRenderer label="{data.CITY_NAME}">
+                        <s:BorderContainer backgroundColor="white"
+                                           borderColor="black"
+                                           color="0x353930"
+                                           cornerRadius="5"
+                                           minHeight="0"
+                                           minWidth="0">
+                            <s:layout>
+                                <s:VerticalLayout paddingBottom="5"
+                                                  paddingLeft="5"
+                                                  paddingRight="5"
+                                                  paddingTop="5"/>
+                            </s:layout>
+                            <s:Label text="Sex ratio: { Math.round(100*data.MALES/data.FEMALES) } men to 100 women"/>
+                            <s:Label text="Divorce rate: { Number(1000*data.DIVORCED/data.POP1990).toFixed(1) }" toolTip="Divorce rate is the number of divorces per 1000 people."/>
+                        </s:BorderContainer>
+                    </esri:LabelDataRenderer>
+                </fx:Component>
+            </esri:infoWindowRenderer>
+            <esri:renderer>
+                <esri:UniqueValueRenderer field="CAPITAL">
+                    <esri:defaultSymbol>
+                        <esri:SimpleMarkerSymbol color="0xCCCCCC"
+                                                 size="12"
+                                                 style="x"/>
+                    </esri:defaultSymbol>
+                    <esri:UniqueValueInfo value="Y">
+                        <esri:CompositeSymbol>
+                            <!-- Star in circle -->
+                            <esri:SimpleMarkerSymbol color="0x6D0010"
+                                                     outline="{smsOutline}"
+                                                     size="22"
+                                                     style="circle"/>
+                            <esri:SimpleMarkerSymbol color="0xFFFFFF"
+                                                     size="20"
+                                                     style="triangle"/>
+                            <esri:SimpleMarkerSymbol angle="180"
+                                                     color="0xFFFFFF"
+                                                     size="20"
+                                                     style="triangle"/>
+                        </esri:CompositeSymbol>
+                    </esri:UniqueValueInfo>
+                    <esri:UniqueValueInfo value="N">
+                        <esri:SimpleMarkerSymbol color="0x6D0010"
+                                                 outline="{smsOutline}"
+                                                 size="18"
+                                                 style="diamond"/>
+                    </esri:UniqueValueInfo>
+                </esri:UniqueValueRenderer>
+            </esri:renderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+
+</s:Application>

@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               backgroundColor="#D3D1D1"
+               pageTitle="Explore polyline symbols">
+    <!--
+    Description:
+    This sample demonstrates how to create symbology for polylines
+    using the SimpleLineSymbol and CartographicLineSymbol classes
+    in both mxml and ActionScript.
+    Adjust the properties in the "Simple Line Properties or Cartographic Line Properties"
+    panel and view the changes in the "mxml and ActionScript" panels.
+    This sample allows you to explore symbolizing polylines interactively,
+    then copy and paste the mxml or ActionScript code into your application.
+
+    Polylines are graphics which have Geometry and Symbol.
+    They can be symbolized as either SimpleLineSymbol or CartographicLineSymbol.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/CartographicLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            [Bindable]
+            private var symbolCount:int = 1;
+
+            private function toHex(item:Number):String
+            {
+                var hex:String = item.toString(16);
+                return ("00000" + hex.toUpperCase()).substr(-6);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleLineSymbol id="mySymbol"
+                               width="{lineWidth.value}"
+                               alpha="{lineAlpha.value}"
+                               color="{lineColor.selectedColor}"
+                               style="{lineStyle.selectedItem}"/>
+        <esri:CartographicLineSymbol id="myCartoSymbol"
+                                     width="{cartoLineWidth.value}"
+                                     alpha="{cartoLineAlpha.value}"
+                                     cap="{cartoLineCap.selectedItem}"
+                                     color="{cartoLineColor.selectedColor}"
+                                     join="{cartoLineJoin.selectedItem}"
+                                     style="{cartoLineStyle.selectedItem}"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create symbology for polylines
+            using the SimpleLineSymbol and CartographicLineSymbol classes
+            in both mxml and ActionScript.
+            Adjust the properties in the "Simple Line Properties or Cartographic Line Properties"
+            panel and view the changes in the "mxml and ActionScript" panels.
+            This sample allows you to explore symbolizing polylines interactively,
+            then copy and paste the mxml or ActionScript code into your application.
+            To switch between symbol types, click the button below.
+        </s:RichText>
+        <s:ToggleButton id="tbLineSymbolType"
+                        click="{symbolCount++}"
+                        label="{tbLineSymbolType.selected ? 'Show the properties for SimpleLineSymbols' : 'Show the properties for CartographicLineSymbols'}"/>
+    </s:controlBarContent>
+
+    <esri:Map wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:GraphicsLayer>
+            <esri:Graphic symbol="{mySymbol}" visible="{!tbLineSymbolType.selected}">
+                <esri:geometry>
+                    <esri:Polyline spatialReference="{new SpatialReference(102100)}">
+                        <fx:Array>
+                            <fx:Array>
+                                <esri:MapPoint id="Tokyo"
+                                               x="15558700" y="4259400"/>
+                                <esri:MapPoint id="Beijing"
+                                               x="12959100" y="4851401"/>
+                                <esri:MapPoint id="UlanBator"
+                                               x="11901900" y="6093100"/>
+                                <esri:MapPoint id="Malmo"
+                                               x="1447100" y="7477200"/>
+                                <esri:MapPoint id="SanFrancisco"
+                                               x="-13627100" y="4548900"/>
+                                <esri:MapPoint id="SantaBarbara"
+                                               x="-13330400" y="4086500"/>
+                            </fx:Array>
+                        </fx:Array>
+                    </esri:Polyline>
+                </esri:geometry>
+            </esri:Graphic>
+            <esri:Graphic symbol="{myCartoSymbol}" visible="{tbLineSymbolType.selected}">
+                <esri:geometry>
+                    <esri:Polyline spatialReference="{new SpatialReference(102100)}">
+                        <fx:Array>
+                            <fx:Array>
+                                <esri:MapPoint x="15558700" y="1770100"/>
+                                <esri:MapPoint x="12959100" y="2261100"/>
+                                <esri:MapPoint x="11901900" y="3238400"/>
+                                <esri:MapPoint x="1447100" y="4244300"/>
+                                <esri:MapPoint x="-13627000" y="2012200"/>
+                                <esri:MapPoint x="-13330400" y="1623400"/>
+                                <esri:MapPoint x="-8733100" y="-24400"/>
+                                <esri:MapPoint x="-7449500" y="1175400"/>
+                                <esri:MapPoint x="-6681300" y="-4460100"/>
+                            </fx:Array>
+                        </fx:Array>
+                    </esri:Polyline>
+                </esri:geometry>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+    <!-- PANEL FOR SIMPLELINESYMBOL PROPERTIES -->
+    <s:Panel right="20" top="20"
+             title="Simple Line Properties"
+             visible="{!tbLineSymbolType.selected}">
+        <s:Form alpha="0.8" backgroundColor="0xEEEEEE">
+            <s:layout>
+                <s:FormLayout gap="-12"/>
+            </s:layout>
+            <s:FormItem label="Color:">
+                <mx:ColorPicker id="lineColor" selectedColor="0x009966"/>
+            </s:FormItem>
+            <s:FormItem label="Width:">
+                <s:HSlider id="lineWidth"
+                           width="100%"
+                           liveDragging="true"
+                           maximum="20"
+                           minimum="0"
+                           snapInterval="1"
+                           value="8"/>
+            </s:FormItem>
+            <s:FormItem label="Alpha:">
+                <s:HSlider id="lineAlpha"
+                           width="100%"
+                           liveDragging="true"
+                           maximum="1"
+                           minimum="0"
+                           snapInterval="0.01"
+                           value="1"/>
+            </s:FormItem>
+            <s:FormItem label="Style:">
+                <s:DropDownList id="lineStyle"
+                                top="35"
+                                cornerRadius="0"
+                                fontWeight="normal"
+                                horizontalCenter="0"
+                                selectedIndex="4">
+                    <s:ArrayList>
+                        <fx:String>dash</fx:String>
+                        <fx:String>dashdot</fx:String>
+                        <fx:String>dashdotdot</fx:String>
+                        <fx:String>dot</fx:String>
+                        <fx:String>solid</fx:String>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:FormItem>
+        </s:Form>
+    </s:Panel>
+    <!-- PANEL FOR CARTOGRAPHICLINESYMBOL PROPERTIES -->
+    <s:Panel right="20" top="20"
+             title="Cartographic Line Properties"
+             visible="{tbLineSymbolType.selected}">
+        <s:Form backgroundColor="0xEEEEEE">
+            <s:layout>
+                <s:FormLayout gap="-12"/>
+            </s:layout>
+            <s:FormItem label="Color:">
+                <mx:ColorPicker id="cartoLineColor" selectedColor="0x0066FF"/>
+            </s:FormItem>
+            <s:FormItem label="Width:">
+                <s:HSlider id="cartoLineWidth"
+                           width="100%"
+                           liveDragging="true"
+                           maximum="20"
+                           minimum="0"
+                           snapInterval="1"
+                           value="8"/>
+            </s:FormItem>
+            <s:FormItem label="Alpha:">
+                <s:HSlider id="cartoLineAlpha"
+                           width="100%"
+                           liveDragging="true"
+                           maximum="1"
+                           minimum="0"
+                           snapInterval="0.01"
+                           value="1"/>
+            </s:FormItem>
+            <s:FormItem label="Style:">
+                <s:DropDownList id="cartoLineStyle"
+                                top="35"
+                                cornerRadius="0"
+                                fontWeight="normal"
+                                horizontalCenter="0"
+                                selectedIndex="4">
+                    <s:ArrayList>
+                        <fx:String>dash</fx:String>
+                        <fx:String>dashdot</fx:String>
+                        <fx:String>dashdotdot</fx:String>
+                        <fx:String>dot</fx:String>
+                        <fx:String>solid</fx:String>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:FormItem>
+            <s:FormItem label="Cap:">
+                <s:DropDownList id="cartoLineCap"
+                                top="35"
+                                cornerRadius="0"
+                                fontWeight="normal"
+                                horizontalCenter="0"
+                                selectedIndex="0">
+                    <s:ArrayList>
+                        <fx:String>butt</fx:String>
+                        <fx:String>round</fx:String>
+                        <fx:String>square</fx:String>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:FormItem>
+            <s:FormItem label="Join:">
+                <s:DropDownList id="cartoLineJoin"
+                                top="35"
+                                cornerRadius="0"
+                                fontWeight="normal"
+                                horizontalCenter="0"
+                                selectedIndex="1">
+                    <s:ArrayList>
+                        <fx:String>bevel</fx:String>
+                        <fx:String>miter</fx:String>
+                        <fx:String>round</fx:String>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:FormItem>
+        </s:Form>
+    </s:Panel>
+    <!-- PANEL GROUP FOR SIMPLELINESYMBOL -->
+    <s:HGroup width="100%" height="140"
+              bottom="60"
+              paddingLeft="10"
+              paddingRight="10"
+              visible="{!tbLineSymbolType.selected}">
+        <s:Panel width="100%" height="100%"
+                 bottom="5"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="SimpleLineSymbol mxml">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="slsMXMLTextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="slsMXMLTextArea.selectAll();System.setClipboard(slsMXMLTextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                &lt;esri:SimpleLineSymbol id=&quot;sls{symbolCount}&quot; color=&quot;0x{toHex(lineColor.selectedColor)}&quot; width=&quot;{lineWidth.value}&quot; alpha=&quot;{lineAlpha.value}&quot; style=&quot;{lineStyle.selectedItem}&quot; /&gt;
+        </s:TextArea>
+        </s:Panel>
+        <s:Panel width="100%" height="100%"
+                 bottom="5"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="SimpleLineSymbol ActionScript">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="slsAS3TextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="slsAS3TextArea.selectAll();System.setClipboard(slsAS3TextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>var sls{symbolCount}:SimpleLineSymbol = new SimpleLineSymbol()&#59;&#xd;sls{symbolCount}.color = 0x{toHex(lineColor.selectedColor)}&#59;&#xd;sls{symbolCount}.width = {lineWidth.value}&#59;&#xd;sls{symbolCount}.alpha = {lineAlpha.value}&#59;&#xd;sls{symbolCount}.style = &quot;{lineStyle.selectedItem}&quot;&#59;</s:text>
+            </s:TextArea>
+        </s:Panel>
+    </s:HGroup>
+    <!-- PANEL GROUP FOR CARTOGRAPHICLINESYMBOL -->
+    <s:HGroup width="100%" height="140"
+              bottom="60"
+              paddingLeft="10"
+              paddingRight="10"
+              visible="{tbLineSymbolType.selected}">
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="CartographicLineSymbol mxml">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="cartoMXMLTextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="cartoMXMLTextArea.selectAll();System.setClipboard(cartoMXMLTextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                &lt;esri:CartographicLineSymbol id=&quot;cls{symbolCount}&quot; color=&quot;0x{toHex(cartoLineColor.selectedColor)}&quot; width=&quot;{cartoLineWidth.value}&quot; alpha=&quot;{cartoLineAlpha.value}&quot; style=&quot;{cartoLineStyle.selectedItem}&quot; cap=&quot;{cartoLineCap.selectedItem}&quot; join=&quot;{cartoLineJoin.selectedItem}&quot; /&gt;
+        </s:TextArea>
+        </s:Panel>
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="CartographicLineSymbol ActionScript">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="cartoAS3TextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="cartoAS3TextArea.selectAll();System.setClipboard(cartoAS3TextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>var cls{symbolCount}:CartographicLineSymbol = new CartographicLineSymbol()&#59;&#xd;cls{symbolCount}.alpha = {cartoLineAlpha.value}&#59;&#xd;cls{symbolCount}.cap = &quot;{cartoLineCap.selectedItem}&quot;&#59;&#xd;cls{symbolCount}.color = 0x{toHex(cartoLineColor.selectedColor)}&#59;&#xd;cls{symbolCount}.join = &quot;{cartoLineJoin.selectedItem}&quot;&#59;&#xd;cls{symbolCount}.style = &quot;{cartoLineStyle.selectedItem}&quot;&#59;&#xd;cls{symbolCount}.width = {cartoLineWidth.value}&#59;</s:text>
+            </s:TextArea>
+        </s:Panel>
+    </s:HGroup>
+</s:Application>

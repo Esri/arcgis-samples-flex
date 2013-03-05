@@ -1,0 +1,717 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Explore LabelOptions">
+    <!--
+    Description:
+    This sample demonstrates how to create dynamic labels
+    (requires an ArcGIS 10.1 service) for points, lines, and polygons
+    using the LabelOptions and LabelClass classes using both mxml and ActionScript.
+    To create labels for different zoom levels: Zoom out to the smallest
+    map scale and lock minimum scale.  Zoom in to the largest map scale
+    and lock maximum scale. Adjust the properties in the "LabelOptions Properties"
+    panel.  Copy and paste the mxml or ActionScript into your application.
+    Repeat the process at different map scales to generate multi-scale labeling.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#supportsDynamicLayers
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#visibleLayers
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#labelClasses
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#layerId
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#showLabels
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/label.html#placement
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_dynamic_layers/0154000004zv000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Displaying_layers_at_certain_scales/00s500000008000000/
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+        esri|Navigation
+        {
+            top: 40;
+            left: 10;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.ExtentEvent;
+            import com.esri.ags.events.MapEvent;
+
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+
+            import spark.events.IndexChangeEvent;
+
+            [Bindable]
+            private var POINT_LAYER_ID:int = 0;
+            [Bindable]
+            private var LINE_LAYER_ID:int = 1;
+            [Bindable]
+            private var POLYGON_LAYER_ID:int = 3;
+
+            private var visibleLayerID:int = POINT_LAYER_ID;
+            private var labelClassesArray:Array;
+            [Bindable]
+            private var labelPlacementString:String = "esriServerPointLabelPlacementAboveCenter";
+
+            [Bindable]
+            private var labelMaxScale:Number;
+            [Bindable]
+            private var labelMinScale:Number;
+            [Bindable]
+            private var mxmlMinScaleString:String;
+            [Bindable]
+            private var mxmlMaxScaleString:String;
+            [Bindable]
+            private var as3MinScaleString:String;
+            [Bindable]
+            private var as3MaxScaleString:String;
+            [Bindable]
+            private var count:int = 1;
+            [Bindable]
+            private var dollarSignPattern:RegExp = /\$/;
+
+            protected function toHex(item:Number):String
+            {
+                var hex:String = item.toString(16);
+                return ("00000" + hex.toUpperCase()).substr(-6);
+            }
+
+            protected function layerSelectionDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                visibleLayerID = DropDownList(event.target).selectedItem.data;
+                switch (visibleLayerID)
+                {
+                    case POINT_LAYER_ID:
+                    {
+                        labelPlacementString = "esriServerPointLabelPlacementAboveCenter";
+                        labelPlacement.dataProvider = pointLabelPlacementArrayList;
+                        break;
+                    }
+                    case LINE_LAYER_ID:
+                    {
+                        labelPlacementString = "esriServerLinePlacementAboveAfter";
+                        labelPlacement.dataProvider = lineLabelPlacementArrayList;
+                        break;
+                    }
+                    case POLYGON_LAYER_ID:
+                    {
+                        labelPlacementString = "esriServerPolygonPlacementAlwaysHorizontal";
+                        labelPlacement.dataProvider = polygonLabelPlacementArrayList;
+                        break;
+                    }
+                }
+                setLabelOptions();
+            }
+
+            protected function labelPlacement_changeHandler(event:IndexChangeEvent):void
+            {
+                labelPlacementString = labelPlacement.selectedItem.data;
+                setLabelOptions();
+            }
+
+            protected function setLabelOptions():void
+            {
+                if (usaMapServiceLayer.supportsDynamicLayers)
+                {
+                    switch (visibleLayerID)
+                    {
+                        case POINT_LAYER_ID:
+                        {
+                            pointsLabelClass.labelPlacement = labelPlacementString;
+                            labelClassesArray = [ pointsLabelClass ];
+                            break;
+                        }
+                        case LINE_LAYER_ID:
+                        {
+                            linesLabelClass.labelPlacement = labelPlacementString;
+                            labelClassesArray = [ linesLabelClass ];
+                            break;
+                        }
+                        case POLYGON_LAYER_ID:
+                        {
+                            polygonsLabelClass.labelPlacement = labelPlacementString;
+                            labelClassesArray = [ polygonsLabelClass ];
+                            break;
+                        }
+                    }
+                    usaMapServiceLayer.visibleLayers = new ArrayList([ visibleLayerID ]);
+                    layerDrawingOptions.layerId = visibleLayerID;
+                    layerDrawingOptions.labelClasses = labelClassesArray;
+                    usaMapServiceLayer.refresh();
+                }
+                else
+                {
+                    Alert.show("This service is not reporting that it supports dynamic layers, which will not allow this sample to function properly.", "Service warning");
+                }
+            }
+
+            protected function map_extentChangeHandler(event:ExtentEvent):void
+            {
+                updateScales();
+            }
+
+            protected function map_loadHandler(event:MapEvent):void
+            {
+                labelMaxScale = int(map.scale);
+                labelMinScale = int(map.scale);
+                mxmlMinScaleString = 'minScale="' + labelMinScale + '"';
+                mxmlMaxScaleString = 'maxScale="' + labelMaxScale + '"';
+                as3MinScaleString = 'myLabelClass$.minScale = ' + labelMinScale + ';';
+                as3MaxScaleString = 'myLabelClass$.maxScale = ' + labelMaxScale + ';';
+            }
+
+            protected function toggleScaleCheckBox_clickHandler(event:MouseEvent):void
+            {
+                updateScales(true);
+            }
+
+            protected function updateScales(refreshMap:Boolean = false):void
+            {
+                if (!labelMinScaleCheckBox.selected)
+                {
+                    labelMinScale = int(map.scale);
+                    mxmlMinScaleString = 'minScale="' + labelMinScale + '"';
+                    as3MinScaleString = 'myLabelClass$.minScale = ' + labelMinScale + ';';
+                }
+                if (!labelMaxScaleCheckBox.selected)
+                {
+                    labelMaxScale = int(map.scale);
+                    mxmlMaxScaleString = 'maxScale="' + labelMaxScale + '"';
+                    as3MaxScaleString = 'myLabelClass$.maxScale = ' + labelMaxScale + ';';
+                }
+                if (refreshMap)
+                {
+                    setLabelOptions();
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="0"/>
+        <s:ArrayList id="pointLabelPlacementArrayList">
+            <fx:Object data='esriServerPointLabelPlacementAboveCenter' label='Above Center'/>
+            <fx:Object data='esriServerPointLabelPlacementAboveLeft' label='Above Left'/>
+            <fx:Object data='esriServerPointLabelPlacementAboveRight' label='Above Right'/>
+            <fx:Object data='esriServerPointLabelPlacementBelowCenter' label='Below Center'/>
+            <fx:Object data='esriServerPointLabelPlacementBelowLeft' label='Below Left'/>
+            <fx:Object data='esriServerPointLabelPlacementBelowRight' label='Below Right'/>
+            <fx:Object data='esriServerPointLabelPlacementCenterCenter' label='Center'/>
+            <fx:Object data='esriServerPointLabelPlacementCenterLeft' label='Center Left'/>
+            <fx:Object data='esriServerPointLabelPlacementCenterRight' label='Center Right'/>
+        </s:ArrayList>
+
+        <s:ArrayList id="lineLabelPlacementArrayList">
+            <fx:Object data='esriServerLinePlacementAboveAfter' label='Above After'/>
+            <fx:Object data='esriServerLinePlacementAboveAlong' label='Above Along'/>
+            <fx:Object data='esriServerLinePlacementAboveBefore' label='Above Before'/>
+            <fx:Object data='esriServerLinePlacementAboveStart' label='Above Start'/>
+            <fx:Object data='esriServerLinePlacementAboveEnd' label='Above End'/>
+            <fx:Object data='esriServerLinePlacementBelowAfter' label='Below After'/>
+            <fx:Object data='esriServerLinePlacementBelowAlong' label='Below Along'/>
+            <fx:Object data='esriServerLinePlacementBelowBefore' label='Below Before'/>
+            <fx:Object data='esriServerLinePlacementBelowStart' label='Below Start'/>
+            <fx:Object data='esriServerLinePlacementBelowEnd' label='Below End'/>
+            <fx:Object data='esriServerLinePlacementCenterAfter' label='Center After'/>
+            <fx:Object data='esriServerLinePlacementCenterAlong' label='Center Along'/>
+            <fx:Object data='esriServerLinePlacementCenterBefore' label='Center Before'/>
+            <fx:Object data='esriServerLinePlacementCenterStart' label='Center Start'/>
+            <fx:Object data='esriServerLinePlacementCenterEnd' label='Center End'/>
+        </s:ArrayList>
+
+        <s:ArrayList id="polygonLabelPlacementArrayList">
+            <fx:Object data='esriServerPolygonPlacementAlwaysHorizontal' label='Always Horizontal'/>
+        </s:ArrayList>
+
+        <esri:LabelClass id="pointsLabelClass"
+                         labelExpression="[areaname]"
+                         maxScale="{labelMaxScaleCheckBox.selected ? labelMaxScale : 0}"
+                         minScale="{labelMinScaleCheckBox.selected ? labelMinScale : 0}">
+            <esri:LabelOptions alpha="{alphaTransparency.value}"
+                               backgroundAlpha="{backgroundAlpha.value}"
+                               backgroundColor="{backgroundColor.selectedColor}"
+                               borderLineAlpha="{borderLineAlpha.value}"
+                               borderLineColor="{borderLineColor.selectedColor}"
+                               borderLineSize="{borderLineSize.value}"
+                               color="{color.selectedColor}"
+                               fontDecoration="{fontDecoration.selectedItem}"
+                               fontFamily="{fontFamily.selectedItem}"
+                               fontSize="{fontSize.value}"
+                               fontStyle="{fontStyle.selectedItem}"
+                               fontWeight="{fontWeight.selectedItem}"
+                               haloAlpha="{haloAlpha.value}"
+                               haloColor="{haloColor.selectedColor}"
+                               haloSize="{haloSize.value}"
+                               horizontalAlignment="{horizontalAlignment.selectedItem}"
+                               kerning="{kerning.selected}"
+                               rightToLeft="{rightToLeft.selected}"
+                               verticalAlignment="{verticalAlignment.selectedItem}"
+                               xoffset="{xoffset.value}"
+                               yoffset="{yoffset.value}"/>
+        </esri:LabelClass>
+
+        <esri:LabelClass id="linesLabelClass"
+                         labelExpression="[route]"
+                         maxScale="{labelMaxScaleCheckBox.selected ? labelMaxScale : 0}"
+                         minScale="{labelMinScaleCheckBox.selected ? labelMinScale : 0}">
+            <esri:LabelOptions alpha="{alphaTransparency.value}"
+                               backgroundAlpha="{backgroundAlpha.value}"
+                               backgroundColor="{backgroundColor.selectedColor}"
+                               borderLineAlpha="{borderLineAlpha.value}"
+                               borderLineColor="{borderLineColor.selectedColor}"
+                               borderLineSize="{borderLineSize.value}"
+                               color="{color.selectedColor}"
+                               fontDecoration="{fontDecoration.selectedItem}"
+                               fontFamily="{fontFamily.selectedItem}"
+                               fontSize="{fontSize.value}"
+                               fontStyle="{fontStyle.selectedItem}"
+                               fontWeight="{fontWeight.selectedItem}"
+                               haloAlpha="{haloAlpha.value}"
+                               haloColor="{haloColor.selectedColor}"
+                               haloSize="{haloSize.value}"
+                               horizontalAlignment="{horizontalAlignment.selectedItem}"
+                               kerning="{kerning.selected}"
+                               rightToLeft="{rightToLeft.selected}"
+                               verticalAlignment="{verticalAlignment.selectedItem}"
+                               xoffset="{xoffset.value}"
+                               yoffset="{yoffset.value}"/>
+        </esri:LabelClass>
+
+        <esri:LabelClass id="polygonsLabelClass"
+                         labelExpression="[name]"
+                         maxScale="{labelMaxScaleCheckBox.selected ? labelMaxScale : 0}"
+                         minScale="{labelMinScaleCheckBox.selected ? labelMinScale : 0}">
+            <esri:LabelOptions alpha="{alphaTransparency.value}"
+                               backgroundAlpha="{backgroundAlpha.value}"
+                               backgroundColor="{backgroundColor.selectedColor}"
+                               borderLineAlpha="{borderLineAlpha.value}"
+                               borderLineColor="{borderLineColor.selectedColor}"
+                               borderLineSize="{borderLineSize.value}"
+                               color="{color.selectedColor}"
+                               fontDecoration="{fontDecoration.selectedItem}"
+                               fontFamily="{fontFamily.selectedItem}"
+                               fontSize="{fontSize.value}"
+                               fontStyle="{fontStyle.selectedItem}"
+                               fontWeight="{fontWeight.selectedItem}"
+                               haloAlpha="{haloAlpha.value}"
+                               haloColor="{haloColor.selectedColor}"
+                               haloSize="{haloSize.value}"
+                               horizontalAlignment="{horizontalAlignment.selectedItem}"
+                               kerning="{kerning.selected}"
+                               rightToLeft="{rightToLeft.selected}"
+                               verticalAlignment="{verticalAlignment.selectedItem}"
+                               xoffset="{xoffset.value}"
+                               yoffset="{yoffset.value}"/>
+        </esri:LabelClass>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create dynamic labels
+            (requires an ArcGIS 10.1 service) for points, lines, and polygons
+            using the LabelOptions and LabelClass classes using both mxml and ActionScript.
+            To create labels for different zoom levels: Zoom out to the smallest
+            map scale and lock minimum scale.  Zoom in to the largest map scale
+            and lock maximum scale. Adjust the properties in the "LabelOptions Properties"
+            panel.  Copy and paste the mxml or ActionScript into your application.
+            Repeat the process at different map scales to generate multi-scale labeling.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="middle">
+            <s:Label text="Configure labels for "/>
+            <s:DropDownList id="layerSelectionDropDownList"
+                            change="layerSelectionDropDownList_changeHandler(event)"
+                            requireSelection="true">
+                <s:ArrayList>
+                    <fx:Object data="{POINT_LAYER_ID}" label="Cities"/>
+                    <fx:Object data="{LINE_LAYER_ID}" label="Highways"/>
+                    <fx:Object data="{POLYGON_LAYER_ID}" label="Counties"/>
+                </s:ArrayList>
+            </s:DropDownList>
+            <s:Spacer width="100%"/>
+            <s:Group>
+                <s:Rect width="100%" height="100%"
+                        radiusX="5"
+                        radiusY="5">
+                    <s:stroke>
+                        <s:SolidColorStroke color="0x999999"/>
+                    </s:stroke>
+                    <s:fill>
+                        <s:SolidColor color="0xEEEEEE"/>
+                    </s:fill>
+                </s:Rect>
+                <s:HGroup width="100%"
+                          paddingBottom="5"
+                          paddingLeft="5"
+                          paddingRight="5"
+                          paddingTop="5"
+                          verticalAlign="baseline">
+                    <s:Label text="Lock label scale:"/>
+                    <s:CheckBox id="labelMinScaleCheckBox"
+                                click="toggleScaleCheckBox_clickHandler(event)"
+                                label="min=&quot;{numberFormatter.format(labelMinScale)}&quot;'"/>
+                    <s:CheckBox id="labelMaxScaleCheckBox"
+                                click="toggleScaleCheckBox_clickHandler(event)"
+                                label="max=&quot;{numberFormatter.format(labelMaxScale)}&quot;"/>
+
+                </s:HGroup>
+            </s:Group>
+        </s:HGroup>
+
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              extentChange="map_extentChangeHandler(event)"
+              load="map_loadHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13318035" ymin="3923356" xmax="-12908333" ymax="4137992">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="usaMapServiceLayer"
+                                           load="setLabelOptions()"
+                                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer">
+            <esri:layerDrawingOptions>
+                <esri:LayerDrawingOptions id="layerDrawingOptions" showLabels="true"/>
+            </esri:layerDrawingOptions>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+    <!-- MAP SCALE -->
+    <s:Group left="10" top="5">
+        <s:filters>
+            <s:DropShadowFilter alpha="0.2"
+                                angle="90"
+                                distance="5"/>
+        </s:filters>
+        <s:Rect width="100%" height="100%"
+                radiusX="5"
+                radiusY="5">
+            <s:stroke>
+                <s:SolidColorStroke color="0x999999" weight="2"/>
+            </s:stroke>
+            <s:fill>
+                <s:SolidColor color="0xEEEEEE"/>
+            </s:fill>
+        </s:Rect>
+        <s:HGroup width="100%"
+                  paddingBottom="10"
+                  paddingLeft="10"
+                  paddingRight="10"
+                  paddingTop="10"
+                  verticalAlign="baseline">
+            <s:Label fontWeight="bold" text="Map scale: {numberFormatter.format(int(map.scale))}"/>
+        </s:HGroup>
+    </s:Group>
+    <!-- LABEL OPTIONS PANEL -->
+    <s:Panel height="270"
+             right="5" top="5"
+             title="LabelOptions Properties"
+             visible="true">
+        <s:Scroller height="100%">
+            <s:Group>
+                <s:Form width="280"
+                        alpha="0.8"
+                        backgroundColor="0xEEEEEE">
+                    <s:layout>
+                        <s:FormLayout gap="-12"/>
+                    </s:layout>
+                    <s:FormItem label="Label placement:">
+                        <s:DropDownList id="labelPlacement"
+                                        change="labelPlacement_changeHandler(event)"
+                                        dataProvider="{pointLabelPlacementArrayList}"
+                                        requireSelection="true"/>
+                    </s:FormItem>
+                    <s:FormItem label="Alpha:">
+                        <s:HSlider id="alphaTransparency"
+                                   width="100%"
+                                   change="setLabelOptions()"
+                                   liveDragging="true"
+                                   maximum="1"
+                                   minimum="0"
+                                   stepSize="0.1"
+                                   value="1"/>
+                    </s:FormItem>
+                    <s:FormItem label="Background alpha:">
+                        <s:HSlider id="backgroundAlpha"
+                                   width="100%"
+                                   change="setLabelOptions()"
+                                   liveDragging="true"
+                                   maximum="1"
+                                   minimum="0"
+                                   stepSize="0.1"
+                                   value="0"/>
+                    </s:FormItem>
+                    <s:FormItem label="Background color:">
+                        <mx:ColorPicker id="backgroundColor"
+                                        change="setLabelOptions()"
+                                        selectedColor="0x000000"/>
+                    </s:FormItem>
+                    <s:FormItem label="Borderline alpha:">
+                        <s:HSlider id="borderLineAlpha"
+                                   width="100%"
+                                   change="setLabelOptions()"
+                                   liveDragging="true"
+                                   maximum="1"
+                                   minimum="0"
+                                   stepSize="0.1"
+                                   value="0"/>
+                    </s:FormItem>
+                    <s:FormItem label="Borderline color:">
+                        <mx:ColorPicker id="borderLineColor"
+                                        change="setLabelOptions()"
+                                        selectedColor="0x666666"/>
+                    </s:FormItem>
+                    <s:FormItem label="Borderline size:">
+                        <s:HSlider id="borderLineSize"
+                                   width="100%"
+                                   change="setLabelOptions()"
+                                   liveDragging="true"
+                                   maximum="8"
+                                   minimum="0"
+                                   stepSize="1"
+                                   value="1"/>
+                    </s:FormItem>
+                    <s:FormItem label="Color:">
+                        <mx:ColorPicker id="color"
+                                        change="setLabelOptions()"
+                                        selectedColor="0x333333"/>
+                    </s:FormItem>
+                    <s:FormItem label="Font decoration:">
+                        <s:DropDownList id="fontDecoration"
+                                        change="setLabelOptions()"
+                                        requireSelection="true">
+                            <s:ArrayList>
+                                <fx:String>none</fx:String>
+                                <fx:String>line-through</fx:String>
+                                <fx:String>underline</fx:String>
+                            </s:ArrayList>
+                        </s:DropDownList>
+                    </s:FormItem>
+                    <s:FormItem label="Font family:">
+                        <s:DropDownList id="fontFamily"
+                                        change="setLabelOptions()"
+                                        requireSelection="true">
+                            <s:ArrayList>
+                                <fx:String>Arial</fx:String>
+                                <fx:String>Courier New</fx:String>
+                                <fx:String>Georgia</fx:String>
+                                <fx:String>Times New Roman</fx:String>
+                                <fx:String>Verdana</fx:String>
+                            </s:ArrayList>
+                        </s:DropDownList>
+                    </s:FormItem>
+                    <s:FormItem label="Font Size:">
+                        <s:HSlider id="fontSize"
+                                   width="100%"
+                                   change="setLabelOptions()"
+                                   liveDragging="true"
+                                   maximum="16"
+                                   minimum="6"
+                                   stepSize="1"
+                                   value="12"/>
+                    </s:FormItem>
+                    <s:FormItem label="Font style:">
+                        <s:DropDownList id="fontStyle"
+                                        change="setLabelOptions()"
+                                        requireSelection="true">
+                            <s:ArrayList>
+                                <fx:String>normal</fx:String>
+                                <fx:String>italic</fx:String>
+                                <fx:String>oblique</fx:String>
+                            </s:ArrayList>
+                        </s:DropDownList>
+                    </s:FormItem>
+                    <s:FormItem label="Font weight:">
+                        <s:DropDownList id="fontWeight"
+                                        change="setLabelOptions()"
+                                        requireSelection="true">
+                            <s:ArrayList>
+                                <fx:String>normal</fx:String>
+                                <fx:String>bold</fx:String>
+                                <fx:String>bolder</fx:String>
+                                <fx:String>lighter</fx:String>
+                            </s:ArrayList>
+                        </s:DropDownList>
+                    </s:FormItem>
+                    <s:FormItem label="Halo alpha:">
+                        <s:HSlider id="haloAlpha"
+                                   width="100%"
+                                   change="setLabelOptions()"
+                                   liveDragging="true"
+                                   maximum="1"
+                                   minimum="0"
+                                   stepSize="0.1"
+                                   value="0.5"/>
+                    </s:FormItem>
+                    <s:FormItem label="Halo color:">
+                        <mx:ColorPicker id="haloColor"
+                                        change="setLabelOptions()"
+                                        selectedColor="0x999999"/>
+                    </s:FormItem>
+                    <s:FormItem label="Halo size:">
+                        <s:HSlider id="haloSize"
+                                   width="100%"
+                                   change="setLabelOptions()"
+                                   liveDragging="true"
+                                   maximum="10"
+                                   minimum="0"
+                                   stepSize="1"
+                                   value="1"/>
+                    </s:FormItem>
+                    <s:FormItem label="Horizontal alignment:">
+                        <s:DropDownList id="horizontalAlignment"
+                                        change="setLabelOptions()"
+                                        requireSelection="true">
+                            <s:ArrayList>
+                                <fx:String>center</fx:String>
+                                <fx:String>left</fx:String>
+                                <fx:String>right</fx:String>
+                                <fx:String>justify</fx:String>
+                            </s:ArrayList>
+                        </s:DropDownList>
+                    </s:FormItem>
+                    <s:FormItem label="Kerning:">
+                        <s:CheckBox id="kerning"
+                                    change="setLabelOptions()"
+                                    selected="true"/>
+                    </s:FormItem>
+                    <s:FormItem label="Right to left:">
+                        <s:CheckBox id="rightToLeft"
+                                    change="setLabelOptions()"
+                                    selected="false"/>
+                    </s:FormItem>
+                    <s:FormItem label="Vertical alignment:">
+                        <s:DropDownList id="verticalAlignment"
+                                        change="setLabelOptions()"
+                                        requireSelection="true">
+                            <s:ArrayList>
+                                <fx:String>baseline</fx:String>
+                                <fx:String>top</fx:String>
+                                <fx:String>middle</fx:String>
+                                <fx:String>bottom</fx:String>
+                            </s:ArrayList>
+                        </s:DropDownList>
+                    </s:FormItem>
+                    <s:FormItem label="xoffset:">
+                        <s:NumericStepper id="xoffset"
+                                          change="setLabelOptions()"
+                                          maximum="12"
+                                          minimum="0"
+                                          stepSize="1"
+                                          value="0"/>
+                    </s:FormItem>
+                    <s:FormItem label="yoffset:">
+                        <s:NumericStepper id="yoffset"
+                                          change="setLabelOptions()"
+                                          maximum="12"
+                                          minimum="0"
+                                          stepSize="1"
+                                          value="0"/>
+                    </s:FormItem>
+                </s:Form>
+            </s:Group>
+        </s:Scroller>
+    </s:Panel>
+    <!-- PANELS FOR MXML AND ACTIONSCRIPT -->
+    <s:HGroup width="100%" height="140"
+              bottom="60"
+              paddingLeft="10"
+              paddingRight="10">
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="LabelClass mxml">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"
+                                    paddingBottom="0"
+                                    paddingLeft="0"
+                                    paddingRight="0"
+                                    paddingTop="0"/>
+            </s:layout>
+
+            <s:TextArea id="labelClassMXMLTextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="labelClassMXMLTextArea.selectAll();System.setClipboard(labelClassMXMLTextArea.text);count++;"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>&lt;esri:LabelClass id=&quot;myLabelClass{count}&quot; labelExpression=&quot;[myLabelExpression]&quot; labelPlacement=&quot;{labelPlacementString}&quot; {labelMaxScaleCheckBox.selected ? mxmlMaxScaleString : ''} {labelMinScaleCheckBox.selected ? mxmlMinScaleString : ''}&gt;
+    &lt;esri:LabelOptions alpha=&quot;{alphaTransparency.value}&quot;
+    backgroundAlpha=&quot;{backgroundAlpha.value}&quot;
+    backgroundColor=&quot;0x{toHex(backgroundColor.selectedColor)}&quot;
+    borderLineAlpha=&quot;{borderLineAlpha.value}&quot;
+    borderLineColor=&quot;0x{toHex(borderLineColor.selectedColor)}&quot;
+    borderLineSize=&quot;{borderLineSize.value}&quot;
+    color=&quot;0x{toHex(color.selectedColor)}&quot;
+    fontDecoration=&quot;{fontDecoration.selectedItem}&quot;
+    fontFamily=&quot;{fontFamily.selectedItem}&quot;
+    fontSize=&quot;{fontSize.value}&quot;
+    fontStyle=&quot;{fontStyle.selectedItem}&quot;
+    fontWeight=&quot;{fontWeight.selectedItem}&quot;
+    haloAlpha=&quot;{haloAlpha.value}&quot;
+    haloColor=&quot;0x{toHex(haloColor.selectedColor)}&quot;
+    haloSize=&quot;{haloSize.value}&quot;
+    horizontalAlignment=&quot;{horizontalAlignment.selectedItem}&quot;
+    kerning=&quot;{kerning.selected}&quot;
+    rightToLeft=&quot;{rightToLeft.selected}&quot;
+    verticalAlignment=&quot;{verticalAlignment.selectedItem}&quot;
+    xoffset=&quot;{xoffset.value}&quot;
+    yoffset=&quot;{yoffset.value}&quot;/&gt;
+&lt;/esri:LabelClass&gt;
+                </s:text>
+            </s:TextArea>
+        </s:Panel>
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="LabelClass ActionScript">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"
+                                    paddingBottom="0"
+                                    paddingLeft="0"
+                                    paddingRight="0"
+                                    paddingTop="0"/>
+            </s:layout>
+
+            <s:TextArea id="labelClassAS3TextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="labelClassAS3TextArea.selectAll();System.setClipboard(labelClassAS3TextArea.text);count++;"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>var myLabelOptions{count}:LabelOptions = new LabelOptions()&#59;&#xd;myLabelOptions{count}.alpha = {alphaTransparency.value}&#59;&#xd;myLabelOptions{count}.backgroundAlpha = {backgroundAlpha.value}&#59;&#xd;myLabelOptions{count}.backgroundColor = 0x{toHex(backgroundColor.selectedColor)}&#59;&#xd;myLabelOptions{count}.borderLineAlpha = {borderLineAlpha.value}&#59;&#xd;myLabelOptions{count}.borderLineColor = 0x{toHex(borderLineColor.selectedColor)}&#59;&#xd;myLabelOptions{count}.borderLineSize = {borderLineSize.value}&#59;&#xd;myLabelOptions{count}.color = 0x{toHex(color.selectedColor)}&#59;&#xd;myLabelOptions{count}.fontDecoration = &quot;{fontDecoration.selectedItem}&quot;&#59;&#xd;myLabelOptions{count}.fontFamily = &quot;{fontFamily.selectedItem}&quot;&#59;&#xd;myLabelOptions{count}.fontSize = {fontSize.value}&#59;&#xd;myLabelOptions{count}.fontStyle = &quot;{fontStyle.selectedItem}&quot;&#59;&#xd;myLabelOptions{count}.fontWeight = &quot;{fontWeight.selectedItem}&quot;&#59;&#xd;myLabelOptions{count}.haloAlpha = {haloAlpha.value}&#59;&#xd;myLabelOptions{count}.haloColor = 0x{toHex(haloColor.selectedColor)}&#59;&#xd;myLabelOptions{count}.haloSize = {haloSize.value}&#59;&#xd;myLabelOptions{count}.horizontalAlignment = &quot;{horizontalAlignment.selectedItem}&quot;&#59;&#xd;myLabelOptions{count}.kerning = {kerning.selected}&#59;&#xd;myLabelOptions{count}.rightToLeft = {rightToLeft.selected}&#59;&#xd;myLabelOptions{count}.verticalAlignment = &quot;{verticalAlignment.selectedItem}&quot;&#59;&#xd;myLabelOptions{count}.xoffset = {xoffset.value}&#59;&#xd;myLabelOptions{count}.yoffset = {yoffset.value}&#59;&#xd;&#xd;var myLabelClass{count}:LabelClass = new LabelClass()&#59;&#xd;myLabelClass{count}.labelExpression = &quot;[myLabelExpression]&quot;&#59;&#xd;myLabelClass{count}.labelPlacement = &quot;{labelPlacementString}&quot;&#59;&#xd;{labelMaxScaleCheckBox.selected ? as3MaxScaleString.replace(dollarSignPattern, count) : ''}&#xd;{labelMinScaleCheckBox.selected ? as3MinScaleString.replace(dollarSignPattern, count) : ''}&#xd;myLabelClass{count}.labelOptions = myLabelOptions{count}&#59;</s:text>
+            </s:TextArea>
+        </s:Panel>
+    </s:HGroup>
+</s:Application>

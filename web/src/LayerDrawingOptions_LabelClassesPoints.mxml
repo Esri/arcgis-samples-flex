@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               pageTitle="Example - Dynamic Condition Based Point Labeling">
+    <!--
+    Description:
+    This sample demonstrates how you can use the LabelClass definition expression (where)
+    and scale dependencies (minScale, maxScale) to dynamically generate labels for points at
+    various scales using multiple fields from a given layer in a service.  In this sample,
+    we are labeling the US Census blockgroup points
+    using three specific conditions.
+    Red labels are where population 2000 is less than or equal to 61.
+    Black underlined labels are where population 2000 is greater than 61 and less than or equal to 264.
+    Blue labels are where population 2000 is greater than 264.
+
+    Using conditions (definition expressions, sometimes referred to as where clauses) we will label the points differently.
+    Red labels are where population 2000 is less than or equal to 61.
+    Black underlined labels are where population 2000 is greater than 61 and less than or equal to 264.
+    Blue labels are where population 2000 is greater than 264.
+
+    What we're doing here is specifying our labeling information client-side and sending that information
+    to the server which is generating the map on the fly at runtime.
+
+    NOTE: This is part of the dynamic capabilities of ArcGIS 10.1 for Server, when your service supports dynamic layers.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#labelClasses
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#showLabels
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LabelClass.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LabelOptions.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?label.html
+    http://resources.arcgis.com/en/help/rest/apiref/label.html#placement
+    http://resources.arcgis.com/en/help/rest/apiref/label.html#class
+    http://resources.arcgis.com/en/help/rest/apiref/label.html#info
+
+    ArcGIS for Server documentation:
+    Enabling dynamic layers on a map service in Manager
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//015400000570000000
+
+    This sample also uses the following files:
+    com/esri/ags/samples/components/PrintUsingServerComponent
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import spark.events.IndexChangeEvent;
+
+            protected function labelExpressionDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                var labelID:String = DropDownList(event.currentTarget).id;
+                var labelPlacement:String = DropDownList(event.currentTarget).selectedItem.data;
+
+                labelExpressionOne.labelPlacement = labelPlacement;
+                labelExpressionTwo.labelPlacement = labelPlacement;
+                labelExpressionThree.labelPlacement = labelPlacement;
+                blockGroupPointsLayer.refresh();
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <s:ArrayList id="pointLabelPlacementOptions">
+            <fx:Object data="esriServerPointLabelPlacementAboveCenter" label="Above Center"/>
+            <fx:Object data="esriServerPointLabelPlacementAboveLeft" label="Above Left"/>
+            <fx:Object data="esriServerPointLabelPlacementAboveRight" label="Above Right"/>
+            <fx:Object data="esriServerPointLabelPlacementBelowCenter" label="Below Center"/>
+            <fx:Object data="esriServerPointLabelPlacementBelowLeft" label="Below Left"/>
+            <fx:Object data="esriServerPointLabelPlacementBelowRight" label="Below Right"/>
+            <fx:Object data="esriServerPointLabelPlacementCenterCenter" label="Center"/>
+            <fx:Object data="esriServerPointLabelPlacementCenterLeft" label="Center Left"/>
+            <fx:Object data="esriServerPointLabelPlacementCenterRight" label="Center Right"/>
+        </s:ArrayList>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use the LabelClass definition expression (where)
+            and scale dependencies (minScale, maxScale) to dynamically generate labels for points at
+            various scales using multiple fields from a given layer in a service.  In this sample,
+            we are labeling the US Census blockgroup points
+            using three specific conditions.
+            Red labels are where population 2000 is less than or equal to 61.
+            Black underlined labels are where population 2000 is greater than 61 and less than or equal to 264.
+            Blue labels are where population 2000 is greater than 264.
+            <s:br/>Expressions: (
+            <s:span color="0xFF0000"
+                    fontSize="12"
+                    fontWeight="bold">
+                POP2000 &lt;= 61
+            </s:span>,
+            <s:span color="0x000000"
+                    fontSize="12"
+                    fontWeight="bold">
+                POP2000 &gt; 61 AND POP2000 &lt;= 264
+            </s:span>,
+            <s:span color="0x7299FF"
+                    fontSize="12"
+                    fontWeight="bold">
+                POP2000 &gt; 264
+            </s:span>
+            )
+        </s:RichText>
+        <s:HGroup verticalAlign="baseline">
+            <s:Label text="Point label placement options:"/>
+            <s:DropDownList id="labelExpressionDropDownList"
+                            width="150"
+                            change="labelExpressionDropDownList_changeHandler(event)"
+                            dataProvider="{pointLabelPlacementOptions}"
+                            requireSelection="true"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-13047036" ymin="4035988" xmax="-13045436" ymax="4036826">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="blockGroupPointsLayer" url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayList>
+                    <fx:Number>0</fx:Number>
+                    <!-- Only show the census block points layer -->
+                </s:ArrayList>
+            </esri:visibleLayers>
+            <esri:layerDrawingOptions>
+                <esri:LayerDrawingOptions layerId="0" showLabels="true">
+                    <esri:labelClasses>
+                        <esri:LabelClass id="labelExpressionOne"
+                                         labelExpression="[POP2000]"
+                                         labelPlacement="esriServerPointLabelPlacementAboveCenter"
+                                         minScale="36112"
+                                         where="POP2000 &lt;= 61">
+                            <esri:LabelOptions color="0xFF0000"
+                                               fontSize="11"
+                                               fontStyle="italic"
+                                               fontWeight="bold"
+                                               haloAlpha="1"
+                                               haloColor="0xDCDCDC"
+                                               haloSize="2"/>
+                        </esri:LabelClass>
+                        <esri:LabelClass id="labelExpressionTwo"
+                                         labelExpression="[POP2000]"
+                                         labelPlacement="esriServerPointLabelPlacementAboveCenter"
+                                         minScale="36112"
+                                         where="POP2000 &gt; 61 AND POP2000 &lt;= 264">
+                            <esri:LabelOptions color="0x000000"
+                                               fontDecoration="underline"
+                                               fontSize="13"
+                                               fontWeight="bold"
+                                               haloAlpha="1"
+                                               haloColor="0xDCDCDC"
+                                               haloSize="2"/>
+                        </esri:LabelClass>
+                        <esri:LabelClass id="labelExpressionThree"
+                                         labelExpression="[POP2000]"
+                                         labelPlacement="esriServerPointLabelPlacementAboveCenter"
+                                         minScale="36112"
+                                         where="POP2000 &gt; 264">
+                            <esri:LabelOptions color="0x7299FF"
+                                               fontSize="15"
+                                               fontStyle="oblique"
+                                               fontWeight="bold"
+                                               haloAlpha="1"
+                                               haloColor="0xDCDCDC"
+                                               haloSize="2"/>
+                        </esri:LabelClass>
+
+                    </esri:labelClasses>
+                </esri:LayerDrawingOptions>
+            </esri:layerDrawingOptions>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+    <components:PrintUsingServerComponent right="20" top="20"
+                                          legendLayers="{[blockGroupPointsLayer]}"
+                                          map="{map}"
+                                          title="Printing dynamic point labels"
+                                          url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"/>
+</s:Application>

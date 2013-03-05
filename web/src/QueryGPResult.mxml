@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Chaining Geoprocessor tasks">
+    <!--
+    Description:
+    This sample demonstrates how to send multiple service requests
+    through different tasks supporting advanced analysis workflows.
+    The sample first issues a request to a geoprocessing service to
+    calculate a 2 minute drive time around the click location, and then
+    issues a second request to a census service using the drive time
+    area/polygon from the first request to query the census blocks and
+    calculate the total population.
+
+    1. Click on map to start a DriveTime GP for that point
+    2. When GP completed, draw the drivetimes as well as query for block groups with population data.
+    3. When query completed, sum up the population
+
+    Note:
+    One of the most important things to notice when publishing your geoprocessing service is to notice
+    the "Execution mode" in the parameters setting.  The execution mode will be either
+    "Synchronous" or "Asynchronous".  When a service is set to synchronous, the client waits for the task
+    to finish.  An asynchronous task typically takes longer to execute, and the client must periodically
+    ask the server if the task has finished and, if it has finished, get the result.  In the ArcGIS API for Flex,
+    if your service is "Synchronous" you will call the "gp.execute()" method or "gp.submitJob()" method
+    if your service is "Asynchronous".  Another important item to observe is the parameter names and types, you
+    can find out the name, case-sensitivity, and data type through exploring the service in the ArcGIS REST
+    Services Directory.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ParameterValue.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/gpserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/gptask.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpexecute.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpsubmit.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpjob.html
+
+    ArcGIS for Server documentation:
+    What is a geoprocessing service?
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_geoprocessing_service/0154000004v5000000/
+    A quick tour of authoring and sharing geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/A_quick_tour_of_authoring_and_sharing_geoprocessing_services/01540000054n000000/
+    Essential vocabulary for geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/Essential_vocabulary_for_geoprocessing_services/0154000004v2000000/
+    Geoprocessing service settings: Parameters
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Parameters/01540000054v000000/
+
+    ArcGIS for Desktop documentation:
+    A quick tour of creating custom tools
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//001500000001000000
+    A quick tour of creating tools with ModelBuilder
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_ModelBuilder/00150000001t000000/
+    A quick tour of creating tools with Python
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_Python/00150000002q000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.GeoprocessorEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.events.QueryEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.symbols.SimpleFillSymbol;
+            import com.esri.ags.symbols.SimpleLineSymbol;
+            import com.esri.ags.symbols.SimpleMarkerSymbol;
+            import com.esri.ags.tasks.supportClasses.ParameterValue;
+
+            private var gpPending:Boolean;
+
+            private function onMapClick(event:MapMouseEvent):void
+            {
+                myMap.defaultGraphicsLayer.clear();
+                var mapPoint:MapPoint = event.mapPoint;
+                var graphic:Graphic = new Graphic(mapPoint);
+
+                var featureSet:FeatureSet = new FeatureSet();
+                featureSet.features = [ graphic ];
+                var params:Object =
+                    {
+                        "Input_Location": featureSet,
+                        "Drive_Times": 2
+                    };
+                gp.execute(params);
+                gpPending = true;
+                messages.text = "Calculating 2 minute drive time area (Executing GP Task)...";
+            }
+
+            private function onGPExecuteComplete(event:GeoprocessorEvent):void
+            {
+                gpPending = false;
+                var parameterValue:ParameterValue = event.executeResult.results[0];
+                var fset:FeatureSet = FeatureSet(parameterValue.value);
+                var feature:Graphic = fset.features[0];
+                var symbol:SimpleFillSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, 0xFF0000, 0.1);
+                symbol.outline = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0xFF0000, 1.0, 2);
+                feature.symbol = symbol;
+                myMap.defaultGraphicsLayer.add(feature);
+
+                query.geometry = feature.geometry;
+                queryTask.execute(query);
+                messages.text = "Calculating population within drive time area (Executing Query)...";
+            }
+
+            private function onQueryExecuteComplete(event:QueryEvent):void
+            {
+                if (gpPending)
+                {
+                    return; // a new gp request has been started
+                }
+                var symbol:SimpleMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_SQUARE, 8, 0xFFFF00, 0.5);
+                symbol.outline = new SimpleLineSymbol();
+
+                var fset:FeatureSet = event.featureSet;
+                for each (var graphic:Graphic in fset.features)
+                {
+                    graphic.symbol = symbol;
+                    myMap.defaultGraphicsLayer.add(graphic);
+                }
+                var totalPopulation:Number = sumPopulation(fset);
+                messages.text = "Total population within the drive time area is " + numberFormatter.format(totalPopulation) + ".";
+            }
+
+            private function sumPopulation(fset:FeatureSet):Number
+            {
+                var features:Array = fset.features;
+                var popTotal:Number = 0;
+                for each (var graphic:Graphic in features)
+                {
+                    popTotal += graphic.attributes.POP2000;
+                }
+                return popTotal;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Geoprocessor id="gp"
+                           concurrency="last"
+                           executeComplete="onGPExecuteComplete(event)"
+                           outSpatialReference="{myMap.spatialReference}"
+                           showBusyCursor="true"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Network/ESRI_DriveTime_US/GPServer/CreateDriveTimePolygons"
+                           useAMF="false"/>
+
+        <esri:QueryTask id="queryTask"
+                        concurrency="last"
+                        executeComplete="onQueryExecuteComplete(event)"
+                        showBusyCursor="true"
+                        url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/0"
+                        useAMF="false"/>
+
+        <esri:Query id="query"
+                    outSpatialReference="{myMap.spatialReference}"
+                    returnGeometry="true">
+            <esri:outFields>
+                <fx:String>POP2000</fx:String>
+                <fx:String>HOUSEHOLDS</fx:String>
+                <fx:String>HSE_UNITS</fx:String>
+                <fx:String>TRACT</fx:String>
+                <fx:String>BLOCK</fx:String>
+            </esri:outFields>
+        </esri:Query>
+        <s:NumberFormatter id="numberFormatter"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to send multiple service requests
+            through different tasks supporting advanced analysis workflows.
+            The sample first issues a request to a geoprocessing service to
+            calculate a 2 minute drive time around the click location, and then
+            issues a second request to a census service using the drive time
+            area/polygon from the first request to query the census blocks and
+            calculate the total population. Click the map to begin.
+        </s:RichText>
+        <s:Label id="messages"
+                 width="100%"
+                 fontWeight="bold"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" mapClick="onMapClick(event)">
+        <esri:extent>
+            <esri:Extent xmin="-10605000" ymin="4712000" xmax="-10601000" ymax="4718000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>

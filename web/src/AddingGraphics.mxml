@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Adding graphics using MXML and/or ActionScript">
+    <!--
+    Description:
+    This sample demonstrates adding graphics to the map using either MXML or ActionScript.
+    Simple marker symbols, picture marker symbols, simple line symbols, simple fill symbols, and picture fill symbols are shown.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polyline.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polygon.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/PictureMarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleFillSymbol.html
+    -->
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center"/>
+    </s:layout>
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.symbols.PictureMarkerSymbol;
+
+            private function addSomeMarkers():void
+            {
+                // This is just to show how to add markers
+                // using ActionScript code as opposed to MXML tags.
+                var myGraphicMarker:Graphic = new Graphic(new MapPoint(1447100, 7477200, new SpatialReference(102100)),
+                                                          new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_DIAMOND, 22, 0x009933));
+                myGraphicMarker.toolTip = "Marker added with ActionScript";
+                myGraphicsLayer.add(myGraphicMarker);
+
+                // PictureMarker - embedded image
+                [Embed(source='assets/globe_icon.png')]
+                var picEmbeddedClass:Class;
+                var pictureMarker:PictureMarkerSymbol = new PictureMarkerSymbol(picEmbeddedClass);
+
+                var myGraphicPic:Graphic = new Graphic(new MapPoint(-411000, 4924000, new SpatialReference(102100)));
+                myGraphicPic.symbol = pictureMarker;
+                myGraphicsLayer.add(myGraphicPic);
+
+                var myPolyline:Polyline = new Polyline(
+                    [[
+                     new MapPoint(-1726185, 9543036),
+                     new MapPoint(34923, 6920940),
+                     new MapPoint(1874303, 6255632),
+                     new MapPoint(1835168, 6255632),
+                     new MapPoint(1913439, 6138225)
+                     ]], new SpatialReference(102100));
+                var myGraphicLine:Graphic = new Graphic(myPolyline);
+                myGraphicLine.symbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, 0xDD2222, 1.0, 4)
+                myGraphicsLayer.add(myGraphicLine);
+
+                var myPolygon:Polygon = new Polygon(
+                    [[
+                     new MapPoint(2352491, -1992338),
+                     new MapPoint(2332923, -2461967),
+                     new MapPoint(2646009, -2266288),
+                     new MapPoint(3076503, -2324992),
+                     new MapPoint(3272181, -2520670),
+                     new MapPoint(3506996, -2559806),
+                     new MapPoint(3702675, -3049003),
+                     new MapPoint(3370021, -3675175),
+                     new MapPoint(2763416, -4046965),
+                     new MapPoint(2117676, -4144804),
+                     new MapPoint(1961133, -3890422),
+                     new MapPoint(2000269, -3655607),
+                     new MapPoint(1667615, -3185978),
+                     new MapPoint(1550208, -2422831),
+                     new MapPoint(1334961, -1953202),
+                     new MapPoint(2352491, -1992338)
+                     ]], new SpatialReference(102100));
+                var myGraphicPolygon:Graphic = new Graphic();
+                myGraphicPolygon.geometry = myPolygon;
+                myGraphicPolygon.symbol = new SimpleFillSymbol(
+                    SimpleFillSymbol.STYLE_SOLID, // fill style
+                    0xFF0000, // fill color
+                    0.7 // fill alpha
+                    );
+                myGraphicPolygon.toolTip = "Polygon added with ActionScript";
+                myGraphicsLayer.add(myGraphicPolygon);
+                btn.enabled = false;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates adding graphics to the map using either MXML or ActionScript.
+            Simple marker symbols, picture marker symbols, simple line symbols, simple fill symbols, and picture fill symbols are shown.
+        </s:RichText>
+        <s:Button id="btn"
+                  click="addSomeMarkers()"
+                  label="Add some more markers using ActionScript"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              level="2"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer">
+            <esri:Graphic toolTip="California MapPoint with a SimpleMarkerSymbol">
+                <esri:geometry>
+                    <esri:MapPoint x="-13163000" y="4035000"
+                                   spatialReference="{new SpatialReference(102100)}"/>
+                </esri:geometry>
+                <esri:symbol>
+                    <esri:SimpleMarkerSymbol color="0x0033DD" size="18"/>
+                </esri:symbol>
+            </esri:Graphic>
+            <esri:Graphic toolTip="Hurricane polyline with a SimpleLineSymbol">
+                <esri:geometry>
+                    <esri:Polyline spatialReference="{new SpatialReference(102100)}">
+                        <fx:Array>
+                            <fx:Array>
+                                <esri:MapPoint x="-4700503" y="1128848"/>
+                                <esri:MapPoint x="-7909635" y="2819513"/>
+                                <esri:MapPoint x="-8144450" y="4199048"/>
+                                <esri:MapPoint x="-7244327" y="5261584"/>
+                            </fx:Array>
+                        </fx:Array>
+                    </esri:Polyline>
+                </esri:geometry>
+                <esri:symbol>
+                    <esri:SimpleLineSymbol width="6" color="0xFF0000"/>
+                </esri:symbol>
+            </esri:Graphic>
+            <esri:Graphic toolTip="Brazilian polygon with a SimpleFillSymbol">
+                <esri:geometry>
+                    <esri:Polygon spatialReference="{new SpatialReference(102100)}">
+                        <fx:Array>
+                            <fx:Array>
+                                <esri:MapPoint x="-3867905" y="-671044"/>
+                                <esri:MapPoint x="-4533702" y="-2578326"/>
+                                <esri:MapPoint x="-5316417" y="-2832708"/>
+                                <esri:MapPoint x="-5844750" y="-3869806"/>
+                                <esri:MapPoint x="-6333947" y="-3498016"/>
+                                <esri:MapPoint x="-6412218" y="-1942370"/>
+                                <esri:MapPoint x="-8211974" y="-954779"/>
+                                <esri:MapPoint x="-7703209" y="229077"/>
+                                <esri:MapPoint x="-5736637" y="454597"/>
+                                <esri:MapPoint x="-3867905" y="-671044"/>
+                            </fx:Array>
+                        </fx:Array>
+                    </esri:Polygon>
+                </esri:geometry>
+                <esri:symbol>
+                    <esri:SimpleFillSymbol alpha="0.7" color="0x009933"/>
+                </esri:symbol>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+</s:Application>
+
+<!--
+     Symbols can be set using the symbol property of the Graphic (see the first examples),
+     or inside the symbol child of the Graphic (see the latter examples).
+-->

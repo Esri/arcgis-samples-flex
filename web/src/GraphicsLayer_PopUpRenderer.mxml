@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="createPopupRenderer_initializeHandler(event)"
+               pageTitle="Displaying PopUps programmatically">
+    <!--
+    Description:
+    This sample demonstrates how to use the ContentNavigator and
+    PopUpRenderer classes to interact with graphics that have
+    been added to a graphics layer after a query has been issued using
+    a query task.  Click on the map to see a state's details using the
+    PopUpRenderer configuration or click a state from the list below to
+    see the ContentNavigator.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#style:infoWindowRendererHighlightColor
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#style:headerBackgroundAlpha
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#style:backgroundAlpha
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#infoWindowRenderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/PopUpRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PopUpFieldFormat.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PopUpFieldInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PopUpInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleFillSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GraphicUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/core/ClassFactory.html
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+        @namespace s "library://ns.adobe.com/flex/spark";
+        esri|ContentNavigator
+        {
+            headerBackgroundAlpha: 0;
+        }
+
+        esri|InfoWindow
+        {
+            border-thickness: 1;
+            borderColor: #666666;
+            background-color: #D3D1D1;
+            backgroundAlpha: 1;
+            font-size: 16;
+            upper-left-radius: 5;
+            upper-right-radius: 0;
+            info-placement: top;
+            info-offset-y: 20;
+            shadowAlpha: 0.6;
+            shadowDistance: 10;
+        }
+
+        s|Label
+        {
+            color: #666666;
+        }
+
+        s|List
+        {
+            selectionColor: #EEEEEE;
+            focusColor: #D3D1D1;
+            borderColor: #D3D1D1;
+            rollOverColor: #EEEEEE;
+        }
+
+        s|RichEditableText
+        {
+            color: #666666;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.components.ContentNavigator;
+            import com.esri.ags.events.QueryEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.portal.PopUpRenderer;
+            import com.esri.ags.portal.supportClasses.PopUpFieldFormat;
+            import com.esri.ags.portal.supportClasses.PopUpFieldInfo;
+            import com.esri.ags.portal.supportClasses.PopUpInfo;
+            import com.esri.ags.utils.GraphicUtil;
+
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            private var contentNavigator:ContentNavigator = new ContentNavigator();
+
+            protected function createPopupRenderer_initializeHandler(event:FlexEvent):void
+            {
+                // Create the pop-up field infos for each field you want in the pop-up
+                var field1:PopUpFieldInfo = new PopUpFieldInfo();
+                field1.fieldName = "MED_AGE";
+                field1.label = "Median Age: ";
+                field1.visible = true;
+
+                var field2:PopUpFieldInfo = new PopUpFieldInfo();
+                field2.fieldName = "POP2007";
+                field2.format = new PopUpFieldFormat();
+                field2.label = "Population: ";
+                field2.visible = true;
+
+                // Create the pop-up info
+                var popUpInfo:PopUpInfo = new PopUpInfo();
+                // Tell the pop-up info about the field name template
+                popUpInfo.title = "{STATE_NAME}";
+                popUpInfo.popUpFieldInfos = [ field1, field2 ];
+                popUpInfo.showZoomToButton = false;
+
+                // Create the class factory
+                var popUpRenderer:ClassFactory = new ClassFactory(PopUpRenderer);
+                // Set the "popUpInfo" key
+                popUpRenderer.properties = { "popUpInfo": popUpInfo };
+
+                // Set the info window renderer to use the pop-up renderer
+                statesGraphicsLayer.infoWindowRenderer = popUpRenderer;
+            }
+
+            protected function queryTask_executeCompleteHandler(event:QueryEvent):void
+            {
+                if (event.featureSet.features)
+                {
+                    statesGraphicsLayer.graphicProvider = event.featureSet.features;
+                    statesList.dataProvider = new ArrayList(event.featureSet.features);
+                    map.extent = GraphicUtil.getGraphicsExtent(event.featureSet.features);
+                }
+            }
+
+            protected function esriService_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+            }
+
+            protected function statesList_changeHandler(event:IndexChangeEvent):void
+            {
+                // Get the current graphic from the selectedItem in the List
+                var currentGraphic:Graphic = List(event.currentTarget).selectedItem as Graphic;
+                /* Get the raw extent center for the polygon feature, this won't be pretty for
+                 * Florida and Hawaii but that's not the point of this sample.  You could
+                 * use the GeometryServivce to find the label point, see the
+                 * "Better label placements" sample.
+                */
+                var mapPoint:MapPoint = currentGraphic.geometry.extent.center;
+                /* Populate the content navigator with the graphic, in other use
+                 * cases this could be many graphics that you might want to display
+                 * in the ContentNavigator.
+                */
+                contentNavigator.dataProvider = new ArrayList([ currentGraphic ]);
+                // Put the ContentNavigator in the info window.
+                map.infoWindowContent = contentNavigator;
+                map.zoomTo(currentGraphic.geometry);
+                map.infoWindow.show(mapPoint);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:Query id="query"
+                    orderByFields="STATE_NAME"
+                    outFields="[STATE_NAME,POP2007,MED_AGE]"
+                    outSpatialReference="{map.spatialReference}"
+                    returnGeometry="true"
+                    where="1=1"/>
+        <esri:QueryTask id="queryTask"
+                        executeComplete="queryTask_executeCompleteHandler(event)"
+                        fault="esriService_faultHandler(event)"
+                        showBusyCursor="true"
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/3"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the ContentNavigator and
+            PopUpRenderer classes to interact with graphics that have
+            been added to a graphics layer after a query has been issued using
+            a query task.  Click on the map to see a state's details using the
+            PopUpRenderer configuration or click a state from the list below to
+            see the ContentNavigator.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <!-- Set infoWindowRendererHighlightColor to Not a Number (NaN) to disable highlight color -->
+    <esri:Map id="map"
+              infoWindowRendererHighlightColor="NaN"
+              load="queryTask.execute(query)"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+        <esri:GraphicsLayer id="statesGraphicsLayer">
+            <esri:symbol>
+                <esri:SimpleFillSymbol style="null">
+                    <esri:SimpleLineSymbol width="3" color="0x999999"/>
+                </esri:SimpleFillSymbol>
+            </esri:symbol>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+    <s:Group width="200" height="170"
+             right="20" top="20">
+        <s:Rect left="0" right="0" top="0" bottom="0"
+                radiusX="5"
+                radiusY="5">
+            <s:fill>
+                <s:SolidColor color="0xD3D1D1"/>
+            </s:fill>
+        </s:Rect>
+        <s:Rect left="4" right="4" top="4" bottom="4"
+                radiusX="5"
+                radiusY="5">
+            <s:fill>
+                <s:SolidColor color="0xEEEEEE"/>
+            </s:fill>
+        </s:Rect>
+        <s:VGroup width="100%" height="100%"
+                  paddingBottom="10"
+                  paddingLeft="10"
+                  paddingRight="10"
+                  paddingTop="10"
+                  verticalAlign="middle">
+            <s:Label fontSize="16" text="States"/>
+            <!--
+                When we click on the item, which is an API Graphic object
+                fire the change event so we can get the graphic.
+            -->
+            <s:List id="statesList"
+                    width="100%" height="90%"
+                    change="statesList_changeHandler(event)">
+                <s:itemRenderer>
+                    <fx:Component>
+                        <s:ItemRenderer>
+                            <s:states>
+                                <s:State name="normal"/>
+                                <s:State name="hovered"/>
+                                <s:State name="selected"/>
+                            </s:states>
+                            <s:Label height="20"
+                                     left="5"
+                                     fontWeight.selected="bold"
+                                     text="{data.attributes.STATE_NAME}"
+                                     verticalAlign="middle"/>
+                        </s:ItemRenderer>
+                    </fx:Component>
+                </s:itemRenderer>
+            </s:List>
+        </s:VGroup>
+    </s:Group>
+</s:Application>

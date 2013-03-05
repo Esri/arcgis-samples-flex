@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using the DrawTool">
+    <!--
+    Description:
+    This sample demonstrates how you can use the DrawTool to easily sketch user defined input such as
+    a Graphic that a user of your application might draw around an area of interest.
+
+    The DrawTool can be used to draw new features which can then either be used as input for a task or
+    saved as new features in a feature service (using FeatureLayer.applyEdits).
+    Use the EditTool to edit existing geometries. The Editor component combines both these tools
+    for an easy user experience.
+
+    Note:
+    If you copy and paste this sample code into your own project in your IDE, you will need to also
+    make sure to copy the assets (images) used in the draw toolbar or you will need to fix the compile errors.
+    Your project should have a subfolder named 'assets' and the following assets should be pasted
+    into this folder (you can obtain the images from the API samples download).
+    i_draw_point.png, i_draw_line.png, i_draw_freeline.png, i_draw_poly.png, i_draw_freepoly.png
+    i_draw_rect.png, i_draw_circle.png, i_draw_ellipse.png
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    -->
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        mx|ToolTip
+        {
+            font-size: 14;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.DrawEvent;
+
+            import mx.events.ItemClickEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            protected function tbb_itemClickHandler(event:ItemClickEvent):void
+            {
+                if (tbb.selectedIndex < 0)
+                {
+                    // when toggling a tool off, deactivate it
+                    myDrawTool.deactivate();
+                }
+                else
+                {
+                    switch (event.item.label)
+                    {
+                        case "MAPPOINT":
+                        {
+                            myDrawTool.activate(DrawTool.MAPPOINT);
+                            break;
+                        }
+                        /* case "MULTIPOINT":
+                           myDrawTool.activate(DrawTool.MULTIPOINT);
+                         break; */
+                        /* case "Single Line":
+                           myDrawTool.activate(DrawTool.LINE);
+                         break; */
+                        case "POLYLINE":
+                        {
+                            myDrawTool.activate(DrawTool.POLYLINE);
+                            break;
+                        }
+                        case "FREEHAND_POLYLINE":
+                        {
+                            myDrawTool.activate(DrawTool.FREEHAND_POLYLINE);
+                            break;
+                        }
+                        case "POLYGON":
+                        {
+                            myDrawTool.activate(DrawTool.POLYGON);
+                            break;
+                        }
+                        case "FREEHAND_POLYGON":
+                        {
+                            myDrawTool.activate(DrawTool.FREEHAND_POLYGON);
+                            break;
+                        }
+                        case "EXTENT":
+                        {
+                            myDrawTool.activate(DrawTool.EXTENT);
+                            break;
+                        }
+                        case "CIRCLE":
+                        {
+                            myDrawTool.activate(DrawTool.CIRCLE);
+                            break;
+                        }
+                        case "ELLIPSE":
+                        {
+                            myDrawTool.activate(DrawTool.ELLIPSE);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            protected function drawTool_drawEndHandler(event:DrawEvent):void
+            {
+                // reset after finished drawing a feature
+                myDrawTool.deactivate();
+                tbb.selectedIndex = -1;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Symbol for all point shapes -->
+        <esri:SimpleMarkerSymbol id="sms"
+                                 color="0x00FF00"
+                                 size="12"
+                                 style="square"/>
+
+        <!-- Symbol for all line shapes -->
+        <esri:SimpleLineSymbol id="sls"
+                               width="3"
+                               color="0x00FF00"/>
+
+        <!-- Symbol for all polygon shapes -->
+        <esri:SimpleFillSymbol id="sfs"
+                               color="0xFFFFFF"
+                               style="diagonalcross">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="2" color="0x00FF00"/>
+            </esri:outline>
+        </esri:SimpleFillSymbol>
+
+        <esri:DrawTool id="myDrawTool"
+                       drawEnd="drawTool_drawEndHandler(event)"
+                       fillSymbol="{sfs}"
+                       graphicsLayer="{myGraphicsLayer}"
+                       lineSymbol="{sls}"
+                       map="{myMap}"
+                       markerSymbol="{sms}"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use the DrawTool to easily sketch user defined input such as
+            a Graphic that a user of your application might draw around an area of interest.
+            The DrawTool can be used to draw new features which can then either be used as input for a task or
+            saved as new features in a feature service (using FeatureLayer.applyEdits).
+            Use the EditTool to edit existing geometries. The Editor component combines both these tools
+            for an easy user experience.
+        </s:RichText>
+        <s:HGroup width="100%" horizontalAlign="center">
+            <mx:ToggleButtonBar id="tbb"
+                                itemClick="tbb_itemClickHandler(event)"
+                                labelField="null"
+                                selectedIndex="-1"
+                                toggleOnClick="true">
+                <fx:Object icon="@Embed(source='assets/i_draw_point.png')" label="MAPPOINT"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_line.png')" label="POLYLINE"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_freeline.png')" label="FREEHAND_POLYLINE"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_poly.png')" label="POLYGON"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_freepoly.png')" label="FREEHAND_POLYGON"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_rect.png')" label="EXTENT"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_circle.png')" label="CIRCLE"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_ellipse.png')" label="ELLIPSE"/>
+            </mx:ToggleButtonBar>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              level="3"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+
+</s:Application>

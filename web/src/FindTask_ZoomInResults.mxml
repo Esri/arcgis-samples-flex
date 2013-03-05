@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="0xCECECE"
+               pageTitle="Find features in Map Layers, then zoom in">
+    <!--
+    Description:
+    This sample demonstrates how to use the FindTask to search for features
+    in a specific layer in a map service based upon a string value.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/FindTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/FindParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/FindTask.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FindEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FindEvent.html#findResults
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?find.html
+    -->
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.FindEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.tasks.supportClasses.FindResult;
+            import com.esri.ags.utils.GraphicUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+
+            private function doFind():void
+            {
+                findTask.execute(myFindParams);
+            }
+
+            private function executeCompleteHandler(event:FindEvent):void
+            {
+                myGraphicsLayer.clear();
+
+                resultSummary.text = "Found " + event.findResults.length + " results.";
+                myGraphicsLayer.symbol = sfsFind;
+
+                var resultCount:int = event.findResults.length;
+
+                if (resultCount == 0)
+                {
+                    Alert.show("No states found. Please change your search.");
+                }
+                else
+                {
+                    // add feature as graphic to graphics layer
+                    for (var i:int = 0; i < resultCount; i++)
+                    {
+                        var graphic:Graphic = FindResult(event.findResults[i]).feature;
+                        graphic.toolTip = event.findResults[i].foundFieldName + ": " + event.findResults[i].value;
+                        myGraphicsLayer.add(graphic);
+                    }
+
+                    // zoom to extent of all features
+                    var graphicProvider:ArrayCollection = myGraphicsLayer.graphicProvider as ArrayCollection;
+                    var graphicsExtent:Extent = GraphicUtil.getGraphicsExtent(graphicProvider.toArray());
+                    map.extent = graphicsExtent.expand(1.4); // zoom out a little
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Symbol for Find Result as Polygon -->
+        <esri:SimpleFillSymbol id="sfsFind" alpha="0.7"/>
+
+        <!-- Find Task -->
+        <esri:FindTask id="findTask"
+                       executeComplete="executeCompleteHandler(event)"
+                       url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer"/>
+
+        <esri:FindParameters id="myFindParams"
+                             contains="true"
+                             layerIds="[3]"
+                             outSpatialReference="{map.spatialReference}"
+                             returnGeometry="true"
+                             searchFields="[STATE_ABBR,STATE_NAME]"
+                             searchText="{fText.text}"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the FindTask to search for features
+            in a specific layer in a map service based upon a string value.
+        </s:RichText>
+        <s:HGroup width="100%"
+                  horizontalAlign="center"
+                  verticalAlign="middle">
+            <s:Label text="Search for names of States"/>
+            <s:TextInput id="fText"
+                         enter="doFind()"
+                         maxWidth="400"
+                         text="NEW"/>
+            <s:Button click="doFind()" label="Find"/>
+            <s:Label id="resultSummary" height="15"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-125.34967" ymin="25.42261" xmax="-66.46295" ymax="49.51035">
+                <esri:SpatialReference wkid="4326"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer" visibleLayers="{new ArrayList([3])}"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+    <s:DataGrid width="100%" height="40%"
+                dataProvider="{new ArrayCollection(findTask.executeLastResult)}">
+        <s:columns>
+            <s:ArrayList>
+                <s:GridColumn width="70"
+                              dataField="layerId"
+                              headerText="Layer ID"/>
+                <s:GridColumn dataField="layerName" headerText="Layer Name"/>
+                <s:GridColumn dataField="foundFieldName" headerText="Found Field Name"/>
+                <s:GridColumn dataField="value" headerText="Found Field Value"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+
+</s:Application>

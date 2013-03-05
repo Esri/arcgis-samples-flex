@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:mx="library://ns.adobe.com/flex/mx"
+        minWidth="200">
+
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.components.ScaleBar")]
+    </fx:Metadata>
+
+    <fx:Script>
+        <![CDATA[
+            /**
+             * Here we override the measure method and adjust the position of parts
+             * _before_ we call the super.measure that will define the width and height based on the newly
+             * position.
+             */
+            [Bindable]
+            private var barLength:Number = 0;
+
+            [Bindable]
+            private var barHeight:Number = 5;
+
+            private var useMetric:Boolean = false; //use it to toggle between metric and US units
+
+            override protected function measure():void
+            {
+                barLength = useMetric == false ? hostComponent.lengthUS : hostComponent.lengthMetric;
+                scaleLbl.text = useMetric == false ? hostComponent.textUS : hostComponent.textMetric;
+                scaleLbl.x = barLength + 3;
+                scaleLbl.y = -(scaleLbl.getExplicitOrMeasuredHeight() / 4);
+
+                super.measure();
+            }
+        ]]>
+    </fx:Script>
+
+    <s:Label id="scaleLbl"
+             fontFamily="Verdana"
+             fontSize="10"
+             fontWeight="bold"/>
+
+    <s:Rect id="baseRect"
+            x="0.5" width="{barLength}" height="{barHeight}">
+        <s:fill>
+            <s:SolidColor color="#ee0202"/>
+        </s:fill>
+    </s:Rect>
+    <s:Rect x="{baseRect.width/4}" width="{baseRect.width/4}" height="{barHeight}">
+        <s:fill>
+            <s:SolidColor color="#009cff"/>
+        </s:fill>
+    </s:Rect>
+    <s:Rect x="{(baseRect.width/4)*3}" width="{baseRect.width/4}" height="{barHeight}">
+        <s:fill>
+            <s:SolidColor color="#009cff"/>
+        </s:fill>
+    </s:Rect>
+
+</s:Skin>
+

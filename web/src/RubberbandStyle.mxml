@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Styling the rubberband">
+    <!--
+    Description:
+    This sample demonstrates how you can change the default symbol of the
+    zoom rectangle that appears when you press Shift while clicking and
+    dragging the mouse.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#style:rubberbandFillAlpha
+    -->
+
+    <fx:Style>
+        .myRubberbandMapStyle
+        {
+            rubberband-fill-alpha: 0.2;     /* default is 0.5 */
+            rubberband-fill-color: #FFFF00; /* default is #000000 (black) */
+            rubberband-fill-style: inside;  /* default is "outside" - possible values are "inside" or "outside" */
+            rubberband-line-alpha: 0.6;     /* default is 1.0 */
+            rubberband-line-color: yellow;  /* default is #FF0000 (red) */
+            rubberband-line-width: 5;       /* default is 2 */
+        }
+    </fx:Style>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can change the default symbol of the
+            zoom rectangle that appears when you press Shift while clicking and
+            dragging the mouse.
+            Press shift while dragging the mouse to show the zoom rectangle.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map level="3" styleName="myRubberbandMapStyle">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>

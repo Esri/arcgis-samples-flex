@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:samples="com.esri.ags.samples.*"
+               backgroundColor="0xEEEEEE"
+               pageTitle="Turning individual layers on/off for an ArcIMS map service">
+    <!--
+    Description:
+    This sample allows end-users to easily turn on/off layers for any ArcIMS service.
+    By default, the visible layers (as defined in the service) are used.
+
+    In this example, a datagrid (LayerTOC) with checkboxes for every layer in
+    the current service is displayed.  The datagrid itemrenderer (LayerVizRenderer)
+    will update the map service as users selects/clears checkboxes.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcIMSMapServiceLayer.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/LayerTOC.mxml
+    com/esri/ags/samples/LayerVizRenderer.mxml
+    -->
+
+    <s:layout>
+        <s:HorizontalLayout/>
+    </s:layout>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample allows you to select an ArcIMS service and toggle its layers on and off through a custom Table of Contents component.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:ArcIMSMapServiceLayer id="myArcIMS"
+                                    load="myArcIMS.visibleLayers = null"
+                                    serviceHost="http://www.geographynetwork.com"
+                                    serviceName="{gnServiceName.selectedItem}"/>
+        <esri:extent>
+            <esri:Extent xmin="-126.12728" ymin="27.48662" xmax="-67.24056" ymax="50.98456">
+                <esri:SpatialReference wkid="4326"/>
+            </esri:Extent>
+        </esri:extent>
+    </esri:Map>
+    <s:VGroup width="260" height="100%"
+              paddingBottom="5"
+              paddingRight="5"
+              paddingTop="5">
+        <s:Label fontWeight="bold" text="Service: {myArcIMS.serviceName}"/>
+        <s:DropDownList id="gnServiceName"
+                        width="100%"
+                        requireSelection="true"
+                        selectedIndex="8">
+            <s:ArrayList>
+                <fx:String>Atlas_Aquifers</fx:String>
+                <fx:String>Atlas_Dams</fx:String>
+                <fx:String>Atlas_Fedlands</fx:String>
+                <fx:String>Atlas_Precipitation</fx:String>
+                <fx:String>Atlas_Watersheds</fx:String>
+                <fx:String>Census_Density</fx:String>
+                <fx:String>Census_Diversity</fx:String>
+                <fx:String>Census_Population</fx:String>
+                <fx:String>Census_TIGER2000</fx:String>
+                <fx:String>ESRI_Landuse</fx:String>
+                <fx:String>ESRI_Snow</fx:String>
+                <fx:String>ESRI_Soil</fx:String>
+                <fx:String>ESRI_Temp_Yr</fx:String>
+                <fx:String>ESRI_Veg</fx:String>
+                <fx:String>UCSB_MAD</fx:String>
+            </s:ArrayList>
+        </s:DropDownList>
+        <samples:LayerTOC mapLayer="{myArcIMS}"/>
+    </s:VGroup>
+
+</s:Application>

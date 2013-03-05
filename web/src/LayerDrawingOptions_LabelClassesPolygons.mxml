@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               pageTitle="Example - Dynamic Scale Dependent Polygon Labeling">
+    <!--
+    Description:
+    This sample demonstrates how you can use the LabelClass with expressions (labelExpression)
+    and scale dependencies (minScale, maxScale) to dynamically generate labels for polygons at
+    various scales using multiple fields from a given layer in a service.
+    In this sample you can change the initial labeling of the polygons by selecting a new option in the drop down list.
+    If you would like to see more advanced labeling, select one of the buttons below ('Multiple Fields' or 'Advanced').
+
+    What we're doing here is specifying our labeling information client-side and sending that information
+    to the server which is generating the map on the fly at runtime.
+
+    NOTE: This is part of the dynamic capabilities of ArcGIS 10.1 for Server, when your service supports dynamic layers.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#labelClasses
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#showLabels
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LabelClass.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LabelOptions.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?label.html
+    http://resources.arcgis.com/en/help/rest/apiref/label.html#placement
+    http://resources.arcgis.com/en/help/rest/apiref/label.html#class
+    http://resources.arcgis.com/en/help/rest/apiref/label.html#info
+
+    ArcGIS for Server documentation:
+    Enabling dynamic layers on a map service in Manager
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//015400000570000000
+
+    This sample also uses the following files:
+    com/esri/ags/samples/components/PrintUsingServerComponent
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import spark.events.IndexChangeEvent;
+
+            [Bindable]
+            private var firstLabelExpression:String = '"Renter Occupancy: " CONCAT [RENTER_OCC] CONCAT NEWLINE CONCAT [STATE_NAME]';
+
+            [Bindable]
+            private var secondLabelExpression:String = '[STATE_NAME] CONCAT NEWLINE CONCAT "Renter Occupancy: " CONCAT [RENTER_OCC] CONCAT NEWLINE CONCAT "Population: " CONCAT [POP2007] CONCAT NEWLINE CONCAT "Over 65: " CONCAT [AGE_65_UP]';
+
+            protected function labelExpressionDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                if (map.extent !== startExtent)
+                {
+                    map.extent = startExtent;
+                }
+                initialLabelExpression.labelExpression = '[' + DropDownList(event.currentTarget).selectedItem.data + ']';
+                demographicsLayer.refresh();
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Extent id="startExtent"
+                     xmin="-16971000" ymin="615000" xmax="-4448000" ymax="8110000">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+        <!-- "The Bizzniss" colors courtesy of http://kuler.adobe.com -->
+        <esri:SimpleFillSymbol id="sfs0"
+                               alpha="0.7"
+                               color="0x74C0CF"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs1"
+                               alpha="0.7"
+                               color="0x4FA9B8"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs2"
+                               alpha="0.7"
+                               color="0xF1F7E2"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs3"
+                               alpha="0.7"
+                               color="0x202B30"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs4"
+                               alpha="0.7"
+                               color="0x4E7178"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleLineSymbol id="sfsOutline"
+                               alpha="0.1"
+                               color="0x1C272C"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use the LabelClass with expressions (labelExpression)
+            and scale dependencies (minScale, maxScale) to dynamically generate labels for polygons at
+            various scales using multiple fields from a given layer in a service.
+            In this sample you can change the initial labeling of the polygons by selecting a new option in the drop down list.
+            If you would like to see more advanced labeling, select one of the buttons below ('Multiple Fields' or 'Advanced').
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label fontSize="13" text="States label:"/>
+            <s:DropDownList width="150"
+                            change="labelExpressionDropDownList_changeHandler(event)"
+                            requireSelection="true">
+                <s:ArrayList>
+                    <fx:Object data="RENTER_OCC" label="Renter Occupancy"/>
+                    <fx:Object data="STATE_ABBR" label="State Abbreviation"/>
+                    <fx:Object data="STATE_FIPS" label="State FIPS"/>
+                </s:ArrayList>
+            </s:DropDownList>
+            <s:Spacer width="100%"/>
+            <s:Button buttonMode="true"
+                      click="{map.scale = 9244649}"
+                      label="Label (Multiple Fields)"/>
+            <s:Button buttonMode="true"
+                      click="{map.scale = 4244648}"
+                      label="Label (Advanced)"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map" extent="{startExtent}">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="demographicsLayer" url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayList>
+                    <!-- Only show the states layer -->
+                    <fx:Number>3</fx:Number>
+                </s:ArrayList>
+            </esri:visibleLayers>
+            <esri:layerDrawingOptions>
+                <!-- Layer drawing options for the states layer -->
+                <esri:LayerDrawingOptions layerId="3" showLabels="true">
+                    <esri:ClassBreaksRenderer field="RENTER_OCC">
+                        <esri:ClassBreakInfo label="58,094 to 216,867"
+                                             maxValue="216867"
+                                             minValue="58094"
+                                             symbol="{sfs0}"/>
+                        <esri:ClassBreakInfo label="216,868 to 607,771"
+                                             maxValue="607771"
+                                             minValue="216868"
+                                             symbol="{sfs1}"/>
+                        <esri:ClassBreakInfo label="607,772 to 1,053,172"
+                                             maxValue="1053172"
+                                             minValue="607772"
+                                             symbol="{sfs2}"/>
+                        <esri:ClassBreakInfo label="1,053,173 to 2,676,395"
+                                             maxValue="2676395"
+                                             minValue="1053173"
+                                             symbol="{sfs3}"/>
+                        <esri:ClassBreakInfo label="2,676,396 to 4,956,536"
+                                             maxValue="4956536"
+                                             minValue="2676396"
+                                             symbol="{sfs4}"/>
+                    </esri:ClassBreaksRenderer>
+                    <esri:labelClasses>
+                        <esri:LabelClass id="initialLabelExpression"
+                                         labelExpression="[RENTER_OCC]"
+                                         labelPlacement="esriServerPolygonPlacementAlwaysHorizontal"
+                                         maxScale="18489298">
+                            <esri:LabelOptions haloColor="0xFFFFFF" haloSize="2"/>
+                        </esri:LabelClass>
+                        <esri:LabelClass labelExpression="{firstLabelExpression}"
+                                         labelPlacement="esriServerPolygonPlacementAlwaysHorizontal"
+                                         maxScale="9244649"
+                                         minScale="18489298">
+                            <esri:LabelOptions fontSize="14"
+                                               fontWeight="bold"
+                                               haloColor="0xFFFFFF"
+                                               haloSize="2"/>
+                        </esri:LabelClass>
+                        <esri:LabelClass labelExpression="{secondLabelExpression}"
+                                         labelPlacement="esriServerPolygonPlacementAlwaysHorizontal"
+                                         minScale="9244648">
+                            <esri:LabelOptions fontSize="18"
+                                               fontWeight="bold"
+                                               haloColor="0xFFFFFF"
+                                               haloSize="2"/>
+                        </esri:LabelClass>
+                    </esri:labelClasses>
+                </esri:LayerDrawingOptions>
+            </esri:layerDrawingOptions>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+    <components:PrintUsingServerComponent right="20" top="20"
+                                          legendLayers="{[demographicsLayer]}"
+                                          map="{map}"
+                                          title="Printing dynamic polygon labels"
+                                          url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"/>
+</s:Application>

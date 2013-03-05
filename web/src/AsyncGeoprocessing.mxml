@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               pageTitle="Asynchronous Geoprocessing Task">
+    <!--
+    Description:
+    This sample demonstrates how to call an asynchronous geoprocessing task
+    and how to respond when the job result is ready.
+
+    The extractData function sends a request to a geoprocessing task
+    to extract data based on an area, at least one layer to extract from,
+    and creates an output zip file, containing data in the selected format.
+
+    When the result data is ready, it can be retrieved by specifying the
+    job ID and the name of the output parameter.
+
+    The output from the extract data geoprocessing task is a DataFile
+    object that contains the URL for the output ZIP file.
+
+    Note: The names for input and output parameters must match the names
+    on the geoprocesing task.  When working with geoprocessing services, it is important to
+    take careful observation of each parameter (name, dataType, direction, parameterType) in the parameters on the service.
+    Each geoprocessing service is likely to be different and have its own unique parameters.
+
+    If you would like to see a more detailed version of this sample, please
+    refer to the Data Extract widget documentation at
+    http://links.esri.com/dataextractwidget
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/DataFile.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/JobInfo.html
+
+    What is Geoprocessing?
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_geoprocessing/002s00000001000000/
+    What is a Geoprocessing service?
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_geoprocessing_service/0154000004v5000000/
+    Publishing a Geoprocessing service
+    http://resources.arcgis.com/en/help/main/10.1/#/A_quick_tour_of_publishing_a_geoprocessing_service/0154000004sz000000/
+    -->
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeoprocessorEvent;
+            import com.esri.ags.tasks.supportClasses.DataFile;
+            import com.esri.ags.tasks.supportClasses.JobInfo;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.events.CloseEvent;
+            import mx.managers.CursorManager;
+            import mx.rpc.events.FaultEvent;
+
+            private var dataFile:DataFile
+
+            private function drawTool_drawEndHandler(event:DrawEvent):void
+            {
+                map.defaultGraphicsLayer.add(event.graphic);
+                drawTool.deactivate();
+            }
+
+            private function activateDrawingTool(type:String):void
+            {
+                map.defaultGraphicsLayer.clear();
+                drawTool.activate(type);
+            }
+
+            private function activatePolygonDrawingTool():void
+            {
+                activateDrawingTool(DrawTool.POLYGON);
+            }
+
+            private function activateFreehandPolygonDrawingTool():void
+            {
+                activateDrawingTool(DrawTool.FREEHAND_POLYGON);
+            }
+
+            private function extractDataIfOptionsValid():void
+            {
+                var hasAreaSelected:Boolean = (map.defaultGraphicsLayer.numGraphics > 0);
+                var hasSelectedLayersToExtract:Boolean = incidentPointsCheckBox.selected || incidentLinesCheckBox.selected || incidentAreaCheckBox.selected;
+
+                if (hasAreaSelected && hasSelectedLayersToExtract)
+                {
+                    extractData();
+                }
+                else
+                {
+                    showErrorMessage("Select area of interest and layers to extract");
+                }
+            }
+
+            private function extractData():void
+            {
+                var requestObject:Object = createRequestObject();
+                gp.submitJob(requestObject);
+                CursorManager.setBusyCursor();
+            }
+
+            private function createRequestObject():Object
+            {
+                var layersToClip:Array = getLayersToClip();
+                var areaOfInterestGraphics:Array = (map.defaultGraphicsLayer.graphicProvider as ArrayCollection).source;
+                var areaOfInterestFeatures:FeatureSet = new FeatureSet(areaOfInterestGraphics);
+                var downloadFormat:String = downloadFormatSelection.selectedItem;
+
+                var requestObject:Object = {
+                        "Layers_to_Clip": layersToClip,
+                        "Area_of_Interest": areaOfInterestFeatures,
+                        "Feature_Format": downloadFormat
+                    };
+
+                return requestObject;
+            }
+
+            private function getLayersToClip():Array
+            {
+                var layersToClip:Array = [];
+
+                if (incidentPointsCheckBox.selected)
+                {
+                    layersToClip.push(incidentPointsCheckBox.label);
+                }
+                if (incidentLinesCheckBox.selected)
+                {
+                    layersToClip.push(incidentLinesCheckBox.label);
+                }
+                if (incidentAreaCheckBox.selected)
+                {
+                    layersToClip.push(incidentAreaCheckBox.label);
+                }
+
+                return layersToClip;
+            }
+
+            private function gp_faultHandler(event:FaultEvent):void
+            {
+                CursorManager.removeBusyCursor();
+                showErrorMessage(event.fault.faultString);
+            }
+
+            private function showErrorMessage(content:String):void
+            {
+                Alert.show(content, "Geoprocessing Task Error");
+
+            }
+
+            private function gp_getResultDataCompleteHandler(event:GeoprocessorEvent):void
+            {
+                dataFile = event.parameterValue.value as DataFile;
+                Alert.show("Data file created. Would you like to save it?", "Geoprocessing Task Success", Alert.YES | Alert.NO, null, alert_ClickHandler);
+                CursorManager.removeBusyCursor();
+            }
+
+            private function alert_ClickHandler(event:CloseEvent):void
+            {
+                if (event.detail == Alert.YES)
+                {
+                    downloadFile(dataFile);
+                }
+            }
+
+            private function downloadFile(dataFile:DataFile):void
+            {
+                var downloadURL:URLRequest = new URLRequest(dataFile.url);
+                var file:FileReference = new FileReference();
+                file.download(downloadURL, "Output File.zip");
+            }
+
+            private function gp_jobCompleteHandler(event:GeoprocessorEvent):void
+            {
+                if (event.jobInfo.jobStatus == JobInfo.STATUS_SUCCEEDED)
+                {
+                    gp.getResultData(gp.submitJobLastResult.jobId, "Output_Zip_File");
+                }
+                else
+                {
+                    showErrorMessage(event.jobInfo.jobStatus);
+                    CursorManager.removeBusyCursor();
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleFillSymbol id="simpleFillSymbol"
+                               alpha="0.25"
+                               color="0xFFFF00"
+                               style="solid">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="2"
+                                       color="0xFF0000"
+                                       style="dashdot"/>
+            </esri:outline>
+        </esri:SimpleFillSymbol>
+
+        <esri:DrawTool id="drawTool"
+                       drawEnd="drawTool_drawEndHandler(event)"
+                       fillSymbol="{simpleFillSymbol}"
+                       map="{map}"/>
+
+        <esri:Geoprocessor id="gp"
+                           fault="gp_faultHandler(event)"
+                           getResultDataComplete="gp_getResultDataCompleteHandler(event)"
+                           jobComplete="gp_jobCompleteHandler(event)"
+                           outSpatialReference="{map.spatialReference}"
+                           url="http://sampleserver4.arcgisonline.com/ArcGIS/rest/services/HomelandSecurity/Incident_Data_Extraction/GPServer/Extract%20Data%20Task"
+                           useAMF="false"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to call an asynchronous geoprocessing task
+            and how to respond when the job result is ready.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-8579772.281817337" ymin="4705977.618327605" xmax="-8569147.534885714" ymax="4710095.663226462">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver4.arcgisonline.com/ArcGIS/rest/services/HomelandSecurity/Incident_Data_Extraction/MapServer"/>
+    </esri:Map>
+
+    <s:Panel right="20" top="20"
+             title="Extract Data">
+        <s:VGroup left="5" right="5" top="5" bottom="5">
+            <s:Label fontWeight="bold" text="1.Select area of interest"/>
+            <s:HGroup>
+                <s:Button click="activatePolygonDrawingTool()" label="Polygon"/>
+                <s:Button click="activateFreehandPolygonDrawingTool()" label="Freehand Polygon"/>
+            </s:HGroup>
+
+            <s:Label fontWeight="bold" text="2.Select Layers to extract data from"/>
+            <s:CheckBox id="incidentPointsCheckBox" label="Incident Points"/>
+            <s:CheckBox id="incidentLinesCheckBox" label="Incident Lines"/>
+            <s:CheckBox id="incidentAreaCheckBox" label="Incident Areas"/>
+
+            <s:Label fontWeight="bold" text="3.Specify download format"/>
+            <s:DropDownList id="downloadFormatSelection"
+                            width="100%"
+                            requireSelection="true">
+                <s:dataProvider>
+                    <s:ArrayList>
+                        <fx:String>File Geodatabase - GDB - .gdb</fx:String>
+                        <fx:String>Shapefile - SHP - .shp</fx:String>
+                        <fx:String>Autodesk AutoCAD - DXF_R2007 - .dxf</fx:String>
+                        <fx:String>Autodesk AutoCAD - DWG_R2007 - .dwg</fx:String>
+                        <fx:String>Bentley Microstation Design (V8) - DGN_V8 - .dgn</fx:String>
+                    </s:ArrayList>
+                </s:dataProvider>
+            </s:DropDownList>
+            <s:Button click="extractDataIfOptionsValid()" label="Extract Data"/>
+        </s:VGroup>
+    </s:Panel>
+
+</s:Application>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Dynamic layer - FeatureLayer">
+    <!--
+    Description:
+    This sample demonstrates how to create a FeatureLayer using a
+    dynamic layer (lakes) from a service that has a registered workspace.
+    This demonstrates one of the new features in ArcGIS 10.1; adding layers
+    on the fly through a dynamic workspace, which allows
+    developers to add layers on the fly that do not exist in a service.
+    The ArcGIS map service needs to have the Dynamic Layers capability turned on,
+    and it also needs a registered workspace.  The registered workspace will be of
+    type (Database, File Geodatabase, Shapefile, or Raster), and once registered then
+    you can access layers within the workspace.
+
+    Note:
+    This sample adds the layer as a client-side FeatureLayer, whereas the
+    "Dynamic Workspace" sample uses the server-side method to add the layer
+    to the map service.  This sample uses client-side methods to symbolize
+    the features, whereas the other sample uses server-side methods to add
+    the layer and symbolize the features on the server.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#source
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/SimpleRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDataSource.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDataSource.html#fields
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TableDataSource.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html
+    http://resources.arcgis.com/en/help/rest/apiref/dataSource.html
+    http://resources.arcgis.com/en/help/rest/apiref/layerSource.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_dynamic_layers/0154000004zv000000/
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|ContentNavigator
+        {
+            headerBackgroundColor: #0080FF;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.utils.JSONUtil;
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <!-- Lakes Layer Dynamic Layer Info -->
+        <esri:LayerDataSource id="lakesLayerDataSource">
+            <!-- FeatureClass within the Dynamic Workspace (follow the link in the sample description for more information on dynamic workspaces) -->
+            <esri:TableDataSource dataSourceName="ss6.gdb.Lakes" workspaceId="MyDatabaseWorkspaceIDSSR2"/>
+        </esri:LayerDataSource>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichEditableText width="100%" editable="false">
+            This sample demonstrates how to create a FeatureLayer using a
+            dynamic layer (lakes) from a service that has a registered workspace.
+            The lakes layer currently does not exist in the <s:a href="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer">map service</s:a>, but are in the dynamic workspace.
+            Click on a lake to see more information, or <s:a href="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/dynamicLayer?layer={JSONUtil.encode({ source: lakesLayerDataSource })}" target="_blank">view the dynamic layer (lakes)</s:a>.
+        </s:RichEditableText>
+    </s:controlBarContent>
+
+    <esri:Map infoWindowRendererHighlightColor="0x0080FF">
+        <esri:extent>
+            <esri:Extent xmin="-10344842" ymin="4505780" xmax="-8566611" ymax="6408757">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:FeatureLayer id="lakesLayer"
+                           outFields="*"
+                           source="{lakesLayerDataSource}"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/dynamicLayer">
+            <esri:infoWindowRenderer>
+                <fx:Component>
+                    <esri:LabelDataRenderer label="Lake Details">
+                        <s:VGroup paddingBottom="5"
+                                  paddingLeft="5"
+                                  paddingRight="5"
+                                  paddingTop="5">
+                            <s:Label text="ID: { data.objectid }"/>
+                            <s:Label text="Name: { data.name }"/>
+                        </s:VGroup>
+                    </esri:LabelDataRenderer>
+                </fx:Component>
+            </esri:infoWindowRenderer>
+            <esri:renderer>
+                <esri:SimpleRenderer>
+                    <esri:SimpleFillSymbol color="0x0080FF">
+                        <esri:SimpleLineSymbol color="0x004080" style="solid"/>
+                    </esri:SimpleFillSymbol>
+                </esri:SimpleRenderer>
+            </esri:renderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+</s:Application>

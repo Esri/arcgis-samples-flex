@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Printing with Flex">
+    <!--
+    Description:
+    This sample demonstrates how to use the native print capabilities
+    in Flex to print a map.  This approach should be used for very basic
+    printing, if you want more advanced print options see the sample for
+    printing with ArcGIS for Server.
+
+    http://resources.arcgis.com/en/help/flex-api/samples/index.html#/High_quality_printing/01nq0000006v000000/
+    -->
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center"
+                          paddingBottom="20"
+                          paddingLeft="20"
+                          paddingRight="20"
+                          paddingTop="20"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import mx.printing.FlexPrintJobScaleType;
+            import mx.printing.FlexPrintJob;
+            import mx.controls.Alert;
+
+            private function doPrint(myFlexPrintJobScaleType:String):void
+            {
+                // Create an instance of the FlexPrintJob class.
+                var myPrintJob:FlexPrintJob = new FlexPrintJob();
+
+                // Start the print job.
+                if (myPrintJob.start())
+                {
+                    try
+                    {
+                        // hide the zoom slider so it won't be printed
+                        myMap.zoomSliderVisible = false;
+
+                        // Add the panel to print.
+                        myPrintJob.addObject(myPanel, myFlexPrintJobScaleType);
+
+                        // turn the zoom slider back on
+                        myMap.zoomSliderVisible = true;
+                    }
+                    catch (error:Error)
+                    {
+                        Alert.show(error.toString());
+                    }
+                    // Send the job to the printer.
+                    myPrintJob.send();
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichEditableText width="100%" editable="false">
+            This sample demonstrates how to use the native print capabilities
+            in Flex to print a map.  This approach should be used for very basic
+            printing, if you want more advanced print options see the sample for
+            printing with ArcGIS for Server.  Read more about
+            <s:a href="http://livedocs.adobe.com/flex/3/langref/mx/printing/package-detail.html" target="_blank">Flex printing</s:a>.
+        </s:RichEditableText>
+        <s:HGroup width="100%" horizontalAlign="center">
+            <s:Button click="doPrint(FlexPrintJobScaleType.NONE)" label="Print (without scaling)"/>
+            <s:Button click="doPrint(FlexPrintJobScaleType.SHOW_ALL)" label="Print (fit on one page)"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:Panel id="myPanel"
+             width="100%" height="100%"
+             title="Print Map">
+        <esri:Map id="myMap">
+            <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        </esri:Map>
+    </s:Panel>
+
+</s:Application>

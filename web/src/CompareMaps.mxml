@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="0xCECECE"
+               color="0x000000"
+               fontSize="12"
+               initialize="initializeHandler(event)"
+               pageTitle="Compare information from multiple maps">
+    <!--
+    Description:
+    This sample demonstrates the ability to link multiple maps together to compare geographic information.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ExtentEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    -->
+    <s:layout>
+        <s:HorizontalLayout/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.ExtentEvent;
+            import com.esri.ags.events.LayerEvent;
+
+            import mx.events.FlexEvent;
+
+            private var mapsArray:Array = [];
+
+            private var updatingMap:Map;
+
+            protected function initializeHandler(event:FlexEvent):void
+            {
+                mapsArray = [ mapA, mapB, mapC ];
+            }
+
+            protected function layer_loadHandler(event:LayerEvent):void
+            {
+                for (var i:int = 0; i < mapsArray.length; i++)
+                {
+                    var map:Map = mapsArray[i];
+                    map.extent = initialExtent;
+                    map.addEventListener(ExtentEvent.EXTENT_CHANGE, extentChangeHandler, false, 0, true);
+                    map.addEventListener(MouseEvent.MOUSE_WHEEL, actionStartHandler, true, 0, true);
+                    map.addEventListener(MouseEvent.MOUSE_DOWN, actionStartHandler, true, 0, true);
+                }
+            }
+
+            protected function extentChangeHandler(event:ExtentEvent):void
+            {
+                if (event.currentTarget == updatingMap && modelExtent.extent != event.extent)
+                {
+                    modelExtent = event.extent;
+                    for (var i:int = 0; i < mapsArray.length; i++)
+                    {
+                        var map:Map = mapsArray[i];
+                        if (updatingMap != map)
+                        {
+                            map.extent = modelExtent;
+                        }
+                    }
+                }
+            }
+
+            protected function getLayerName(layer:ArcGISDynamicMapServiceLayer):String
+            {
+                return layer.name;
+            }
+
+            protected function resetMap_clickHandler(event:MouseEvent):void
+            {
+                if (!updatingMap)
+                {
+                    updatingMap = mapsArray[0];
+                }
+                updatingMap.extent = initialExtent;
+            }
+
+            protected function actionStartHandler(event:Event):void
+            {
+                updatingMap = event.currentTarget as Map;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:Extent id="initialExtent"
+                     xmin="-14646671" ymin="3421416" xmax="-7132605" ymax="6170703">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+        <esri:Extent id="modelExtent"
+                     xmin="-18091282" ymin="2221824" xmax="-3063151" ymax="7720398">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="90%">
+            This sample demonstrates the ability to link multiple maps together to compare geographic information.
+        </s:RichText>
+        <s:HGroup width="{mapGroup.width}">
+            <s:Label width="100%" text="{getLayerName(operationalLayerA)"/>
+            <s:Label width="100%" text="{getLayerName(operationalLayerB)}"/>
+            <s:Label width="100%" text="{getLayerName(operationalLayerC)}"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:HGroup id="mapGroup"
+              width="90%" height="100%"
+              gap="1">
+
+        <esri:Map id="mapA"
+                  scaleBarVisible="false"
+                  zoomSliderVisible="false">
+            <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+            <esri:ArcGISDynamicMapServiceLayer id="operationalLayerA" name="Tapestry"
+                                               alpha="0.7"
+                                               url="http://services.arcgisonline.com/ArcGIS/rest/services/Demographics/USA_Tapestry/MapServer"/>
+            <esri:ArcGISDynamicMapServiceLayer alpha="0.4" url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer">
+                <esri:visibleLayers>
+                    <s:ArrayList source="5"/>
+                </esri:visibleLayers>
+            </esri:ArcGISDynamicMapServiceLayer>
+        </esri:Map>
+        <esri:Map id="mapB"
+                  scaleBarVisible="false"
+                  zoomSliderVisible="false">
+            <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+            <esri:ArcGISDynamicMapServiceLayer id="operationalLayerB" name="Retail Spending Potential"
+                                               alpha="0.7"
+                                               url="http://services.arcgisonline.com/ArcGIS/rest/services/Demographics/USA_Retail_Spending_Potential/MapServer"/>
+            <esri:ArcGISDynamicMapServiceLayer alpha="0.4" url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer">
+                <esri:visibleLayers>
+                    <s:ArrayList source="5"/>
+                </esri:visibleLayers>
+            </esri:ArcGISDynamicMapServiceLayer>
+        </esri:Map>
+        <esri:Map id="mapC"
+                  scaleBarVisible="false"
+                  zoomSliderVisible="false">
+            <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+            <esri:ArcGISDynamicMapServiceLayer id="operationalLayerC" name="Unemployment Rate"
+                                               alpha="0.7"
+                                               load="layer_loadHandler(event)"
+                                               url="http://services.arcgisonline.com/ArcGIS/rest/services/Demographics/USA_Unemployment_Rate/MapServer"/>
+            <esri:ArcGISDynamicMapServiceLayer alpha="0.4" url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer">
+                <esri:visibleLayers>
+                    <s:ArrayList source="5"/>
+                </esri:visibleLayers>
+            </esri:ArcGISDynamicMapServiceLayer>
+        </esri:Map>
+    </s:HGroup>
+    <s:VGroup paddingTop="5">
+        <esri:ScaleBar id="scaleBar" map="{mapA}"/>
+        <s:Button id="resetMap"
+                  width="90%"
+                  chromeColor="0xFF0000"
+                  click="resetMap_clickHandler(event)"
+                  color="0xFFFFFF"
+                  fontWeight="bold"
+                  label="Reset map"/>
+        <esri:Legend width="210" height="{mapA.height - (scaleBar.height + resetMap.height)}"
+                     layers="{[operationalLayerA,operationalLayerB,operationalLayerC]}"
+                     map="{mapA}"/>
+    </s:VGroup>
+</s:Application>

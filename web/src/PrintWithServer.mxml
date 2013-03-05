@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:flash="flash.text.*"
+               initialize="printTask.getServiceInfo()"
+               pageTitle="High-quality printing">
+    <!--
+    Description:
+    This sample demonstrates how to use the new PrintTask capabilites to create a
+    printer-ready version of the ArcGIS API for Flex map.
+
+    NOTE: Requires ArcGIS 10.1 or later (and a published Export Web Map task).
+    NOTE: Printing client-side graphics using simple marker symbol style "triangle"
+    and Export Web Map Task requires ArcGIS 10.1 SP1 for Server or later.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/PrintEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/PrintTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/PrintParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/PrintServiceInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ParameterValue.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/DataFile.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/JobInfo.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/gp_exportwebmaptask.html
+    http://resources.arcgis.com/en/help/rest/apiref/exportwebmap_spec.html
+
+    ArcGIS for Server documentation:
+    Tutorial: Publishing additional services for printing
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//0154000005n1000000
+    ExportWebMap specification
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//0154000004w8000000
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.PrintEvent;
+            import com.esri.ags.tasks.supportClasses.DataFile;
+            import com.esri.ags.tasks.supportClasses.JobInfo;
+            import com.esri.ags.tasks.supportClasses.ParameterValue;
+            import com.esri.ags.tasks.supportClasses.PrintServiceInfo;
+
+            import mx.controls.Alert;
+
+            private function printBtn_clickHandler(event:MouseEvent):void
+            {
+                if (printTask.getServiceInfoLastResult.isServiceAsynchronous)
+                {
+                    printTask.submitJob(printParameters);
+                }
+                else
+                {
+                    printTask.execute(printParameters);
+                }
+            }
+
+            private function printTask_jobCompleteHandler(event:PrintEvent):void
+            {
+                var jobInfo:JobInfo = event.jobInfo;
+                if (jobInfo.jobStatus == JobInfo.STATUS_SUCCEEDED
+                    && printTask.getServiceInfoLastResult.hasResultData)
+                {
+                    printTask.getResultData(jobInfo.jobId);
+                }
+                else
+                {
+                    Alert.show(jobInfo.jobStatus);
+                }
+            }
+
+            private function printTask_getResultDataCompleteHandler(event:PrintEvent):void
+            {
+                var dataFile:DataFile = event.parameterValue.value as DataFile;
+                if (dataFile)
+                {
+                    navigateToURL(new URLRequest(dataFile.url));
+                }
+            }
+
+            private function printTask_executeCompleteHandler(event:PrintEvent):void
+            {
+                if (event.executeResult.results && event.executeResult.results.length > 0)
+                {
+                    var paramValue:ParameterValue = event.executeResult.results[0];
+                    var dataFile:DataFile = paramValue.value as DataFile;
+                    if (dataFile)
+                    {
+                        navigateToURL(new URLRequest(dataFile.url));
+                    }
+                }
+            }
+
+            protected function printTask_getServiceInfoCompleteHandler(event:PrintEvent):void
+            {
+                var printServiceInfo:PrintServiceInfo = event.serviceInfo;
+                layoutTemplates.dataProvider = printServiceInfo.layoutTemplates;
+
+                for (var i:int = 0; i < layoutTemplates.dataProvider.length; i++)
+                {
+                    var currentItem:String = layoutTemplates.dataProvider.getItemAt(i) as String;
+                    if (currentItem == "A4 Landscape")
+                    {
+                        layoutTemplates.selectedIndex = i;
+                    }
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:PrintTask id="printTask"
+                        executeComplete="printTask_executeCompleteHandler(event)"
+                        fault="Alert.show(event.fault.faultString)"
+                        getResultDataComplete="printTask_getResultDataCompleteHandler(event)"
+                        getServiceInfoComplete="printTask_getServiceInfoCompleteHandler(event)"
+                        jobComplete="printTask_jobCompleteHandler(event)"
+                        showBusyCursor="true"
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"/>
+        <esri:PrintParameters id="printParameters"
+                              format="{formats.selectedItem}"
+                              layoutTemplate="{layoutTemplates.selectedItem}"
+                              map="{map}">
+            <esri:layoutOptions>
+                <esri:LayoutOptions author="Author: ArcGIS for Flex Team"
+                                    copyright="Copyright: &#169; ArcGIS for Server"
+                                    title="My Map"/>
+            </esri:layoutOptions>
+        </esri:PrintParameters>
+        <esri:SimpleLineSymbol id="sls" color="0x999999"/>
+        <esri:SimpleMarkerSymbol id="sms0"
+                                 color="0xF8FF09"
+                                 outline="{sls}"
+                                 size="7"
+                                 style="circle"/>
+        <esri:SimpleMarkerSymbol id="sms1"
+                                 color="0xEF8F2D"
+                                 outline="{sls}"
+                                 size="8"
+                                 style="circle"/>
+        <esri:SimpleMarkerSymbol id="sms2"
+                                 color="0xEA371A"
+                                 outline="{sls}"
+                                 size="9"
+                                 style="circle"/>
+        <esri:SimpleMarkerSymbol id="sms3"
+                                 color="0xE9000F"
+                                 outline="{sls}"
+                                 size="12"
+                                 style="circle"/>
+
+        <esri:SimpleMarkerSymbol id="g1SMS"
+                                 color="0x660033"
+                                 outline="{sls}"
+                                 size="30"
+                                 style="diamond"/>
+        <esri:PictureMarkerSymbol id="g2PMS"
+                                  width="32" height="32"
+                                  source="http://static.arcgis.com/images/Symbols/Basic/GreenShinyPin.png"
+                                  xoffset="2.67"
+                                  yoffset="10.67"/>
+        <esri:SimpleFillSymbol id="g3SFS"
+                               alpha="0.7"
+                               color="0xCC0000"
+                               outline="{sls}"/>
+        <esri:TextSymbol id="g4TS"
+                         background="true"
+                         backgroundColor="0x0000FF"
+                         border="true"
+                         borderColor="0x0066FF"
+                         color="0xCCCCCC"
+                         placement="above"
+                         text="Hawaiian Islands"
+                         xoffset="0"
+                         yoffset="9">
+            <flash:TextFormat bold="true"
+                              font="Verdana"
+                              italic="false"
+                              size="10"
+                              underline="false"/>
+        </esri:TextSymbol>
+        <esri:CartographicLineSymbol id="g5CLS"
+                                     width="8"
+                                     alpha="1"
+                                     cap="butt"
+                                     color="0x006633"
+                                     join="miter"
+                                     style="solid"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the new PrintTask capabilites to create a
+            printer-ready version of the ArcGIS API for Flex map.
+        </s:RichText>
+        <s:HGroup gap="10" verticalAlign="baseline">
+            <s:Label text="Layout Templates"/>
+            <s:DropDownList id="layoutTemplates"
+                            width="175"
+                            requireSelection="true"/>
+            <s:Label text="Formats"/>
+            <s:DropDownList id="formats"
+                            width="100"
+                            dataProvider="{printTask.getServiceInfoLastResult.formats}"
+                            requireSelection="true"/>
+            <s:Button id="printBtn"
+                      click="printBtn_clickHandler(event)"
+                      enabled="{printTask.getServiceInfoLastResult != null}"
+                      label="Export Map"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              level="2"
+              wrapAround180="true">
+        <esri:extent>
+            <esri:Extent xmin="-22453200" ymin="-6080645" xmax="3767758" ymax="14465628">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+        <esri:FeatureLayer name="Earthquakes" url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/EarthquakesFromLastSevenDays/MapServer/0">
+            <esri:renderer>
+                <esri:ClassBreaksRenderer field="magnitude">
+                    <esri:ClassBreakInfo label="1.0 to 1.9"
+                                         maxValue="1.9"
+                                         minValue="1.0"
+                                         symbol="{sms0}"/>
+                    <esri:ClassBreakInfo label="2.0 to 3.9"
+                                         maxValue="3.9"
+                                         minValue="2.0"
+                                         symbol="{sms1}"/>
+                    <esri:ClassBreakInfo label="4.0 to 5.9"
+                                         maxValue="5.9"
+                                         minValue="4.0"
+                                         symbol="{sms2}"/>
+                    <esri:ClassBreakInfo label="6.0 to 9.0"
+                                         maxValue="9.0"
+                                         minValue="6.0"
+                                         symbol="{sms3}"/>
+                </esri:ClassBreaksRenderer>
+            </esri:renderer>
+        </esri:FeatureLayer>
+        <esri:GraphicsLayer name="Client-side Graphics">
+            <esri:Graphic id="g1">
+                <esri:MapPoint x="-1996402" y="9566550"
+                               spatialReference="{map.spatialReference}"/>
+                <esri:attributes>
+                    <fx:Object TYPE='SMS'/>
+                </esri:attributes>
+            </esri:Graphic>
+            <esri:Graphic id="g2">
+                <esri:MapPoint x="5159121" y="-2300056"
+                               spatialReference="{map.spatialReference}"/>
+                <esri:attributes>
+                    <fx:Object TYPE='PMS'/>
+                </esri:attributes>
+            </esri:Graphic>
+            <esri:Graphic id="g3">
+                <esri:Extent xmin="-5126743" ymin="2497180" xmax="-3487933" ymax="3795998"
+                             spatialReference="{map.spatialReference}"/>
+                <esri:attributes>
+                    <fx:Object TYPE='EXTENT'/>
+                </esri:attributes>
+            </esri:Graphic>
+            <esri:Graphic id="g4">
+                <esri:MapPoint x="-17464291" y="2379773"
+                               spatialReference="{map.spatialReference}"/>
+                <esri:attributes>
+                    <fx:Object TYPE='TEXT'/>
+                </esri:attributes>
+            </esri:Graphic>
+            <esri:Graphic id="g5">
+                <esri:Polyline spatialReference="{map.spatialReference}">
+                    <fx:Array>
+                        <fx:Array>
+                            <esri:MapPoint x="-8921159" y="2899358"/>
+                            <esri:MapPoint x="-6807828" y="3916888"/>
+                            <esri:MapPoint x="-3520424" y="5169232"/>
+                            <esri:MapPoint x="-898328" y="7008613"/>
+                        </fx:Array>
+                    </fx:Array>
+                </esri:Polyline>
+                <esri:attributes>
+                    <fx:Object TYPE='LINE'/>
+                </esri:attributes>
+            </esri:Graphic>
+            <esri:renderer>
+                <esri:UniqueValueRenderer field="TYPE">
+                    <esri:UniqueValueInfo label="Diamond"
+                                          symbol="{g1SMS}"
+                                          value="SMS"/>
+                    <esri:UniqueValueInfo label="Green Pin"
+                                          symbol="{g2PMS}"
+                                          value="PMS"/>
+                    <esri:UniqueValueInfo label="Extent"
+                                          symbol="{g3SFS}"
+                                          value="EXTENT"/>
+                    <esri:UniqueValueInfo label="Text"
+                                          symbol="{g4TS}"
+                                          value="TEXT"/>
+                    <esri:UniqueValueInfo label="Line"
+                                          symbol="{g5CLS}"
+                                          value="LINE"/>
+                </esri:UniqueValueRenderer>
+            </esri:renderer>
+        </esri:GraphicsLayer>
+    </esri:Map>
+</s:Application>

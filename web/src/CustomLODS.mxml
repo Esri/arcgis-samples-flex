@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="0xEEEEEE"
+               pageTitle="Specifying specific tile levels">
+    <!--
+    Description:
+    This example demonstrates how to create specific levels of detail for
+    the map using a dynamic map service.
+    This will add the levels to the zoom slider as well as "lock"
+    the application to the specified LODs.
+
+    LODs can also be used for a tiled map service to limit the application
+    to a subset of levels.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#lods
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LOD.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Navigation.html
+    -->
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This example demonstrates how to create specific levels of detail for
+            the map using a dynamic map service.
+            This will add the levels to the zoom slider as well as "lock"
+            the application to the specified LODs.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:lods>
+            <esri:LOD resolution="0.0439453125" scale="18468599.9106772"/>
+            <esri:LOD resolution="0.02197265625" scale="9234299.95533859"/>
+            <esri:LOD resolution="0.010986328125" scale="4617149.97766929"/>
+            <esri:LOD resolution="0.0054931640625" scale="2308574.98883465"/>
+            <esri:LOD resolution="0.00274658203125" scale="1154287.49441732"/>
+        </esri:lods>
+        <esri:extent>
+            <esri:Extent xmin="-124.629" ymin="18.826" xmax="-68.027" ymax="56.311">
+                <esri:SpatialReference wkid="4269"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer"/>
+    </esri:Map>
+</s:Application>

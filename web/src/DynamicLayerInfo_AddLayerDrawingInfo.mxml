@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Dynamic Layers - redefining a dynamic map service">
+    <!--
+    Description:
+    This sample demonstrates a new capability at ArcGIS 10.1 which allows developers to redefine an existing map service.
+    This is accomplished by setting the layerDrawingOptions and dynamicLayerInfos properties of the ArcGISDynamicMapServiceLayer.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/SimpleRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#dynamicLayerInfos
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/DynamicLayerInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDataSource.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TableDataSource.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerMapSource.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html
+
+    ArcGIS for Server documentation:
+    About dynamic layers
+    http://resources.arcgis.com/en/help/main/10.1/0154/0154000004zv000000.htm
+    -->
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichEditableText width="100%" editable="false">
+            <s:content>
+                <s:p>
+                    This sample demonstrates one of the new features in ArcGIS 10.1, adding layers on the fly through a dynamic workspace
+                    and redefining existing layers in the map service.
+                    The ArcGIS map service needs to have the Dynamic Layers capability turned on, and it also needs a registered workspace.
+                    The registered workspace will be of type (Database, File Geodatabase, Shapefile, or Raster), and once registered then
+                    you can add layers on the fly and change their symbology at run-time.
+                    The lakes that you will see in the map currently do not exist in the
+                    <s:a href="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer">map service</s:a>, but are in the Dynamic Workspace.
+                </s:p>
+            </s:content>
+        </s:RichEditableText>
+    </s:controlBarContent>
+
+    <esri:Map zoomSliderVisible="false">
+        <esri:extent>
+            <esri:Extent xmin="-13041180" ymin="3837741" xmax="-5527114" ymax="6587028">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer">
+            <!-- Specify the symbology for the layers in this request -->
+            <esri:layerDrawingOptions>
+                <!-- US States (This layer is part of the map service) -->
+                <esri:LayerDrawingOptions layerId="2">
+                    <esri:SimpleRenderer>
+                        <esri:SimpleFillSymbol color="0x99926C" style="solid">
+                            <esri:SimpleLineSymbol width="1" color="0x949388"/>
+                        </esri:SimpleFillSymbol>
+                    </esri:SimpleRenderer>
+                </esri:LayerDrawingOptions>
+                <!-- Lakes Layer (Dynamically added - exists in the Dynamic Workspace within ArcGIS Server) -->
+                <esri:LayerDrawingOptions layerId="9999">
+                    <esri:SimpleRenderer>
+                        <esri:SimpleFillSymbol color="0x84C9E0">
+                            <esri:SimpleLineSymbol width="3"
+                                                   color="0x81AFEB"
+                                                   style="dash"/>
+                        </esri:SimpleFillSymbol>
+                    </esri:SimpleRenderer>
+                </esri:LayerDrawingOptions>
+            </esri:layerDrawingOptions>
+            <!-- Change the layer ordering, or in this case redefine the map by adding a layer that doesn't exist in the map service
+                 If you set the defaultVisibility property to true then you don't have to make sure you include the layer's layerId in the visible layers of the ArcGISDynamicMapServiceLayer
+            -->
+            <esri:dynamicLayerInfos>
+                <!-- Lakes Layer (Dynamically added - exists in the Dynamic Workspace within ArcGIS Server) -->
+                <esri:DynamicLayerInfo layerId="9999" defaultVisibility="true">
+                    <esri:LayerDataSource>
+                        <!-- FeatureClass within the Dynamic Workspace (follow the link in the sample description for more information on dynamic workspaces -->
+                        <esri:TableDataSource dataSourceName="ss6.gdb.Lakes" workspaceId="MyDatabaseWorkspaceIDSSR2"/>
+                    </esri:LayerDataSource>
+                </esri:DynamicLayerInfo>
+                <!-- US States (This layer is part of the map service) -->
+                <esri:DynamicLayerInfo layerId="2" defaultVisibility="true">
+                    <esri:LayerMapSource mapLayerId="2"/>
+                </esri:DynamicLayerInfo>
+            </esri:dynamicLayerInfos>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+
+</s:Application>

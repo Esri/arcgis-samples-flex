@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:flash="flash.text.*"
+               pageTitle="Explore text symbols">
+    <!--
+    Description:
+    This sample demonstrates how to create symbology for points
+    using the TextSymbol class in both mxml and ActionScript.
+    Adjust the properties in the "TextSymbol Properties"
+    panel and view the changes in the "mxml and ActionScript" panels.
+    This sample allows you to explore symbolizing points interactively,
+    then copy and paste the mxml or ActionScript code into your application.
+
+    Note:
+    If you use you TextFormat in mxml, you will need to specify the namespace
+    such as "xmlns:flash" as it is in this sample.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/TextSymbol.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            private function toHex(item:Number):String
+            {
+                var hex:String = item.toString(16);
+                return ("00000" + hex.toUpperCase()).substr(-6);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:TextSymbol id="myText"
+                         background="{tsBackground.selected}"
+                         backgroundColor="{tsColor2.selectedColor}"
+                         border="{tsBorder.selected}"
+                         borderColor="{tsBorderColor.selectedColor}"
+                         color="{tsColor1.selectedColor}"
+                         placement="{placement.selectedItem}"
+                         text="{theText.text}"
+                         xoffset="{xoffset.value}"
+                         yoffset="{yoffset.value}">
+            <flash:TextFormat bold="{tfBold.selected}"
+                              font="{myFont.selectedItem}"
+                              italic="{tfItalic.selected}"
+                              leftMargin="0"
+                              rightMargin="0"
+                              size="{tfSize.value}"
+                              underline="{tfUnderline.selected}"/>
+        </esri:TextSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create symbology for points
+            using the TextSymbol class in both mxml and ActionScript.
+            Adjust the properties in the "TextSymbol Properties"
+            panel and view the changes in the "mxml and ActionScript" panels.
+            This sample allows you to explore symbolizing points interactively,
+            then copy and paste the mxml or ActionScript code into your application.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap">
+        <esri:extent>
+            <esri:Extent xmin="3459764" ymin="3491274" xmax="3485370" ymax="3504689">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:GraphicsLayer>
+            <esri:Graphic id="theTextGraphic"
+                          symbol="{myText}"
+                          toolTip="The Great Pyramid of Giza is the oldest and largest of the three pyramids in the Giza Necropolis.">
+                <esri:geometry>
+                    <esri:MapPoint id="giza"
+                                   x="3465900" y="3500900"/>
+                </esri:geometry>
+            </esri:Graphic>
+            <esri:Graphic alpha="0.6">
+                <esri:geometry>
+                    <esri:MapPoint x="3465900" y="3500900"/>
+                </esri:geometry>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+    <s:Panel right="5" top="5"
+             title="TextSymbol Properties">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"/>
+        </s:layout>
+        <s:Form width="280" backgroundColor="0xEEEEEE">
+            <s:layout>
+                <s:FormLayout gap="-12"/>
+            </s:layout>
+            <s:FormItem label="Placement:">
+                <s:DropDownList id="placement"
+                                top="35"
+                                cornerRadius="0"
+                                fontWeight="normal"
+                                horizontalCenter="0"
+                                selectedIndex="3">
+                    <s:ArrayList>
+                        <fx:String>start</fx:String>
+                        <fx:String>end</fx:String>
+                        <fx:String>middle</fx:String>
+                        <fx:String>above</fx:String>
+                        <fx:String>below</fx:String>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:FormItem>
+            <s:HGroup>
+                <s:FormItem label="xoffset:">
+                    <s:NumericStepper id="xoffset"
+                                      width="47"
+                                      maximum="30"
+                                      minimum="-30"
+                                      stepSize="1"
+                                      value="0"/>
+                </s:FormItem>
+                <s:FormItem label="yoffset:">
+                    <s:NumericStepper id="yoffset"
+                                      width="47"
+                                      maximum="30"
+                                      minimum="-30"
+                                      stepSize="1"
+                                      value="0"/>
+                </s:FormItem>
+            </s:HGroup>
+            <s:FormItem label="Text:">
+                <s:TextInput id="theText"
+                             width="100%"
+                             text="Great Pyramid of Giza"/>
+            </s:FormItem>
+            <s:FormItem label="TextSymbol Color:">
+                <mx:ColorPicker id="tsColor1"
+                                change="theTextGraphic.refresh()"
+                                selectedColor="0x000000"/>
+            </s:FormItem>
+
+            <s:VGroup gap="5"
+                      paddingBottom="10"
+                      paddingLeft="15"
+                      paddingTop="10">
+                <s:HGroup width="100%">
+                    <s:CheckBox id="tsBackground"
+                                change="theTextGraphic.refresh()"
+                                label="Use background"
+                                selected="false"/>
+                    <mx:ColorPicker id="tsColor2"
+                                    change="theTextGraphic.refresh()"
+                                    selectedColor="0xFFFFFF"
+                                    toolTip="TextSymbol Background Color"
+                                    visible="{tsBackground.selected}"/>
+                </s:HGroup>
+                <s:HGroup width="100%">
+                    <s:CheckBox id="tsBorder"
+                                change="theTextGraphic.refresh()"
+                                label="Use border"
+                                selected="false"/>
+                    <mx:ColorPicker id="tsBorderColor"
+                                    change="theTextGraphic.refresh()"
+                                    selectedColor="0x000000"
+                                    toolTip="Border Color"
+                                    visible="{tsBorder.selected}"/>
+                </s:HGroup>
+            </s:VGroup>
+            <s:FormItem label="TextFormat Font:">
+                <s:DropDownList id="myFont"
+                                change="theTextGraphic.refresh()"
+                                horizontalCenter="0"
+                                selectedIndex="5">
+                    <s:ArrayList>
+                        <fx:String>Algerian</fx:String>
+                        <fx:String>Arial</fx:String>
+                        <fx:String>Broadway</fx:String>
+                        <fx:String>Comic Sans MS</fx:String>
+                        <fx:String>Courier</fx:String>
+                        <fx:String>Verdana</fx:String>
+                    </s:ArrayList>
+                </s:DropDownList>
+            </s:FormItem>
+            <s:FormItem label="TextFormat Size:">
+                <s:HSlider id="tfSize"
+                           width="80"
+                           change="theTextGraphic.refresh()"
+                           liveDragging="true"
+                           maximum="80"
+                           minimum="0"
+                           snapInterval="1"
+                           value="15"/>
+            </s:FormItem>
+            <s:VGroup gap="5"
+                      paddingBottom="5"
+                      paddingLeft="15"
+                      paddingTop="10">
+                <s:CheckBox id="tfBold"
+                            change="theTextGraphic.refresh()"
+                            label="Bold"
+                            selected="true"/>
+                <s:CheckBox id="tfItalic"
+                            change="theTextGraphic.refresh()"
+                            label="Italic"
+                            selected="false"/>
+                <s:CheckBox id="tfUnderline"
+                            change="theTextGraphic.refresh()"
+                            label="Underline"
+                            selected="false"/>
+            </s:VGroup>
+        </s:Form>
+    </s:Panel>
+
+    <s:HGroup width="100%" height="140"
+              bottom="60"
+              paddingLeft="10"
+              paddingRight="10">
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="TextSymbol mxml">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"
+                                    paddingBottom="0"
+                                    paddingLeft="0"
+                                    paddingRight="0"
+                                    paddingTop="0"/>
+            </s:layout>
+
+            <s:TextArea id="symbolMXMLTextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="symbolMXMLTextArea.selectAll();System.setClipboard(symbolMXMLTextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>&lt;esri:TextSymbol id=&quot;myTextSymbol&quot; text=&quot;{myText.text}&quot; placement=&quot;{placement.selectedItem}&quot; xoffset=&quot;{xoffset.value}&quot; yoffset=&quot;{yoffset.value}&quot; color=&quot;0x{toHex(tsColor1.selectedColor)}&quot; border=&quot;{tsBorder.selected}&quot; borderColor=&quot;0x{toHex(tsBorderColor.selectedColor)}&quot; background=&quot;{tsBackground.selected}&quot; backgroundColor=&quot;0x{toHex(tsColor2.selectedColor)}&quot; &gt;
+    &lt;flash:TextFormat size=&quot;{tfSize.value}&quot; font=&quot;{myFont.selectedItem}&quot; bold=&quot;{tfBold.selected}&quot; italic=&quot;{tfItalic.selected}&quot; underline=&quot;{tfUnderline.selected}&quot; /&gt;
+&lt;/esri:TextSymbol&gt;</s:text>
+            </s:TextArea>
+        </s:Panel>
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="TextSymbol ActionScript">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"
+                                    paddingBottom="0"
+                                    paddingLeft="0"
+                                    paddingRight="0"
+                                    paddingTop="0"/>
+            </s:layout>
+
+            <s:TextArea id="symbolAS3TextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="symbolAS3TextArea.selectAll();System.setClipboard(symbolAS3TextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>var myTextFormat:TextFormat = new TextFormat()&#59;&#xd;myTextFormat.font = &quot;{myFont.selectedItem}&quot;&#59;&#xd;myTextFormat.size = {tfSize.value}&#59;&#xd;myTextFormat.bold = {tfBold.selected}&#59;&#xd;myTextFormat.italic = {tfItalic.selected}&#59;&#xd;myTextFormat.underline = {tfUnderline.selected}&#59;&#xd;&#xd;var textSymbol:TextSymbol = new TextSymbol()&#59;&#xd;textSymbol.background = {tsBackground.selected}&#59;&#xd;textSymbol.backgroundColor = 0x{toHex(tsColor2.selectedColor)}&#59;&#xd;textSymbol.border = {tsBorder.selected}&#59;&#xd;textSymbol.borderColor = 0x{toHex(tsBorderColor.selectedColor)}&#59;&#xd;textSymbol.color = 0x{toHex(tsColor1.selectedColor)}&#59;&#xd;textSymbol.placement = &quot;{placement.selectedItem}&quot;&#59;&#xd;textSymbol.text = &quot;{myText.text}&quot;&#59;&#xd;textSymbol.textFormat = myTextFormat&#59;&#xd;textSymbol.xoffset = {xoffset.value}&#59;&#xd;textSymbol.yoffset = {yoffset.value}&#59;</s:text>
+            </s:TextArea>
+        </s:Panel>
+    </s:HGroup>
+
+</s:Application>

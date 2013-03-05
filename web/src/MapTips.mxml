@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="MapTips - creating custom ToolTips">
+    <!--
+    Description:
+    This sample demonstrates an alternative method to using info windows
+    to display information about certain geographic features when you
+    mouse over the given feature.
+    Map tips are common in mapping software, and in this sample a custom
+    tool tip is used to demonstrate map tip functionality.
+    Hover over a state or city to see a map tip.
+
+    There are many options for showing information as a "MapTip".
+    * Use the default ToolTip from the Adobe Flex SDK,
+    * Customize the ToolTip.
+    * Create your own custom ToolTip (this sample).
+
+    When a user moves the mouse pointer over a graphical component,
+    the ToolTip control pops up and displays text that provides information
+    about the component.
+
+    Create custom ToolTips components in flex.
+
+    The default tooltip component in flex is a ToolTip object, so to change this
+    we have to define a component which implements mx.core.IToolTip
+
+    1. Using PanelToolTip as my tooltip component and the code contains simple the set and get methods as below.
+
+    * Listen to the MouseOver event and use the InfoWindow from the ArcGIS API for Flex, see the InfoWindowRollOverSample.mxml sample
+
+    In this sample, we will create a custom tooltip component and use it
+    for two different custom tooltips (one for state data, the other for city data).
+
+    Note: This works when the features are client-side, i.e. with the GraphicsLayer or the FeatureLayer.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GraphicEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+
+    Creating custom ToolTips
+    http://help.adobe.com/en_US/Flex/4.0/UsingSDK/WS2db454920e96a9e51e63e3d11c0bf60d65-7ff6.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/core/IToolTip.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/events/ToolTipEvent.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/PanelToolTip.mxml
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.GraphicEvent;
+            import com.esri.ags.samples.PanelToolTip;
+
+            import mx.events.ToolTipEvent;
+
+            protected var ptt:PanelToolTip = new PanelToolTip();
+
+            protected function statesFeatureLayer_graphicAddHandler(event:GraphicEvent):void
+            {
+                var graphic:Graphic = event.graphic;
+                /* You must create a blank ToolTip so that the control can dispatch ToolTip-related events.
+                 The new ToolTip will replace this empty ToolTip. */
+                graphic.toolTip = " ";
+                graphic.addEventListener(ToolTipEvent.TOOL_TIP_CREATE, stateToolTipCreateHandler, false, 0, true);
+            }
+
+            protected function citiesFeatureLayer_graphicAddHandler(event:GraphicEvent):void
+            {
+                var graphic:Graphic = event.graphic;
+                /* You must create a blank ToolTip so that the control can dispatch ToolTip-related events.
+                 The new ToolTip will replace this empty ToolTip. */
+                graphic.toolTip = " ";
+                graphic.addEventListener(ToolTipEvent.TOOL_TIP_CREATE, cityToolTipCreateHandler, false, 0, true);
+            }
+
+            protected function stateToolTipCreateHandler(event:ToolTipEvent):void
+            {
+                var graphic:Graphic = event.currentTarget as Graphic;
+                ptt.title = graphic.attributes["state_name"];
+                ptt.population = graphic.attributes["pop2000"];
+                event.toolTip = ptt;
+            }
+
+            protected function cityToolTipCreateHandler(event:ToolTipEvent):void
+            {
+                var graphic:Graphic = event.currentTarget as Graphic;
+                ptt.title = graphic.attributes["areaname"];
+                ptt.population = graphic.attributes["pop2000"];
+                event.toolTip = ptt;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates an alternative method to using info windows
+            to display information about certain geographic features when you
+            mouse over the given feature.
+            Map tips are common in mapping software, and in this sample a custom
+            tool tip is used to demonstrate map tip functionality.
+            Hover over a state or city to see a map tip.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-14279700" ymin="2402000" xmax="-7011000" ymax="6716700">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:FeatureLayer id="statesFeatureLayer"
+                           definitionExpression="state_name NOT IN ('Alaska','Hawaii')"
+                           graphicAdd="statesFeatureLayer_graphicAddHandler(event)"
+                           mode="snapshot"
+                           outFields="[state_name,pop2000]"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/2">
+            <esri:symbol>
+                <esri:SimpleFillSymbol style="null">
+                    <esri:SimpleLineSymbol width="2"
+                                           alpha="0.5"
+                                           style="solid"/>
+                </esri:SimpleFillSymbol>
+            </esri:symbol>
+        </esri:FeatureLayer>
+        <esri:FeatureLayer id="citiesFeatureLayer"
+                           definitionExpression="pop2000 &gt; 100000 AND st NOT IN ('AK','HI')"
+                           graphicAdd="citiesFeatureLayer_graphicAddHandler(event)"
+                           mode="snapshot"
+                           outFields="[pop2000,areaname]"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0">
+            <esri:symbol>
+                <esri:SimpleMarkerSymbol id="mySimpleMarkerSymbol"
+                                         color="0xA5000E"
+                                         size="10"
+                                         style="diamond">
+                    <esri:SimpleLineSymbol width="1" color="0xC20011"/>
+                </esri:SimpleMarkerSymbol>
+            </esri:symbol>
+        </esri:FeatureLayer>
+    </esri:Map>
+
+</s:Application>

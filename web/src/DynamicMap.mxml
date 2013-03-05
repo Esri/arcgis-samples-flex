@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Example - ArcGIS API for Flex connecting to a dynamic ArcGIS map service">
+    <!--
+    Description:
+    This sample demonstrates how you can add dynamic ArcGIS map service to your map.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Types_of_layers/017p00000027000000/
+    -->
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can add dynamic ArcGIS map service to your map.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/BloomfieldHillsMichigan/Parcels/MapServer"/>
+    </esri:Map>
+
+</s:Application>

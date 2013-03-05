@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Edit with AttributeInspector">
+    <!--
+    Description:
+    This sample demonstrates how to use a custom component for the editor
+    of a FieldInspector in the AttributeInspector.
+
+    The application allows a user to click on a feature (parcels)
+    and view and modify a few attributes of that feature.
+
+    This is done by having the map click using the clicked point to
+    select feature(s) from the FeatureLayer.
+
+    The AttributeInspector then displays the selection in the InfoWindow
+    which is shown where user clicked the map.
+
+    Note that this sample displays the FeatureLayer in "selection" mode and
+    that the parcels are actually displayed using a dynamic layer pointing to
+    the matching map service.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/AttributeInspectorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/FieldInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/FieldInspector.html#editor
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResults.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/Field.html
+    -->
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.AttributeInspectorEvent;
+            import com.esri.ags.events.FeatureLayerEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.supportClasses.FeatureEditResult;
+            import com.esri.ags.layers.supportClasses.FeatureEditResults;
+            import com.esri.ags.layers.supportClasses.Field;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.Fault;
+            import mx.rpc.events.FaultEvent;
+
+            private var activeFeatureChangedAttributes:Array = [];
+
+            private function map_mapClickHandler(event:MapMouseEvent):void
+            {
+                // set the selection query based on the click
+                queryMapClick.geometry = event.mapPoint;
+                myFeatureLayer.selectFeatures(queryMapClick); // default selectionMethod is FeatureLayer.SELECTION_NEW
+                myMap.infoWindow.hide();
+            }
+
+            private function attrInsp_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.message, "Fault");
+            }
+
+            private function myFeatureLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
+            {
+                // only show infoWindow if a feature was found
+                if (event.featureLayer.numGraphics > 0)
+                {
+                    status.text = "Feature selected";
+                    for each (var field:Field in event.featureLayer.layerDetails.fields)
+                    {
+                        if (field.type == Field.TYPE_DATE)
+                        {
+                            for each (var feature:Graphic in event.features)
+                            {
+                                var date:Date = new Date(feature.attributes[field.name]);
+                                if (date.milliseconds == 999)
+                                {
+                                    date.milliseconds++; //Add 1ms to date values ending in 999 to workaround REST date bug
+                                    feature.attributes[field.name] = date.time;
+                                }
+                            }
+                        }
+                    }
+                    myMap.infoWindow.show(queryMapClick.geometry as MapPoint);
+                    myMap.infoWindow.closeButton.addEventListener(MouseEvent.CLICK, infoWindowCloseButtonClickHandler);
+                }
+                else
+                {
+                    if (!status.text == "Feature deleted.") //avoid showing the alert box, immediately after deleting
+                    {
+                        status.text = "";
+                        Alert.show("Sorry found nothing here...");
+                    }
+                }
+            }
+
+            private function infoWindowCloseButtonClickHandler(event:MouseEvent):void
+            {
+                myMap.infoWindow.closeButton.removeEventListener(MouseEvent.CLICK, infoWindowCloseButtonClickHandler);
+                // save any unsaved changes
+                if (activeFeatureChangedAttributes.length)
+                {
+                    saveUnsavedAttributes(attrInsp.activeFeature, attrInsp.activeFeatureLayer);
+                }
+            }
+
+            private function attrInsp_deleteFeatureHandler(event:AttributeInspectorEvent):void
+            {
+                myMap.infoWindow.hide();
+
+                const deletes:Array = [ event.feature ];
+                event.featureLayer.applyEdits(null, null, deletes, false,
+                                              new AsyncResponder(featureLayer_editsCompleteHandler, featureLayer_faultHandler));
+            }
+
+            private function attrInsp_updateFeatureHandler(event:AttributeInspectorEvent):void
+            {
+                // store all the changes
+                activeFeatureChangedAttributes.push({ field: event.field, oldValue: event.oldValue, newValue: event.newValue });
+            }
+
+            private function attrInsp_saveFeatureHandler(event:AttributeInspectorEvent):void
+            {
+                // save the changes when 'Ok' button is clicked
+                if (activeFeatureChangedAttributes.length)
+                {
+                    saveUnsavedAttributes(attrInsp.activeFeature, attrInsp.activeFeatureLayer);
+                }
+                myMap.infoWindow.hide();
+            }
+
+            private function saveUnsavedAttributes(feature:Graphic, featureLayer:FeatureLayer):void
+            {
+                const attributes:Object = {};
+                const objectIdField:String = featureLayer.layerDetails.objectIdField;
+                attributes[objectIdField] = feature.attributes[objectIdField];
+                for each (var attributeObject:Object in activeFeatureChangedAttributes)
+                {
+                    attributes[attributeObject.field.name] = attributeObject.newValue;
+                    feature.attributes[attributeObject.field.name] = attributeObject.newValue;
+                }
+
+                const feature1:Graphic = new Graphic(null, null, attributes);
+                const updates:Array = [ feature1 ];
+
+                featureLayer.applyEdits(null, updates, null, false,
+                                        new AsyncResponder(featureLayer_editsCompleteHandler, featureLayer_faultHandler, { feature: feature }));
+            }
+
+            private function featureLayer_editsCompleteHandler(featureEditResults:FeatureEditResults, token:Object = null):void
+            {
+                var doRefresh:Boolean = false;
+                for each (var deleteResult:FeatureEditResult in featureEditResults.deleteResults)
+                {
+                    if (deleteResult.success === false)
+                    {
+                        Alert.show("Could not delete feature");
+                    }
+                    else
+                    {
+                        status.text = "Feature deleted.";
+                        doRefresh = true;
+                    }
+                }
+
+                for each (var updateResult:FeatureEditResult in featureEditResults.updateResults)
+                {
+                    const feature:Graphic = token.feature;
+                    if (updateResult.success === false)
+                    {
+                        Alert.show("Could not update feature, Restoring old value", "Error");
+
+                        const field:Field = token.field;
+                        feature.attributes[field.name] = token.oldValue;
+                        if (attrInsp.activeFeature === feature)
+                        {
+                            attrInsp.refreshActiveFeature();
+                        }
+                    }
+                    else
+                    {
+                        status.text = "Feature attribute updated.";
+                        doRefresh = true;
+
+                        //refresh the feature to see the changes client side
+                        feature.refresh();
+                    }
+                }
+
+                if (doRefresh)
+                {
+                    opsLayer.refresh();
+                }
+                activeFeatureChangedAttributes = [];
+            }
+
+            private function featureLayer_faultHandler(fault:Fault, token:Object = null):void
+            {
+                activeFeatureChangedAttributes = [];
+                Alert.show(fault.faultString, "Fault");
+            }
+
+            protected function getFeatureCount(value:Array):int
+            {
+                return value.length;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Query id="queryMapClick"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This samples demonstrates how to use a custom component for the editor
+            of a FieldInspector in the AttributeInspector.  The application allows a user to click on a feature (parcels)
+            and view and modify a few attributes of that feature.  Click on any field to see, and modify, its attributes.
+        </s:RichText>
+        <s:Label text="The feature layer has {getFeatureCount(myFeatureLayer.selectedFeatures)} selected feature."/>
+        <s:Label id="status"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              load="attrInsp.featureLayers = [myFeatureLayer]"
+              mapClick="map_mapClickHandler(event)">
+        <esri:extent>
+            <esri:WebMercatorExtent minlon="-97.53" minlat="37.43" maxlon="-97.26" maxlat="37.64"/>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="opsLayer" url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSFields/MapServer"/>
+        <esri:FeatureLayer id="myFeatureLayer"
+                           mode="selection"
+                           outFields="[activeprod, field_name, polydate, status, prod_oil]"
+                           selectionComplete="myFeatureLayer_selectionCompleteHandler(event)"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSFields/FeatureServer/0"/>
+        <esri:infoWindowContent>
+            <s:BorderContainer backgroundColor="0xFFFFFF">
+                <esri:AttributeInspector id="attrInsp"
+                                         deleteFeature="attrInsp_deleteFeatureHandler(event)"
+                                         saveFeature="attrInsp_saveFeatureHandler(event)"
+                                         updateFeature="attrInsp_updateFeatureHandler(event)">
+
+                    <esri:FieldInspector featureLayer="{myFeatureLayer}"
+                                         fieldName="activeprod"
+                                         label="ACTIVE_PRODUCTION"/>
+
+                    <esri:FieldInspector featureLayer="{myFeatureLayer}"
+                                         fieldName="field_name"
+                                         label="FIELDNAME"/>
+
+                    <esri:FieldInspector featureLayer="{myFeatureLayer}"
+                                         fieldName="prod_oil"
+                                         label="PRODUCTION_OIL">
+                        <esri:editor>
+                            <fx:Component>
+                                <esri:ButtonBarField>
+                                    <esri:dataProvider>
+                                        <s:ArrayCollection>
+                                            <fx:Object label="Yes" value="Yes"/>
+                                            <fx:Object label="No" value="No"/>
+                                        </s:ArrayCollection>
+                                    </esri:dataProvider>
+                                </esri:ButtonBarField>
+                            </fx:Component>
+                        </esri:editor>
+                    </esri:FieldInspector>
+                </esri:AttributeInspector>
+            </s:BorderContainer>
+        </esri:infoWindowContent>
+    </esri:Map>
+</s:Application>

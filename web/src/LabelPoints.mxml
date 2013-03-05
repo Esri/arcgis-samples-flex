@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:flash="flash.text.*"
+               pageTitle="Place labels nicely (new in 1.1)">
+    <!--
+    Description:
+    This sample demonstrates how to use the LabelPoints method of the GeometryService
+    to determine the best label placement for a polygon.  Select one of the options for
+    drawing a polygon, then wait for the sample to place the TextSymbol "Label" in the
+    calculated interior label location of the polygon.
+
+    This operation calculates an interior point for each polygon specified
+    in the input array. These interior points can be used by clients for labeling the polygons.
+
+    Steps:
+    1. Draw a polygon or freehand polygon using the DrawTool.
+    2. Upon completion (DrawEnd), the polygon is cleaned up using the Simplify()
+    method of the GeometryService task if it's self intersecting.
+    3. The polygon is then sent to the server which determines the perfect location
+    using the LabelPoints() method of the Geometry Service task.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#DRAW_END
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/TextSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#labelPoints()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#event:labelPointsComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#simplify()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#event:simplifyComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html#polygonSelfIntersecting()
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/labelpoints.html
+    http://resources.arcgis.com/en/help/rest/apiref/simplify.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.Polygon;
+            import com.esri.ags.utils.GeometryUtil;
+
+            import spark.events.IndexChangeEvent;
+
+            private function tbb_changeHandler(event:IndexChangeEvent):void
+            {
+                switch (tbb.selectedItem)
+                {
+                    case "Polygon":
+                    {
+                        myDrawTool.activate(DrawTool.POLYGON);
+                        break;
+                    }
+                    case "FreeHand Polygon":
+                    {
+                        myDrawTool.activate(DrawTool.FREEHAND_POLYGON);
+                        break;
+                    }
+                }
+            }
+
+            private function myDrawTool_drawEndHandler(event:DrawEvent):void
+            {
+                var polygon:Polygon = event.graphic.geometry as Polygon;
+                if (GeometryUtil.polygonSelfIntersecting(polygon))
+                {
+                    // clean the polygon (fix overlapping lines etc)
+                    // Note: As of version 2.0, the GeometryService input is geometries (instead of graphics).
+                    myGeometryService.simplify([ polygon ]);
+                }
+                else
+                {
+                    myGeometryService.labelPoints([ polygon ]);
+                }
+            }
+
+            private function myGeometryService_simplifyCompleteHandler(event:GeometryServiceEvent):void
+            {
+                myGeometryService.labelPoints(event.result as Array);
+            }
+
+            private function myGeometryService_labelPointsCompleteHandler(event:GeometryServiceEvent):void
+            {
+                for each (var geom:Geometry in event.result)
+                {
+                    var g:Graphic = new Graphic();
+                    g.geometry = geom;
+                    g.symbol = labelSymbol;
+                    myGraphicsLayer.add(g);
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Symbol for labels -->
+        <esri:TextSymbol id="labelSymbol"
+                         background="true"
+                         backgroundColor="0xC5C4C8"
+                         border="true"
+                         borderColor="0x959498"
+                         color="0x000000"
+                         text="Label">
+            <flash:TextFormat bold="true"
+                              font="Verdana"
+                              size="14"/>
+        </esri:TextSymbol>
+
+        <!-- use DrawTool to draw polygons -->
+        <esri:DrawTool id="myDrawTool"
+                       drawEnd="myDrawTool_drawEndHandler(event)"
+                       graphicsLayer="{myGraphicsLayer}"
+                       map="{map}">
+            <esri:fillSymbol>
+                <esri:SimpleFillSymbol id="sfs"
+                                       alpha="0.7"
+                                       color="0xECE44A"
+                                       style="solid">
+                    <esri:SimpleLineSymbol width="2" color="0x959498"/>
+                </esri:SimpleFillSymbol>
+            </esri:fillSymbol>
+        </esri:DrawTool>
+
+        <!-- use Geometry Service to clean polygons and find best label points -->
+        <esri:GeometryService id="myGeometryService"
+                              labelPointsComplete="myGeometryService_labelPointsCompleteHandler(event)"
+                              simplifyComplete="myGeometryService_simplifyCompleteHandler(event)"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the LabelPoints method of the GeometryService
+            to determine the best label placement for a polygon.  Select one of the options for
+            drawing a polygon, then wait for the sample to place the TextSymbol "Label" in the
+            calculated interior label location of the polygon.
+        </s:RichText>
+        <s:HGroup width="100%" horizontalAlign="center">
+            <s:ButtonBar id="tbb"
+                         change="tbb_changeHandler(event)"
+                         creationComplete="tbb.selectedIndex = -1"
+                         fontWeight="bold"
+                         valueCommit="if (tbb.selectedIndex == -1) { myDrawTool.deactivate() }">
+                <s:ArrayList>
+                    <fx:String>Polygon</fx:String>
+                    <fx:String>FreeHand Polygon</fx:String>
+                </s:ArrayList>
+            </s:ButtonBar>
+            <s:Button click="{myGraphicsLayer.clear()}"
+                      fontWeight="bold"
+                      label="Clear Polygons"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+
+    <esri:Map id="map" wrapAround180="true">
+        <esri:extent>
+            <esri:Extent xmin="11949219" ymin="518220" xmax="18504459" ymax="3952383">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+</s:Application>

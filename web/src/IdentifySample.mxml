@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="initializeHandler(event)"
+               pageTitle="Identify Features on the Map">
+    <!--
+    Description:
+    This sample demonstrates how to identify features in a map service
+    using the IdentifyTask when a user clicks on the map.  The identify
+    operation is performed on a map service to discover features at a
+    geographic location.  The results are then displayed in the map's
+    infoWindow using a ContentNavigator.
+
+    The IdentifyParameters designate which layers are being identified.
+    Identify operations can potentially return a lot of information
+    depending on the number of layers being identified and a given tolerance.
+    The tolerance is the number of pixels a feature is allowed to lie away
+    from the clicked point in order to be counted as a result.
+
+    In this sample, when user clicks the map, an "Identify" task is executed.
+    When the task finishes executing, the executeCompleteHandler function loops
+    through the results which is an array containing IdentifyResult objects.
+    Each feature which is a graphic is then added to an arraylist, the arraylist is
+    then assigned to the data provider of the ContentNavigator, and finally the
+    ContentNavigator is assigned to the map's infoWindowContent property.  When the
+    map's infoWindow is displayed you can then flip through the results.
+
+    Tip:
+    If you have control to modify the map service you are using, during the authoring phase of your
+    map service set the aliases on your field names and set which fields you want displayed
+    by setting their visibility. This way when you get your results back from using the IdentityTask,
+    the attributes in the graphics will be formatted and displayed the way you want them to look.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#defaultGraphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/IdentifyEvent.html#identifyResults
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#dataProvider
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#selectedItem
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#event:change
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#event:close
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/IdentifyTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/IdentifyTask.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/IdentifyResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/IdentifyParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/IdentifyParameters.html#LAYER_OPTION_VISIBLE
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/identify.html
+
+    ArcGIS for Desktop documentation:
+    Understanding field properties, aliases, and table display options
+    http://resources.arcgis.com/en/help/main/10.1/005s/005s0000003n000000.htm
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+        esri|ContentNavigator
+        {
+            headerColor: #FFFFFF;
+            headerBackgroundAlpha: 1.0;
+            headerBackgroundColor: #353930;
+        }
+
+        esri|InfoWindow
+        {
+            backgroundAlpha: 0.8;
+            backgroundColor: #353930;
+            borderThickness: 0;
+            infoPlacement: top;
+            shadowAlpha: 0.5;
+            shadowDistance: 10;
+            upperRightRadius: 0;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.components.ContentNavigator;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.symbols.InfoSymbol;
+            import com.esri.ags.tasks.supportClasses.IdentifyParameters;
+            import com.esri.ags.tasks.supportClasses.IdentifyResult;
+            import com.esri.ags.utils.GraphicUtil;
+
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.AsyncResponder;
+            import mx.utils.GraphicsUtil;
+
+            import spark.events.IndexChangeEvent;
+
+            private var contentNavigator:ContentNavigator;
+
+            protected function initializeHandler(event:FlexEvent):void
+            {
+                contentNavigator = new ContentNavigator();
+                contentNavigator.addEventListener(IndexChangeEvent.CHANGE, contentNavigator_indexChangeEventHandler, false, 0, true);
+                contentNavigator.addEventListener(Event.CLOSE, contentNavigator_closeEventHandler, false, 0, true);
+            }
+
+            private function myMap_mapClickHandler(event:MapMouseEvent):void
+            {
+                myMap.defaultGraphicsLayer.clear();
+
+                var identifyParams:IdentifyParameters = new IdentifyParameters();
+                identifyParams.layerOption = IdentifyParameters.LAYER_OPTION_VISIBLE;
+                identifyParams.returnGeometry = true;
+                identifyParams.tolerance = 3;
+                identifyParams.width = myMap.width;
+                identifyParams.height = myMap.height;
+                identifyParams.geometry = event.mapPoint;
+                identifyParams.mapExtent = myMap.extent;
+                identifyParams.spatialReference = myMap.spatialReference;
+
+                clickLocation = event.mapPoint;
+                var clickGraphic:Graphic = new Graphic(event.mapPoint, clickPtSym);
+                myMap.defaultGraphicsLayer.add(clickGraphic);
+
+                identifyTask.execute(identifyParams, new AsyncResponder(myResultFunction, myFaultFunction));
+            }
+
+            private function myResultFunction(results:Array, token:Object = null):void
+            {
+                if (results && results.length > 0)
+                {
+                    var list:ArrayList = new ArrayList();
+                    for (var i:int = 0; i < results.length; i++)
+                    {
+                        var result:IdentifyResult = results[i];
+                        list.addItem(result.feature);
+                    }
+
+                    contentNavigator.dataProvider = list;
+                    myMap.infoWindowContent = contentNavigator;
+                    myMap.infoWindow.show(clickLocation);
+                }
+                myMap.defaultGraphicsLayer.clear();
+            }
+
+            private function myFaultFunction(error:Object, token:Object = null):void
+            {
+                Alert.show(String(error), "Identify Error");
+            }
+
+            protected function contentNavigator_indexChangeEventHandler(event:IndexChangeEvent):void
+            {
+                var graphic:Graphic = ContentNavigator(event.currentTarget).selectedItem as Graphic;
+                showHighlightCurrentGraphic(graphic);
+            }
+
+            protected function contentNavigator_closeEventHandler(event:Event):void
+            {
+                myMap.defaultGraphicsLayer.clear();
+                identifyGraphicsLayer.clear();
+            }
+
+            protected function showHighlightCurrentGraphic(graphic:Graphic):void
+            {
+                identifyGraphicsLayer.clear();
+                var currentGraphic:Graphic = graphic;
+                switch (currentGraphic.geometry.type)
+                {
+                    case Geometry.MAPPOINT:
+                    {
+                        currentGraphic.symbol = smsIdentify;
+                        break;
+                    }
+                    case Geometry.POLYLINE:
+                    {
+                        currentGraphic.symbol = slsIdentify;
+                        break;
+                    }
+                    case Geometry.POLYGON:
+                    {
+                        currentGraphic.symbol = sfsIdentify;
+                        break;
+                    }
+                }
+                identifyGraphicsLayer.add(currentGraphic);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:MapPoint id="clickLocation"/>
+        <!-- Symbol for where the user clicked -->
+        <esri:SimpleMarkerSymbol id="clickPtSym"
+                                 color="0xFF0000"
+                                 size="12"
+                                 style="cross">
+            <esri:SimpleLineSymbol width="2" color="0xFFFFFF"/>
+        </esri:SimpleMarkerSymbol>
+
+        <!-- Symbol for Identify Result as Point -->
+        <esri:SimpleMarkerSymbol id="smsIdentify"
+                                 alpha="0.5"
+                                 color="0x00FFFF"
+                                 size="20"
+                                 style="circle"/>
+
+        <!-- Symbol for Identify Result as Polyline -->
+        <esri:SimpleLineSymbol id="slsIdentify"
+                               width="10"
+                               alpha="0.5"
+                               color="0x00FFFF"
+                               style="solid"/>
+
+        <!-- Symbol for Identify Result as Polygon -->
+        <esri:SimpleFillSymbol id="sfsIdentify"
+                               alpha="0.5"
+                               color="0x00FFFF"/>
+
+        <!-- Identify Task -->
+        <esri:IdentifyTask id="identifyTask"
+                           concurrency="last"
+                           showBusyCursor="true"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to identify features in a map service
+            using the IdentifyTask when a user clicks on the map.  The identify
+            operation is performed on a map service to discover features at a
+            geographic location.  The results are then displayed in the map's
+            infoWindow using a ContentNavigator.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" mapClick="myMap_mapClickHandler(event)">
+        <esri:extent>
+            <esri:WebMercatorExtent minlon="-120" minlat="30" maxlon="-100" maxlat="50"/>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer"/>
+        <esri:GraphicsLayer id="identifyGraphicsLayer"/>
+    </esri:Map>
+
+</s:Application>

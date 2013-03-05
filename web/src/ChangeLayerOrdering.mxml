@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Example - Change Layer Ordering">
+    <!--
+    Description:
+    This sample demonstrates how to manipulate the dynamicLayerInfos property of an ArcGISDynamicMapServiceLayer.
+    Using this property you can control what order layers will be rendered when your service supports dynamic layers.
+    This sample allows you to control the order layers draw, and allows you to change their order.
+    Drag and drop a layer in the Table of Contents to change the layer order and you should see the layers reorder on the fly.
+
+    NOTE: This is part of the dynamic capabilities of ArcGIS 10.1 for Server, when your service supports dynamic layers.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#createDynamicLayerInfosFromLayerInfos()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#dynamicLayerInfos
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/DynamicLayerInfo.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html
+
+    ArcGIS for Server documentation:
+    About dynamic layers
+    http://resources.arcgis.com/en/help/main/10.1/0154/0154000004zv000000.htm
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.supportClasses.DynamicLayerInfo;
+
+            import mx.collections.ArrayList;
+            import mx.events.CollectionEvent;
+
+            private var dynamicLayerInfos:Array;
+
+            [Bindable]
+            private var layerList:ArrayList = new ArrayList();
+
+            [Bindable]
+            private var addedPosition:int;
+
+            [Bindable]
+            private var movingLayerName:String;
+
+            [Bindable]
+            private var removePosition:int;
+
+
+            protected function usaLayer_loadHandler(event:LayerEvent):void
+            {
+                dynamicLayerInfos = usaLayer.createDynamicLayerInfosFromLayerInfos();
+                for (var i:int = 0; i < dynamicLayerInfos.length; i++)
+                {
+                    layerList.addItem({ data: dynamicLayerInfos[i], label: checkLayerNameForDisplay(DynamicLayerInfo(dynamicLayerInfos[i]).name)});
+                }
+                layerList.addEventListener(CollectionEvent.COLLECTION_CHANGE, layerListCollectionChangeHandler, false, 0, true);
+            }
+
+            protected function checkLayerNameForDisplay(value:String):String
+            {
+                var layerDisplayName:String = value;
+
+                var periodPos:int = value.lastIndexOf('.');
+                if (periodPos != -1)
+                {
+                    layerDisplayName = value.substr(periodPos + 1, value.length - 1);
+
+                }
+                return layerDisplayName;
+            }
+
+            protected function layerListCollectionChangeHandler(event:CollectionEvent):void
+            {
+                if (event.kind == "remove")
+                {
+                    movingLayerName = event.items[0].label;
+                    //add 1 to the position for readability
+                    removePosition = event.location + 1;
+                }
+                else if (event.kind == "add")
+                {
+                    //add 1 to the position for readability
+                    addedPosition = event.location + 1;
+                    for (var i:int = 0; i < layerList.length; i++)
+                    {
+                        dynamicLayerInfos[i] = layerList.getItemAt(i).data;
+                    }
+                    usaLayer.dynamicLayerInfos = dynamicLayerInfos;
+                    movingText.visible = true;
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Initial extent -->
+        <esri:Extent id="startExtent"
+                     xmin="-16971000" ymin="615000" xmax="-4448000" ymax="8110000">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to manipulate the dynamicLayerInfos property of an ArcGISDynamicMapServiceLayer.
+            Using this property you can control what order layers will be rendered when your service supports dynamic layers.
+            This sample allows you to control the order layers draw, and allows you to change their order.
+            Drag and drop a layer in the Table of Contents to change the layer order and you should see the layers reorder on the fly.
+        </s:RichText>
+        <s:RichText id="movingText"
+                    width="100%"
+                    fontSize="14"
+                    fontStyle="italic"
+                    fontWeight="bold"
+                    visible="false">You just moved {movingLayerName} from position {removePosition} to position {addedPosition} in the Table of Contents.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map extent="{startExtent}">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="usaLayer"
+                                           load="usaLayer_loadHandler(event)"
+                                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer"/>
+    </esri:Map>
+    <s:BorderContainer right="20" top="20"
+                       backgroundAlpha="0.7"
+                       backgroundColor="0xC5C5C9"
+                       cornerRadius="5"
+                       dropShadowVisible="true">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingBottom="10"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="10"/>
+        </s:layout>
+        <s:Label width="180"
+                 alpha="0.7"
+                 color="0x000000"
+                 fontSize="14"
+                 fontWeight="bold"
+                 text="Table of Contents"/>
+        <s:List id="layerListTOC"
+                width="180"
+                alpha="0.7"
+                chromeColor="0x000000"
+                color="0xFFFFFF"
+                contentBackgroundColor="0x000000"
+                dataProvider="{layerList}"
+                dragEnabled="true"
+                dragMoveEnabled="true"
+                dropEnabled="true"/>
+    </s:BorderContainer>
+</s:Application>

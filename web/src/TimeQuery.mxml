@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               backgroundColor="0xD3D1D1"
+               pageTitle="Query time-aware layers">
+    <!--
+    Description:
+    This sample demonstrates how to display time aware data using
+    the TimeSlider and GraphicsLayer.  The earthquakes service used in
+    this example is time-aware, the GraphicsLayer is used to display the
+    earthquake points client-side using a ClassBreaksRenderer, and the
+    TimeSlider provides the user interface for manipulating the service
+    TimeExtent.  The TimeSlider is also using a custom skin.
+
+    Note:
+    All the source code for the skins can be found in the ArcGIS API for Flex
+    download.  Once you unzip the api you can find the skins under the following
+    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins',
+    'ArcGIS_Flex/skins/src/com/esri/ags/skins/supportClasses'
+    and the skin assets in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    TimeSliderNextButtonSkin.mxml
+    TimeSliderSkin.mxml
+    TimeSliderPreviousButtonSkin.mxml
+
+    Note:
+    In ArcGIS Server 10 built-in support was added for Time-Aware layers.
+    On the server you can specify a certain field as a special Time field.
+
+    This time field can be used to set time extent and only ask for data
+    covering certain times.
+
+    Since QueryTask does not automatically get the time extent from the
+    map metadata, we are hardcoding it in this application.  Alternatively,
+    instead of using a QueryTask, we could have used a FeatureLayer in which
+    case we could have gotten the full time extent metadata from the server.
+
+    We're also setting an initial time extent and requesting that data on
+    startup (when map loads).  When a user change the chosen time extent
+    to display, a new query is sent for the new time range.
+
+    To display the data with symbol markers of different size, a ClassBreaksRenderer
+    is used to pick symbol by looking at the "Magnitude" attribute value.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/TimeExtentEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html#createTimeStopsByTimeInterval()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#renderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Serving_time_aware_layers/00sq00000090000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_enabling_time_on_data/005z0000000p000000/
+
+    This sample also uses the following files:
+    com/esri/ags/samples/skins/MyTimeSliderSkin.mxml
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.TimeExtent;
+            import com.esri.ags.events.QueryEvent;
+            import com.esri.ags.events.TimeExtentEvent;
+            import com.esri.ags.layers.supportClasses.TimeInfo;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+
+            private function timeSlider_initializeHandler(event:FlexEvent):void
+            {
+                var layerStartTime:Date = new Date(259200000); // January 3, 1970
+                var layerEndTime:Date = new Date(1243468800000); // May 27, 2009
+                var layerTimeExtent:TimeExtent = new TimeExtent(layerStartTime, layerEndTime);
+                timeSlider.createTimeStopsByTimeInterval(layerTimeExtent, 1, TimeInfo.UNIT_YEARS);
+            }
+
+            private function timeSlider_timeExtentChangeHandler(event:TimeExtentEvent):void
+            {
+                if (map.loaded)
+                {
+                    queryTask.execute(query);
+                }
+            }
+
+            private function queryTask_executeCompleteHandler(event:QueryEvent):void
+            {
+                for each (var graphic:Graphic in event.featureSet.features)
+                {
+                    graphic.toolTip = "Magnitude: " + graphic.attributes["Magnitude"];
+                }
+                graphicsLayer.graphicProvider = event.featureSet.features;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:QueryTask id="queryTask"
+                        executeComplete="queryTask_executeCompleteHandler(event)"
+                        fault="Alert.show(event.fault.message)"
+                        url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/Since_1970/MapServer/0"/>
+        <esri:Query id="query"
+                    outFields="[Magnitude]"
+                    outSpatialReference="{map.spatialReference}"
+                    returnGeometry="true"
+                    timeExtent="{timeSlider.timeExtent}"/>
+        <s:DateTimeFormatter id="dateFormatter" dateTimePattern="yyyy"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to display time aware data using
+            the TimeSlider and GraphicsLayer.  The earthquakes service used in
+            this example is time-aware, the GraphicsLayer is used to display the
+            earthquake points client-side using a ClassBreaksRenderer, and the
+            TimeSlider provides the user interface for manipulating the service
+            TimeExtent.  The TimeSlider is also using a custom skin.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              load="queryTask.execute(query);map.level=1"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:GraphicsLayer id="graphicsLayer">
+            <esri:renderer>
+                <esri:ClassBreaksRenderer field="Magnitude">
+                    <esri:defaultSymbol>
+                        <esri:SimpleMarkerSymbol color="0x00FF00"
+                                                 size="20"
+                                                 style="diamond"/>
+                    </esri:defaultSymbol>
+                    <esri:ClassBreakInfo maxValue="2" minValue="0">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol color="0xFF0000"
+                                                     size="5"
+                                                     style="circle">
+                                <esri:SimpleLineSymbol width="1"
+                                                       alpha="1.0"
+                                                       color="0x0"
+                                                       style="solid"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                    <esri:ClassBreakInfo maxValue="4" minValue="2">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol color="0xFF0000"
+                                                     size="10"
+                                                     style="circle">
+                                <esri:SimpleLineSymbol width="1"
+                                                       alpha="1.0"
+                                                       color="0x0"
+                                                       style="solid"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                    <esri:ClassBreakInfo maxValue="6" minValue="4">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol color="0xFF0000"
+                                                     size="15"
+                                                     style="circle">
+                                <esri:SimpleLineSymbol width="1"
+                                                       color="0x0"
+                                                       style="solid"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                    <esri:ClassBreakInfo maxValue="8" minValue="6">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol color="0xFF0000"
+                                                     size="20"
+                                                     style="circle">
+                                <esri:SimpleLineSymbol width="1" style="solid"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                    <esri:ClassBreakInfo maxValue="10" minValue="8">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol color="0xFF0000"
+                                                     size="25"
+                                                     style="circle">
+                                <esri:SimpleLineSymbol width="1"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                </esri:ClassBreaksRenderer>
+            </esri:renderer>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+    <s:Line width="100%">
+        <s:stroke>
+            <s:SolidColorStroke color="0x000000" weight="1"/>
+        </s:stroke>
+    </s:Line>
+
+    <s:VGroup width="100%"
+              horizontalAlign="center"
+              paddingBottom="7"
+              paddingLeft="10"
+              paddingRight="10"
+              paddingTop="7">
+        <esri:TimeSlider id="timeSlider"
+                         width="75%"
+                         initialize="timeSlider_initializeHandler(event)"
+                         skinClass="com.esri.ags.samples.skins.MyTimeSliderSkin"
+                         thumbCount="2"
+                         thumbIndexes="[15, 25]"
+                         timeExtentChange="timeSlider_timeExtentChangeHandler(event)"/>
+        <s:Label fontSize="14" text="Current Time Extent shown: {dateFormatter.format(timeSlider.timeExtent.startTime)} - {dateFormatter.format(timeSlider.timeExtent.endTime)}"/>
+        <s:Label width="100%"
+                 text="{graphicsLayer.numGraphics} features"
+                 textAlign="center"/>
+    </s:VGroup>
+</s:Application>

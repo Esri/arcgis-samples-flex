@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="samples" default="main" basedir=".">
+
+    <property file="env.properties"/>
+    <property environment="env"/>
+    <property file="local.properties"/>
+    <property file="build.properties"/>
+
+    <target name="main" depends="clean,compile"/>
+
+    <target name="clean">
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <target name="compile" depends="set-library-path">
+        <apply executable="java" dest="${dist.dir}" verbose="true" failonerror="true">
+            <arg line="-Xmx384m"/>
+            <arg line="-Dsun.io.useCanonCaches=false"/>
+            <arg line="-jar '${env.FLEX_HOME}/lib/mxmlc.jar'"/>
+            <arg line="+flexlib='${env.FLEX_HOME}/frameworks'"/>
+            <arg line="-headless-server"/>
+            <arg line="-library-path+=libs"/>
+            <arg line="-library-path+='${library.path}'"/>
+            <arg line="-source-path+=src"/>
+            <arg line="-output"/>
+            <targetfile/>
+            <srcfile/>
+            <fileset dir="src" includes="*.mxml"/>
+            <mapper type="glob" from="*.mxml" to="*.swf"/>
+        </apply>
+    </target>
+
+    <target name="set-library-path">
+        <!-- Set library.path to either libs or the value of ags.api.swc -->
+        <condition property="library.path"
+                   value="${ags.api.swc}"
+                   else="libs">
+            <isset property="ags.api.swc"/>
+        </condition>
+    </target>
+
+</project>

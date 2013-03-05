@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="WMTS Layer">
+    <!--
+    Description:
+    This sample demonstrates how to use the WMTSLayer to add
+    an OGC Web Map Tiled Service (WMTS) layer to your
+    ArcGIS API for Flex application.
+
+    The default behavior of a WMTSLayer is to execute a WMTS GetCapabilities request, which requires using
+    a proxy page if the server does not have a crossdomain.xml file that permits direct access.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WMTSLayer.html
+
+    http://www.opengeospatial.org/standards/wmts
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/wmts.html
+    http://resources.arcgis.com/en/help/rest/apiref/wmtscapabilities.html
+    http://resources.arcgis.com/en/help/rest/apiref/wmtstile.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+
+            import flashx.textLayout.conversion.TextConverter;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+
+            protected function richText_initializeHandler(event:FlexEvent):void
+            {
+                var htmlText:String = '<a href="http://sampleserver6.arcgisonline.com/arcgis/rest/services/WorldTimeZones/MapServer/WMTS?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities" target="_blank">WMTS Capabilities</a>';
+                richText.textFlow = TextConverter.importToFlow(htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT);
+            }
+
+            protected function wmtslayer1_loadErrorHandler(event:LayerEvent):void
+            {
+                Alert.show(event.fault.faultString, "Error");
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the WMTSLayer to add
+            an OGC Web Map Tiled Service (WMTS) layer to your
+            ArcGIS API for Flex application.
+        </s:RichText>
+        <s:RichEditableText id="richText"
+                            editable="false"
+                            initialize="richText_initializeHandler(event)"
+                            selectable="false"/>
+    </s:controlBarContent>
+
+    <esri:Map wrapAround180="true">
+        <esri:WMTSLayer layerId="WorldTimeZones"
+                        imageFormat="png"
+                        loadError="wmtslayer1_loadErrorHandler(event)"
+                        serviceMode="KVP"
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/WorldTimeZones/MapServer/WMTS"/>
+    </esri:Map>
+
+</s:Application>

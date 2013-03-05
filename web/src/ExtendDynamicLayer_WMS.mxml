@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:samples="com.esri.ags.samples.*"
+               pageTitle="Extending DynamicMapServiceLayer using ArcGIS API for Flex">
+    <!--
+    Description:
+    This sample demonstrates the programming patterns to extend the DynamicMapServiceLayer class and
+    create your own custom layer.  The DynamicMapServiceLayer class can be extended to support other layer types,
+    such as Open Geospatial Consortium Web Map Services (OGC WMS).
+
+    In this sample the DynamicMapServiceLayer class is extended.
+    The key method to overwrite is loadMapImage().
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/DynamicMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/DynamicMapServiceLayer.html#loadMapImage()
+
+    This sample also uses the following file:
+    com/esri/ags/samples/CityStatesWMSLayer.as
+    -->
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates the programming patterns to extend the DynamicMapServiceLayer class and
+            create your own custom layer.  The DynamicMapServiceLayer class can be extended to support other layer types,
+            such as Open Geospatial Consortium Web Map Services (OGC WMS).
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map scale="36937200">
+        <esri:extent>
+            <esri:Extent xmin="-124.06791" ymin="25.97326" xmax="-65.18119" ymax="49.90553">
+                <esri:SpatialReference wkid="4326"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer"/>
+        <samples:CityStatesWMSLayer/>
+    </esri:Map>
+
+</s:Application>

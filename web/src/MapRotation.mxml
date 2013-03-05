@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               pageTitle="Explore map rotation">
+    <!--
+    Description:
+    This sample demonstrates how to rotate the map using the
+    ArcGIS API for Flex.  Move the slider from left to right
+    to rotate the map.  To reset the map rotation, click the
+    "Reset Map" button or click the white arrow beneath the
+    navigation slider.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#crosshairVisible
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#extent
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#mapRotation
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#middleButtonRotationEnabled
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#wrapAround180
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#zoomSliderVisible
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/components/RotationWheel.as
+    com/esri/ags/samples/skins/RotationWheelSkin.mxml
+    -->
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to rotate the map using the
+            ArcGIS API for Flex.  Rotate the wheel to rotate the map.
+            To reset the map rotation, click the "N" North button on the wheel.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              crosshairVisible="true"
+              level="17"
+              middleButtonRotationEnabled="true"
+              wrapAround180="true"
+              zoomSliderVisible="false">
+        <esri:center>
+            <esri:MapPoint x="-10051125" y="4669530"/>
+        </esri:center>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+    </esri:Map>
+
+    <components:RotationWheel id="wheel"
+                              width="75" height="75"
+                              left="20" top="20"
+                              change="map.rotateTo(wheel.mapRotation, wheel.mapRotation == 0)"
+                              mapRotation="{map.mapRotation}"
+                              skinClass="com.esri.ags.samples.skins.RotationWheelSkin"/>
+
+</s:Application>

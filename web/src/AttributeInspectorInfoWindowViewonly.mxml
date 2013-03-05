@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Attribute Inspector (view-only)">
+    <!--
+    Description:
+    This sample demonstrates how to select features in a FeatureLayer
+    and show the selected feature in the map's info window using the
+    attribute inspector.  This application is "ViewOnly" and connects
+    to a non-editable layer.  This application allows user to click on
+    a feature (parcels) and view a few attributes of that feature.
+
+    This is done by clicking a point on the map to select feature(s)
+    from the FeatureLayer.
+
+    The AttributeInspector then displays the selection in the InfoWindow
+    popup which is shown where user clicked the map.
+
+    Note that this sample displays the FeatureLayer in "selection" mode and
+    that the parcels are actually displayed using a dynamic layer pointing to
+    the matching map service.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FeatureLayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    -->
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|InfoWindow
+        {
+            background-color: #BDB76B; /* dark khaki */
+            border-color: #000000;
+            border-thickness: 3;
+            lower-left-radius: 20;
+            lower-right-radius: 20;
+            upper-left-radius: 20;
+            upper-right-radius: 0;
+        }
+        esri|InfoWindowLabel
+        {
+            color: #FFFFFF;
+            font-size: 15;
+            padding-left: 120;
+        }
+        s|BorderContainer
+        {
+            contentBackgroundColor: #F0E68C;
+            backgroundColor: #F0E68C;
+            borderVisible: true;
+            borderWeight: 1;
+            borderColor: black;
+            cornerRadius: 15;
+        }
+    </fx:Style>
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.FeatureLayerEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            protected function map_mapClickHandler(event:MapMouseEvent):void
+            {
+                // set the selection query based on the click
+                queryMapClick.geometry = event.mapPoint;
+                myFeatureLayer.selectFeatures(queryMapClick); // default selectionMethod is FeatureLayer.SELECTION_NEW
+                myMap.infoWindow.hide();
+            }
+
+            protected function attrInsp_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.message, "Fault");
+            }
+
+            protected function myFeatureLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
+            {
+                // only show infoWindow if a feature was found
+                if (event.featureLayer.numGraphics > 0)
+                {
+                    myMap.infoWindow.label = "Parcel " + event.featureLayer.selectedFeatures[0].attributes.OBJECTID;
+                    myMap.infoWindow.show(queryMapClick.geometry as MapPoint);
+                }
+                else
+                {
+                    Alert.show("Sorry found nothing here...");
+                }
+            }
+
+            protected function getFeatureCount(value:Array):int
+            {
+                return value.length;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Query id="queryMapClick"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to select features in a FeatureLayer
+            and show the selected feature in the map's info window using the
+            attribute inspector.  This application is "ViewOnly" and connects
+            to a non-editable layer.
+            The application allows user to click on a feature (parcels)
+            and view a few attributes of that feature.
+        </s:RichText>
+        <s:Label text="The feature layer has {getFeatureCount(myFeatureLayer.selectedFeatures)} selected feature(s)."/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              load="attrInsp.featureLayers = [myFeatureLayer]"
+              mapClick="map_mapClickHandler(event)">
+        <!-- Extent for BloomfieldHills -->
+        <esri:extent>
+            <esri:Extent xmin="-9271300" ymin="5248100" xmax="-9270300" ymax="5249200">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/BloomfieldHillsMichigan/Parcels/MapServer"/>
+        <esri:FeatureLayer id="myFeatureLayer"
+                           mode="selection"
+                           outFields="[USEDSCRP,OWNERNME1,LASTUPDATE,CLASSDSCRP]"
+                           selectionColor="0x000000"
+                           selectionComplete="myFeatureLayer_selectionCompleteHandler(event)"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/BloomfieldHillsMichigan/Parcels/MapServer/2"/>
+        <esri:infoWindowContent>
+            <s:BorderContainer>
+                <esri:AttributeInspector id="attrInsp"
+                                         left="5" right="5" top="5" bottom="5"/>
+            </s:BorderContainer>
+        </esri:infoWindowContent>
+    </esri:Map>
+</s:Application>

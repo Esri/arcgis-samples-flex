@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+     The skin is horizontal and the width of the slider is determined by the number of map LODs and the 'tickSpacing' style property.
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:mx="library://ns.adobe.com/flex/mx">
+
+    <fx:Metadata>
+        /**
+         * A strongly typed property that references the component to which this skin is applied.
+         */
+        [HostComponent("com.esri.ags.components.Navigation")]
+    </fx:Metadata>
+
+    <fx:Declarations>
+        <!--- @private -->
+        <!-- http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html -->
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="0"/>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.layers.supportClasses.LOD;
+
+            private function formatSliderDataTip(value:Number):String
+            {
+                const lod:LOD = hostComponent.map.lods[value];
+                return lod ? "1:" + numberFormatter.format(lod.scale) : "Error";
+            }
+
+            protected function getCount(value:Array):int
+            {
+                return value.length;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="disabled"/>
+        <s:State name="normalWithSlider"/>
+        <s:State name="disabledWithSlider"/>
+    </s:states>
+
+    <s:Rect left="0" right="0" top="0" bottom="0"
+            radiusX="10"
+            radiusY="10">
+        <s:fill>
+            <s:SolidColor alpha="0.5" color="0x000000"/>
+        </s:fill>
+    </s:Rect>
+
+    <s:HGroup gap="7"
+              paddingBottom="5"
+              paddingLeft="3"
+              paddingRight="3"
+              paddingTop="4"
+              verticalAlign="middle">
+
+        <s:Button id="zoomOutButton"
+                  enabled.disabled="false"
+                  enabled.disabledWithSlider="false"
+                  skinClass="com.esri.ags.skins.NavigationZoomOutButtonSkin"
+                  toolTip="{resourceManager.getString('ESRIMessages', 'zoomOutTooltip')}"/>
+
+        <s:HSlider id="slider"
+                   width="{getCount(hostComponent.map.lods) * getStyle('tickSpacing')}"
+                   dataTipFormatFunction="formatSliderDataTip"
+                   enabled.disabled="false"
+                   enabled.disabledWithSlider="false"
+                   enabled.normalWithSlider="true"
+                   includeIn="normalWithSlider,disabledWithSlider"
+                   liveDragging="false"
+                   showDataTip="true"
+                   skinClass="com.esri.ags.skins.NavigationHSliderSkin"
+                   snapInterval="1"
+                   value="{hostComponent.map.level}"/>
+
+        <s:Button id="zoomInButton"
+                  enabled.disabled="false"
+                  enabled.disabledWithSlider="false"
+                  skinClass="com.esri.ags.skins.NavigationZoomInButtonSkin"
+                  toolTip="{resourceManager.getString('ESRIMessages', 'zoomInTooltip')}"/>
+
+    </s:HGroup>
+
+</s:Skin>

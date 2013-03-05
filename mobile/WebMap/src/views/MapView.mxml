@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        initialize="view1_initializeHandler(event)">
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Map;
+
+            import mx.events.FlexEvent;
+
+            private var map:Map;
+            private var previousView:View;
+
+            protected function view1_initializeHandler(event:FlexEvent):void
+            {
+                previousView = data.view;
+                title = data.title;
+
+                map = data.map as Map;
+                map.zoomSliderVisible = false;
+                map.wrapAround180 = true;
+                addElementAt(map, 0);
+            }
+
+            protected function backButton_clickHandler(event:MouseEvent):void
+            {
+                navigator.popView();
+            }
+        ]]>
+    </fx:Script>
+
+    <s:navigationContent>
+        <s:Button id="backButton"
+                  click="backButton_clickHandler(event)"
+                  icon="@Embed('assets/back.png')"/>
+    </s:navigationContent>
+</s:View>

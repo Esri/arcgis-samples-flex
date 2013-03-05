@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="FeatureLayer - show InfoWindow on mouseOver">
+    <!--
+    Description:
+    This sample demonstrates how to display an InfoWindow on a mouse over ("map tips").
+    The 46 South Carolina counties are all fetched from the server using the FeatureLayer
+    'snapshot' mode and drawn clientside.  As the mouse moves over a county,
+    an infoWindow will show as a 'map tip'.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#infoWindow
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GraphicEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|InfoWindow
+        {
+            content-background-alpha : 0;
+            background-color : #DED7B7;
+            background-alpha : 0.9;
+            border-style : solid;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.GraphicEvent;
+            import com.esri.ags.geometry.Extent;
+
+            import spark.utils.TextFlowUtil;
+
+            protected function fLayer_graphicAddHandler(event:GraphicEvent):void
+            {
+                event.graphic.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverHandler);
+                event.graphic.addEventListener(MouseEvent.MOUSE_OUT, onMouseOutHandler);
+            }
+
+            private function onMouseOverHandler(event:MouseEvent):void
+            {
+                var gr:Graphic = Graphic(event.target);
+                gr.symbol = mouseOverSymbol;
+                myTextArea.textFlow = TextFlowUtil.importFromString("<span fontWeight='bold'>2000 Population: </span>" + gr.attributes.POP2000.toString() + "<br/>"
+                                                                    + "<span fontWeight='bold'>2000 Population per Sq. Mi.: </span>" + gr.attributes.POP00_SQMI.toString() + "<br/>"
+                                                                    + "<span fontWeight='bold'>2007 Population: </span>" + gr.attributes.POP2007 + "<br/>"
+                                                                    + "<span fontWeight='bold'>2007 Population per Sq. Mi.: </span>" + gr.attributes.POP07_SQMI);
+                myMap.infoWindow.label = gr.attributes.NAME;
+                myMap.infoWindow.closeButtonVisible = false;
+                myMap.infoWindow.show(myMap.toMapFromStage(event.stageX, event.stageY));
+            }
+
+            private function onMouseOutHandler(event:MouseEvent):void
+            {
+                var gr:Graphic = Graphic(event.target);
+                gr.symbol = defaultsym;
+                myMap.infoWindow.hide();
+            }
+
+            private function zoomToSouthCarolina():void
+            {
+                var southCarolinaExtent:Extent = new Extent(-9294000, 3667000, -8739000, 4217000, new SpatialReference(102100));
+                myMap.extent = southCarolinaExtent;
+
+                // make sure the whole extent is visible
+                if (!myMap.extent.contains(southCarolinaExtent))
+                {
+                    myMap.level--;
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleFillSymbol id="mouseOverSymbol" alpha="0.5">
+            <esri:SimpleLineSymbol width="0" color="0xFF0000"/>
+        </esri:SimpleFillSymbol>
+        <esri:SimpleFillSymbol id="defaultsym" alpha="0.2">
+            <esri:SimpleLineSymbol width="1" color="0xEEEEEE"/>
+        </esri:SimpleFillSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to display an InfoWindow on a mouse over ("map tips").
+            The {fLayer.numGraphics} South Carolina counties are all fetched from the server
+            using the FeatureLayer 'snapshot' mode and drawn clientside.
+            As the mouse moves over a county, an infoWindow will show as a 'map tip'.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" load="zoomToSouthCarolina()">
+        <esri:extent>
+            <esri:Extent xmin="-9495067" ymin="3761417" xmax="-8675662" ymax="4190688">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:infoWindowContent>
+            <s:TextArea id="myTextArea"
+                        width="250" height="75"/>
+        </esri:infoWindowContent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer id="fLayer"
+                           definitionExpression="STATE_NAME='South Carolina'"
+                           graphicAdd="fLayer_graphicAddHandler(event)"
+                           mode="snapshot"
+                           outFields="*"
+                           symbol="{defaultsym}"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/3"/>
+    </esri:Map>
+
+</s:Application>

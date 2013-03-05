@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by LayerTOC.mxml -->
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                    xmlns:s="library://ns.adobe.com/flex/spark"
+                    clipAndEnableScrolling="true">
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.layers.supportClasses.LayerInfo;
+
+            private function cb_clickHandler(event:MouseEvent):void
+            {
+                var layerInfo:LayerInfo = LayerInfo(data);
+
+                if (cb.selected)
+                {
+                    layerInfo.defaultVisibility = true;
+                    LayerTOC(grid.dataGrid).showLayer(layerInfo);
+                }
+                else
+                {
+                    layerInfo.defaultVisibility = false;
+                    LayerTOC(grid.dataGrid).hideLayer(layerInfo);
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <s:CheckBox id="cb"
+                click="cb_clickHandler(event)"
+                horizontalCenter="0"
+                selected="{LayerInfo(data).defaultVisibility}"/>
+
+</s:GridItemRenderer>

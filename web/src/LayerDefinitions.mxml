@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Example - using layerDefinitions to only show subset of content from specific layers">
+    <!--
+    Description:
+    This sample demonstrates how to apply definition expressions using the layerDefinitions property
+    of the ArcGISDynamicMapServiceLayer class.  Layer definitions are sent to the server where the
+    expression will be applied to the map service and the map service layers will be filtered
+    according to the expression criteria.  In this sample, a series of layerDefinitions are being
+    applied to only show data for one state.
+
+    These criteria allow you to filter the features of individual layers in the map service by specifying definition
+    expressions for those layers. A definition expression for a layer that is published with the service
+    will be always honored.  The layerDefinitions property is an array elements that may either be a
+    LayerDefinition or a String where the array index represents the layer ID. Definition expressions
+    for layers that are currently not visible will be ignored by the server.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDefinitions
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDefinition.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/export.html
+
+    ArcGIS for Desktop documentation:
+    Create a definition expression for a layer prior to publishing the service
+    http://resources.arcgis.com/en/help/main/10.1/00s5/00s50000002z000000.htm
+    Building a query expression
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Building_a_query_expression/00s50000002t000000/
+    SQL reference for query expressions used in ArcGIS
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/SQL_reference_for_query_expressions_used_in_ArcGIS/00s500000033000000/
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+        s|Panel
+        {
+            chromeColor: #403F33;
+            backgroundColor: #62696D;
+            backgroundAlpha: 0.8;
+            color: #FFFFFF;
+        }
+    </fx:Style>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to apply definition expressions using the layerDefinitions property
+            of the ArcGISDynamicMapServiceLayer class.  Layer definitions are sent to the server where the
+            expression will be applied to the map service and the map service layers will be filtered
+            according to the expression criteria.  In this sample, a series of layerDefinitions are being
+            applied to only show data for one state.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-13456111" ymin="4335957" xmax="-11817302" ymax="5194498">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="censusLayer" name="Census"
+                                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer">
+            <esri:layerDefinitions>
+                <!--Utah is FIPS = '49'-->
+                <esri:LayerDefinition layerId="0" definition="STATE_FIPS = '49'"/>
+                <esri:LayerDefinition layerId="1" definition="STATE_FIPS = '49'"/>
+                <esri:LayerDefinition layerId="2" definition="STATE_FIPS = '49'"/>
+                <esri:LayerDefinition layerId="3" definition="STATE_FIPS = '49'"/>
+            </esri:layerDefinitions>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+    <s:Panel id="legendPanel"
+             height="200"
+             left="20" top="230"
+             title="Legend"
+             visible="{censusLayer.loaded}">
+        <s:layout>
+            <s:VerticalLayout paddingTop="10"/>
+        </s:layout>
+        <esri:Legend height="100%"
+                     layers="{[censusLayer]}"
+                     map="{map}"/>
+    </s:Panel>
+
+</s:Application>

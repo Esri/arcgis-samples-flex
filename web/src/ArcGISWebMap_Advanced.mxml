@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="application_initializeHandler(event)"
+               pageTitle="Using operational layers of a WebMap from ArcGIS.com">
+    <!--
+    Description:
+    This sample demonstrates how to use the contents of a Web Map
+    from www.arcgis.com to create a map, legend and zoom to control
+    (drop down list) for a given operational layer (states).
+
+    After the web map loads, and we know our service of interest (esriCensusService) loads, we add an event listener to
+    the service so that we can search deeper into the service and find specific layers.
+    Using the layer information (layerInfos) from the service, we loop through the layers to find the states layer and counties layer.
+    Once our layers of interest are located, we set the layer drawing options on the counties layer and query the states layer
+    to get the geometry for each state.  This allows the user to select a state name and navigate to selected state's map extent.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Legend.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/WebMapEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/WebMapUtil.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+
+    View the web map item using the ArcGIS.com map viewer
+    http://www.arcgis.com/home/item.html?id=5728c3bf56b446a2b2cfaf0f7f9690f1
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.Map;
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.events.QueryEvent;
+            import com.esri.ags.events.WebMapEvent;
+            import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+            import com.esri.ags.layers.Layer;
+            import com.esri.ags.layers.supportClasses.LayerInfo;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            private var esriCensusService:ArcGISDynamicMapServiceLayer;
+            private var map:Map;
+            [Bindable]
+            private var statesDataProvider:ArrayCollection = new ArrayCollection();
+            [Bindable]
+            private var stateNameField:String = 'STATE_NAME';
+
+            protected function application_initializeHandler(event:FlexEvent):void
+            {
+                webMapUtil.createMapById("5728c3bf56b446a2b2cfaf0f7f9690f1");
+            }
+
+            protected function webMapUtil_createMapByIdCompleteHandler(event:WebMapEvent):void
+            {
+                map = event.map as Map;
+                map.zoomSliderVisible = false;
+                initalExtent = map.extent;
+                var layersCollection:ArrayCollection = map.layers as ArrayCollection;
+
+                for (var i:int = 0; i < layersCollection.length; i++)
+                {
+                    var layer:Layer = layersCollection.getItemAt(i) as Layer;
+                    if (layer is ArcGISDynamicMapServiceLayer && layer.name.toLowerCase() == 'us bureau of the census map service')
+                    {
+                        esriCensusService = layer as ArcGISDynamicMapServiceLayer;
+                        esriCensusService.addEventListener(LayerEvent.LOAD, esriCensusService_layerLoadHander, false, 0, true);
+                        break;
+                    }
+                }
+                mapGroup.addElement(map);
+            }
+
+            protected function esriService_faultHandler(event:FaultEvent):void
+            {
+                var errorString:String = "Service error\n" + event.fault.faultString;
+                Alert.show(errorString, "Loading Errors");
+            }
+
+            protected function queryTask_executeCompleteHandler(event:QueryEvent):void
+            {
+                var featuresArray:Array = event.featureSet.features;
+                var graphic:Graphic;
+                for (var i:int = 0; i < featuresArray.length; i++)
+                {
+                    graphic = featuresArray[i] as Graphic;
+                    statesDataProvider.addItem({ data: graphic.geometry.extent, label: graphic.attributes[stateNameField]});
+                }
+            }
+
+            protected function stateNameDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedItem:Object = DropDownList(event.currentTarget).selectedItem;
+                map.extent = selectedItem.data as Extent;
+                map.level--;
+            }
+
+            protected function esriCensusService_layerLoadHander(event:LayerEvent):void
+            {
+                esriCensusService.removeEventListener(LayerEvent.LOAD, esriCensusService_layerLoadHander)
+                var layer:ArcGISDynamicMapServiceLayer = event.layer as ArcGISDynamicMapServiceLayer;
+                var layerInfosArray:Array = layer.layerInfos;
+                for (var i:int = 0; i < layerInfosArray.length; i++)
+                {
+                    var layerInfo:LayerInfo = layerInfosArray[i] as LayerInfo;
+                    if (layerInfo.name.toLowerCase() == "detailed counties")
+                    {
+                        censusCountiesLayerDrawingOptions.layerId = layerInfo.layerId;
+                        esriCensusService.layerDrawingOptions = [ censusCountiesLayerDrawingOptions ];
+                    }
+                    if (layerInfo.name.toLowerCase() == "states")
+                    {
+                        queryTask.url = esriCensusService.url + '/' + layerInfo.layerId;
+                        censusStateQuery.outSpatialReference = map.spatialReference;
+                        censusStateQuery.maxAllowableOffset = calculateMaxAllowableOffset();
+                        queryTask.execute(censusStateQuery);
+                    }
+                }
+                legend.map = map;
+                legend.layers = [ esriCensusService ];
+            }
+
+            protected function calculateMaxAllowableOffset(pixelTolerance:int = 1):int
+            {
+                return Math.floor(map.extent.width / map.width) * pixelTolerance;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:WebMapUtil id="webMapUtil"
+                         createMapByIdComplete="webMapUtil_createMapByIdCompleteHandler(event)"
+                         fault="esriService_faultHandler(event)"/>
+        <esri:Extent id="initalExtent"/>
+        <esri:QueryTask id="queryTask"
+                        executeComplete="queryTask_executeCompleteHandler(event)"
+                        fault="esriService_faultHandler(event)"/>
+        <esri:Query id="censusStateQuery"
+                    orderByFields="{[stateNameField]}"
+                    outFields="{[stateNameField]}"
+                    returnGeometry="true"
+                    where="1=1"/>
+        <!-- "The Bizzniss" colors courtesy of http://kuler.adobe.com -->
+        <esri:SimpleFillSymbol id="sfs0"
+                               alpha="0.7"
+                               color="0x74C0CF"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs1"
+                               alpha="0.7"
+                               color="0x4FA9B8"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs2"
+                               alpha="0.7"
+                               color="0xF1F7E2"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs3"
+                               alpha="0.7"
+                               color="0x202B30"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs4"
+                               alpha="0.7"
+                               color="0x4E7178"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleLineSymbol id="sfsOutline"
+                               alpha="0.1"
+                               color="0x1C272C"/>
+        <esri:LayerDrawingOptions id="censusCountiesLayerDrawingOptions">
+            <esri:ClassBreaksRenderer field="RENTER_OCC">
+                <esri:ClassBreakInfo label="0 to 500"
+                                     maxValue="500"
+                                     minValue="0"
+                                     symbol="{sfs0}"/>
+                <esri:ClassBreakInfo label="501 to 10,000"
+                                     maxValue="10000"
+                                     minValue="501"
+                                     symbol="{sfs1}"/>
+                <esri:ClassBreakInfo label="10,001 to 30,000"
+                                     maxValue="30000"
+                                     minValue="10001"
+                                     symbol="{sfs2}"/>
+                <esri:ClassBreakInfo label="30,001 to 90,000"
+                                     maxValue="90000"
+                                     minValue="30001"
+                                     symbol="{sfs3}"/>
+                <esri:ClassBreakInfo label="90,001 to 10,000,000"
+                                     maxValue="10000000"
+                                     minValue="90001"
+                                     symbol="{sfs4}"/>
+            </esri:ClassBreaksRenderer>
+        </esri:LayerDrawingOptions>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the contents of a Web Map
+            from www.arcgis.com to create a map, legend and zoom to control
+            (drop down list) for a given operational layer (states).
+        </s:RichText>
+        <s:HGroup verticalAlign="baseline">
+            <s:Label width="70" text="State Name:"/>
+            <s:DropDownList id="stateNameDropDownList"
+                            width="150"
+                            change="stateNameDropDownList_changeHandler(event)"
+                            dataProvider="{statesDataProvider}"
+                            prompt="-- select one --"/>
+            <s:Button click="{map.extent = initalExtent}"
+                      enabled="{initalExtent != null}"
+                      label="Reset Map"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:Group id="mapGroup"
+             width="100%" height="100%"/>
+    <s:Panel id="webMapPanel"
+             width="200"
+             right="5" top="5"
+             title="Renter Occupancy by County">
+        <s:layout>
+            <s:VerticalLayout paddingBottom="5"
+                              paddingLeft="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <s:RichEditableText id="webMapLabel" width="90%">
+            The purpose of this sample is to demonstrate how you can load a web map in Flex and
+            get access to the operational layers contained in the Map class.  After you have access to
+            the map you may want to do something like change the renderer of a layer or setup a query
+            for navigational purposes.
+        </s:RichEditableText>
+    </s:Panel>
+    <s:Group left="5" bottom="60">
+        <s:RectangularDropShadow left="0" right="0" top="0" bottom="0"
+                                 alpha="1"
+                                 angle="90"
+                                 blRadius="5"
+                                 blurX="6"
+                                 blurY="6"
+                                 brRadius="5"
+                                 color="#000000"
+                                 distance="1"
+                                 tlRadius="5"
+                                 trRadius="5"/>
+        <s:Rect left="0" right="0" top="0" bottom="0"
+                radiusX="5"
+                radiusY="5">
+            <s:fill>
+                <s:SolidColor alpha="0.7" color="0xC5C5C9"/>
+            </s:fill>
+        </s:Rect>
+        <esri:Legend id="legend"
+                     left="5" right="5" top="5" bottom="5"/>
+    </s:Group>
+</s:Application>

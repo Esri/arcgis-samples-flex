@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Earthquakes 1970-2009">
+    <!--
+    Description:
+    This sample demonstrates how the inherited graphicAdd event of the FeatureLayer
+    can be used to add tooltips to the features (graphics) in the FeatureLayer.
+
+    To display the data with symbol markers of different size, a ClassBreaksRenderer
+    is used to pick symbol by looking at the "Magnitude" attribute value.
+
+    This application uses a FeatureLayer in 'snapshot' mode so only one request
+    is needed to get all the features.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#mode
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#event:graphicAdd
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        mx|ToolTip {
+            fontFamily: "Arial";
+            fontSize: 16;
+            fontWeight: "bold";
+            color: #FF0000;
+            backgroundColor: #FFCCCC;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.GraphicEvent;
+
+            protected function fLayer_graphicAddHandler(event:GraphicEvent):void
+            {
+                // just so we can add tool tips
+                event.graphic.toolTip = event.graphic.attributes.Name + "\n";
+                event.graphic.toolTip += "Magnitude " + myOneDecimalFormatter.format(event.graphic.attributes.Magnitude) + " earthquake";
+                if (event.graphic.attributes.Num_Deaths)
+                {
+                    event.graphic.toolTip += "\n(" + event.graphic.attributes.Num_Deaths + " people died)";
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html -->
+        <s:NumberFormatter id="myOneDecimalFormatter"
+                           fractionalDigits="1"
+                           useGrouping="true"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how the inherited graphicAdd event of the FeatureLayer
+            can be used to add tooltips to the features (graphics) in the FeatureLayer.
+            The earthquake FeatureLayer is adding tooltips using graphicAdd, and ClassBreaksRenderer to draw the markers with different symbols.
+            CSS is used to customize the tooltips.
+        </s:RichText>
+        <s:Label text="{fLayer.numGraphics} earthquakes are currently visible in this map." visible="{fLayer.numGraphics > 0}"/>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:Extent xmin="-11866000" ymin="-284000" xmax="-7977000" ymax="2919000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:lods>
+            <esri:LOD resolution="39135.7584820001" scale="147914381.897889"/>
+            <esri:LOD resolution="19567.8792409999" scale="73957190.948944"/>
+            <esri:LOD resolution="9783.93962049996" scale="36978595.474472"/>
+            <esri:LOD resolution="4891.96981024998" scale="18489297.737236"/>
+            <esri:LOD resolution="2445.98490512499" scale="9244648.868618"/>
+            <esri:LOD resolution="1222.99245256249" scale="4622324.434309"/>
+            <esri:LOD resolution="611.49622628138" scale="2311162.217155"/>
+        </esri:lods>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer id="fLayer"
+                           graphicAdd="fLayer_graphicAddHandler(event)"
+                           mode="snapshot"
+                           outFields="[Name,Magnitude,Num_Deaths]"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/Since_1970/MapServer/0">
+            <esri:renderer>
+                <esri:ClassBreaksRenderer field="Magnitude">
+                    <esri:ClassBreakInfo maxValue="5">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol alpha="0.8"
+                                                     color="0xFF0000"
+                                                     size="8"
+                                                     style="triangle">
+                                <esri:SimpleLineSymbol color="0xAA0000"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                    <esri:ClassBreakInfo maxValue="7" minValue="5">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol alpha="0.8"
+                                                     color="0xFF0000"
+                                                     size="12"
+                                                     style="triangle">
+                                <esri:SimpleLineSymbol color="0xAA0000"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                    <esri:ClassBreakInfo minValue="7">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol alpha="0.8"
+                                                     color="0xFF0000"
+                                                     size="25"
+                                                     style="triangle">
+                                <esri:SimpleLineSymbol color="0xAA0000"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                </esri:ClassBreaksRenderer>
+            </esri:renderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+</s:Application>

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Service Area">
+    <!--
+    Description:
+    This sample demonstrates how you can use a geoprocessing service to expose
+    ArcGIS Network Analyst for Server functionality, specifically service area analysis.
+    This sample is setup so that computeServiceArea function is called
+    when the map is clicked.
+    <esri:Map click="computeServiceArea(event)">
+
+    The computeServiceArea function sends a request to a GP task to create the geometries for the different drive times
+    The return drivetime features are used as the graphicProvider for a graphics layer:
+    graphicsLayer.graphicProvider = fs.features;
+
+    The graphics layer uses  UniqueValueRenderer to draw the drive times in different colors
+    <esri:GraphicsLayer id="graphicsLayer" renderer="{uniqueValueRenderer}"/>
+    The uniqueValueRenderer uses the "ToBreak" attributes, which is returned by the GP task,
+    to draw different symbols based on drive time.
+
+    Note:
+    One of the most important things to notice when publishing your geoprocessing service is to notice
+    the "Execution mode" in the parameters setting.  The execution mode will be either
+    "Synchronous" or "Asynchronous".  When a service is set to synchronous, the client waits for the task
+    to finish.  An asynchronous task typically takes longer to execute, and the client must periodically
+    ask the server if the task has finished and, if it has finished, get the result.  In the ArcGIS API for Flex,
+    if your service is "Synchronous" you will call the "gp.execute()" method or "gp.submitJob()" method
+    if your service is "Asynchronous".  Another important item to observe is the parameter names and types, you
+    can find out the name, case-sensitivity, and data type through exploring the service in the ArcGIS REST
+    Services Directory.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ParameterValue.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/gpserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/gptask.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpexecute.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpsubmit.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpjob.html
+
+    ArcGIS for Server documentation:
+    What is a geoprocessing service?
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_geoprocessing_service/0154000004v5000000/
+    A quick tour of authoring and sharing geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/A_quick_tour_of_authoring_and_sharing_geoprocessing_services/01540000054n000000/
+    Essential vocabulary for geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/Essential_vocabulary_for_geoprocessing_services/0154000004v2000000/
+    Geoprocessing service settings: Parameters
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Parameters/01540000054v000000/
+
+    ArcGIS for Desktop documentation:
+    A quick tour of creating custom tools
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//001500000001000000
+    A quick tour of creating tools with ModelBuilder
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_ModelBuilder/00150000001t000000/
+    A quick tour of creating tools with Python
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_Python/00150000002q000000/
+
+    ArcGIS Network Analyst:
+    Service Area Analysis
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Service_area_analysis/004700000048000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.ExecuteResult;
+            import com.esri.ags.tasks.supportClasses.ParameterValue;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+
+            private var driveTimes:String = "1 2 3";
+
+            private function computeServiceArea(mapPoint:MapPoint):void
+            {
+                graphicsLayer.clear();
+
+                var graphic:Graphic = new Graphic(mapPoint, sms_circleAlphaSizeOutline);
+
+                graphicsLayer.add(graphic);
+
+                var featureSet:FeatureSet = new FeatureSet([ graphic ]);
+
+                var params:Object =
+                    {
+                        "Input_Location": featureSet,
+                        "Drive_Times": driveTimes
+                    };
+
+                gp.execute(params, new AsyncResponder(onResult, onFault));
+
+                function onResult(gpResult:ExecuteResult, token:Object = null):void
+                {
+                    var pv:ParameterValue = gpResult.results[0];
+                    var fs:FeatureSet = pv.value as FeatureSet;
+                    graphicsLayer.graphicProvider = fs.features;
+                }
+                function onFault(info:Object, token:Object = null):void
+                {
+                    Alert.show(info.toString());
+                }
+            }
+
+            private function mapClickHandler(event:MapMouseEvent):void
+            {
+                computeServiceArea(event.mapPoint);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleMarkerSymbol id="sms_circleAlphaSizeOutline"
+                                 alpha="0.5"
+                                 size="15"
+                                 style="circle"/>
+
+        <esri:SimpleFillSymbol id="rFill"
+                               alpha="0.5"
+                               color="0xFF0000"/>
+        <esri:SimpleFillSymbol id="gFill"
+                               alpha="0.5"
+                               color="0x00FF00"/>
+        <esri:SimpleFillSymbol id="bFill"
+                               alpha="0.5"
+                               color="0x0000FF"/>
+
+        <esri:UniqueValueRenderer id="uniqueValueRenderer" field="ToBreak">
+            <esri:UniqueValueInfo symbol="{rFill}" value="1"/>
+            <esri:UniqueValueInfo symbol="{gFill}" value="2"/>
+            <esri:UniqueValueInfo symbol="{bFill}" value="3"/>
+        </esri:UniqueValueRenderer>
+
+        <esri:Geoprocessor id="gp"
+                           outSpatialReference="{myMap.spatialReference}"
+                           showBusyCursor="true"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Network/ESRI_DriveTime_US/GPServer/CreateDriveTimePolygons"
+                           useAMF="false"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use a geoprocessing service to expose
+            ArcGIS Network Analyst for Server functionality, specifically service area analysis.
+            Click anywhere on the map to calculate a 1, 2, and 3 minute drive time from the click location.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" mapClick="mapClickHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-10621000" ymin="4701000" xmax="-10586000" ymax="4731000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="graphicsLayer" renderer="{uniqueValueRenderer}"/>
+    </esri:Map>
+
+</s:Application>

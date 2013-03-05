@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Measure Distances">
+    <!--
+    Description:
+    This sample demonstrates how to measure line distances correctly
+    using the geodesic measurement property of the GeometryService which
+    was added at ArcGIS 10 for Server.
+    First select a geographic location by searching ("Enter a location"),
+    then click two or more input points on the map to calculate the
+    geodesic (shortest path) distance.  To remove any distances that have
+    been measured click the "Clear Route" button.
+
+    Note:
+    With earlier versions of ArcGIS Server, the "geodesic" property cannot be used.
+    The "9.3" solution depends on which coordinate system is being using.
+    If the map uses a geographic coordinate system, the line needs to be projected
+    into the desired projected coordinate system for calculating the line length.
+    The geometry service can be used to do the projection.
+
+    With ArcGIS Server 10, the geodesic property can be used for easier measurements.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polyline.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/CompositeSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/TextSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#distance()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#event:distanceComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/DistanceParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/DistanceParameters.html#geodesic
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html#addressToLocations()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/utils/TextFlowUtil.html
+
+    For more details on the World Geocoding Service follow the link below.
+    http://geocode.arcgis.com/arcgis/index.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/distance.html
+    http://resources.arcgis.com/en/help/rest/apiref/simplify.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_the_geometry_service/0154000004n5000000/
+
+    ArcGIS for Desktop documentation:
+    About geodetic features
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//01m70000003q000000
+    Measuring distances and areas
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//00s500000022000000
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.events.LocatorEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.geometry.Polyline;
+            import com.esri.ags.symbols.CompositeSymbol;
+            import com.esri.ags.symbols.TextSymbol;
+            import com.esri.ags.tasks.supportClasses.AddressCandidate;
+            import com.esri.ags.tasks.supportClasses.AddressToLocationsParameters;
+            import com.esri.ags.tasks.supportClasses.DistanceParameters;
+            import com.esri.ags.utils.GeometryUtil;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+
+            import spark.utils.TextFlowUtil;
+
+            public var inputPoints:Array = [];
+            public var endGraphic:Graphic;
+            public var totalDistance:Number = 0
+            public var segmentDistance:Array = [];
+            public var newPointAdded:Boolean;
+
+            private var distanceText:String = "";
+            [Bindable]
+            private var textSymbolTextFormat:TextFormat = new TextFormat(null, 15, null, true);
+
+            protected function doFind():void
+            {
+                refresh();
+                var parameters:AddressToLocationsParameters = new AddressToLocationsParameters();
+                parameters.address = { SingleLine: onelineaddress.text, CountryCode: 'US' };
+                locator.addressToLocations(parameters);
+            }
+
+            protected function clearRouteButton_clickHandler(event:MouseEvent):void
+            {
+                refresh();
+            }
+
+            private function refresh():void
+            {
+                myGraphicsLayer.clear();
+                inputPoints = [];
+                totalDistance = 0;
+                segmentDistance = [];
+
+                distanceText = "";
+                textArea.textFlow = TextFlowUtil.importFromString(distanceText);
+            }
+
+            protected function locator_addressToLocationsCompleteHandler(event:LocatorEvent):void
+            {
+                if (event.addressCandidates.length > 0)
+                {
+                    myMap.centerAt(AddressCandidate(event.addressCandidates[0]).location);
+                    myMap.level = 12;
+                }
+                else
+                {
+                    Alert.show(onelineaddress.text, "Unable to find");
+                }
+            }
+
+            protected function myMap_mapClickHandler(event:MapMouseEvent):void
+            {
+                newPointAdded = false;
+
+                const pt:MapPoint = event.mapPoint;
+                if (inputPoints.length > 0)
+                {
+                    var lastPoint:MapPoint = MapPoint(inputPoints[inputPoints.length - 1]);
+                    if (Math.abs(pt.x - lastPoint.x) > 5 || Math.abs(pt.y - lastPoint.y) > 5) // prevent distance calculation on double click
+                    {
+                        inputPoints.push(pt);
+                        newPointAdded = true;
+                    }
+                }
+                else
+                {
+                    inputPoints.push(pt);
+                }
+
+                //define the symbology for the graphics
+                if (inputPoints.length == 1)
+                {
+                    myGraphicsLayer.add(new Graphic(pt, new CompositeSymbol([ sms, startText ])));
+                }
+
+                if (inputPoints.length > 1 && newPointAdded)
+                {
+                    if (endGraphic)
+                    {
+                        endGraphic.symbol = sms;
+                    }
+
+                    //the normalized geometry
+                    var normalizedInputPoints:Array = [];
+                    //keep the geometry that will be used to display the line segments
+                    var addPathGeom:Object = {};
+
+                    //Normalize the geometry for the case that someone calculates the distance over the central meridian or outside the valid world extent
+                    GeometryUtil.normalizeCentralMeridian(inputPoints, geometryService, new AsyncResponder(normalizeCentralMeridianResultFunction, normalizeCentralMeridianFaultFunction));
+
+                    function normalizeCentralMeridianResultFunction(result:Object, token:Object = null):void
+                    {
+                        normalizedInputPoints = result as Array;
+                    }
+                    function normalizeCentralMeridianFaultFunction(result:Object, token:Object = null):void
+                    {
+                        trace("normalizeCentralMeridianFaultFunction");
+                    }
+
+                    //two input points, hence call the geometry service and perform the distance operation
+                    var distParams:DistanceParameters = new DistanceParameters();
+                    distParams.distanceUnit = GeometryService.UNIT_STATUTE_MILE;
+                    distParams.geometry1 = normalizedInputPoints[normalizedInputPoints.length - 2];
+                    distParams.geometry2 = normalizedInputPoints[normalizedInputPoints.length - 1];
+                    distParams.geodesic = true;
+
+                    addPathGeom.geometry1 = inputPoints[inputPoints.length - 2];
+                    addPathGeom.geometry2 = inputPoints[inputPoints.length - 1];
+
+
+                    //draw a polyline to connect the input points
+                    const polyline:Polyline = new Polyline(null, new SpatialReference(4326));
+                    polyline.addPath([ addPathGeom.geometry1, addPathGeom.geometry2 ]);
+                    myGraphicsLayer.add(new Graphic(polyline, sls));
+
+                    //Calculate the geodesic distance
+                    geometryService.distance(distParams);
+
+                    endGraphic = new Graphic(pt, new CompositeSymbol([ sms, finishText ]));
+                    myGraphicsLayer.add(endGraphic);
+                }
+            }
+
+            protected function geometryService_distanceCompleteHandler(event:GeometryServiceEvent):void
+            {
+                segmentDistance.push(numberFormatter.format(event.result));
+                totalDistance += event.result;
+                distanceText = "<span fontWeight='bold'>Total:</span> " + numberFormatter.format(totalDistance) + " miles <br/>";
+
+                for (var i:Number = 0; i < segmentDistance.length; i++)
+                {
+                    distanceText += "<span fontWeight='bold'>Segment " + (i + 1) + "</span>" + ": " + segmentDistance[i] + " miles <br/>";
+                }
+
+                textArea.textFlow = TextFlowUtil.importFromString(distanceText);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Number Formatter -->
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="2"/>
+        <!-- Symbols -->
+        <esri:SimpleMarkerSymbol id="sms"
+                                 alpha="0.65"
+                                 color="0x008000"
+                                 size="12"
+                                 style="square">
+            <esri:SimpleLineSymbol width="2"
+                                   color="0xFF0000"
+                                   style="solid"/>
+        </esri:SimpleMarkerSymbol>
+        <esri:SimpleLineSymbol id="sls"
+                               width="4"
+                               color="0x008000"
+                               style="solid"/>
+        <esri:TextSymbol id="startText"
+                         color="0x0000FF"
+                         text="Start"
+                         textFormat="{textSymbolTextFormat}"
+                         yoffset="16"/>
+        <esri:TextSymbol id="finishText"
+                         color="0x0000FF"
+                         text="Finish"
+                         textFormat="{textSymbolTextFormat}"
+                         yoffset="16"/>
+        <!-- Locator -->
+        <esri:Locator id="locator"
+                      addressToLocationsComplete="locator_addressToLocationsCompleteHandler(event)"
+                      outSpatialReference="{myMap.spatialReference}"
+                      showBusyCursor="true"
+                      url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"/>
+
+        <!-- Geometry Service-->
+        <esri:GeometryService id="geometryService"
+                              distanceComplete="geometryService_distanceCompleteHandler(event)"
+                              showBusyCursor="true"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to measure line distances correctly
+            using the geodesic measurement property of the GeometryService which
+            was added at ArcGIS 10 for Server.
+            First select a geographic location by searching ("Enter a location"),
+            then click two or more input points on the map to calculate the
+            geodesic (shortest path) distance.  To remove any distances that have
+            been measured click the "Clear Route" button.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label text="Enter a location"/>
+            <s:TextInput id="onelineaddress"
+                         enter="doFind()"
+                         text="Washington, DC"/>
+            <s:Button id="goButton"
+                      click="doFind()"
+                      label="Go"/>
+            <s:Button id="clearRouteButton"
+                      click="clearRouteButton_clickHandler(event)"
+                      label="Clear Route"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:Group width="100%" height="100%">
+        <s:Rect width="100%" height="100%">
+            <s:fill>
+                <s:SolidColor color="0x000000"/>
+            </s:fill>
+        </s:Rect>
+        <s:HGroup width="100%" height="100%"
+                  gap="1">
+            <s:Group width="100%" height="100%">
+                <esri:Map id="myMap"
+                          mapClick="myMap_mapClickHandler(event)"
+                          wrapAround180="true">
+                    <esri:extent>
+                        <esri:Extent xmin="-13917000" ymin="1625000" xmax="-8907000" ymax="8278291">
+                            <esri:SpatialReference wkid="102100"/>
+                        </esri:Extent>
+                    </esri:extent>
+                    <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer" visible="{bb.selectedIndex == 0}"/>
+                    <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" visible="{bb.selectedIndex == 1}"/>
+                    <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer" visible="{bb.selectedIndex == 2}"/>
+                    <esri:GraphicsLayer id="myGraphicsLayer"/>
+                </esri:Map>
+                <s:ButtonBar id="bb"
+                             right="5" top="5"
+                             selectedIndex="0">
+                    <s:ArrayCollection>
+                        <fx:String>Streets</fx:String>
+                        <fx:String>Imagery</fx:String>
+                        <fx:String>Topo</fx:String>
+                    </s:ArrayCollection>
+                </s:ButtonBar>
+            </s:Group>
+            <s:TextArea id="textArea"
+                        width="40%" height="100%"
+                        borderVisible="false"
+                        contentBackgroundColor="0xEEEEEE"
+                        horizontalScrollPolicy="auto"
+                        verticalScrollPolicy="auto"/>
+        </s:HGroup>
+    </s:Group>
+</s:Application>

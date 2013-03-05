@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Routing with the ArcGIS API for Flex">
+    <!--
+    Description:
+    This sample demonstrates how to use the RouteTask to calculate a route
+    between two or more stops.  Click on the map to add stops and calculate
+    the route (requires two or more stops).
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/RouteEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/RouteTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/RouteTask.html#solve()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RouteParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RouteResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RouteSolveResult.html
+
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Routing_tasks/017p00000012000000/
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/naserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/nalayer.html
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?nasolve.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Network_analysis_services/015400000276000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/What_is_the_ArcGIS_Network_Analyst_extension/004700000001000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_the_ArcGIS_Network_Analyst_extension_tutorial/00470000005r000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Route_analysis/004700000045000000/
+
+    NOTE: In order to support this workflow (author and publish the services) in your own environment,
+    you will need a streets network dataset such as StreetMap Premium for ArcGIS,
+    ArcGIS Network Analyst for Desktop, and ArcGIS Network Analyst for Server.
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.events.RouteEvent;
+            import com.esri.ags.tasks.supportClasses.RouteResult;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            private var lastRoute:Graphic;
+
+            private var stopCount:int = 0;
+
+            private function mapClickHandler(event:MapMouseEvent):void
+            {
+                stopCount++;
+                var stopName:String = "Stop " + stopCount;
+                var stop:Graphic = new Graphic(event.mapPoint, stopSymbol, { name: stopName });
+                stop.toolTip = stopName;
+                map.defaultGraphicsLayer.add(stop);
+
+                stops.features.push(stop);
+                if (stops.features.length > 1)
+                {
+                    routeParams.outSpatialReference = map.spatialReference;
+                    routeTask.solve(routeParams);
+                }
+            }
+
+            private function solveCompleteHandler(event:RouteEvent):void
+            {
+                var routeResult:RouteResult = event.routeSolveResult.routeResults[0];
+                routeResult.route.symbol = routeSymbol;
+                map.defaultGraphicsLayer.remove(lastRoute);
+                lastRoute = routeResult.route;
+                lastRoute.toolTip = routeResult.routeName;
+                if (routeResult.stops && routeResult.stops.length > 0)
+                {
+                    lastRoute.toolTip += " with " + routeResult.stops.length + " stops";
+                }
+                if (routeResult.route.attributes.Total_TravelTime)
+                {
+                    lastRoute.toolTip += " in " + Math.round(Number(routeResult.route.attributes.Total_TravelTime)) + " minutes.";
+                }
+                map.defaultGraphicsLayer.add(lastRoute);
+            }
+
+            private function faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "Routing Error " + event.fault.faultCode);
+                // remove last stop (or both stops if only two)
+                if (stops.features.length <= 2)
+                {
+                    map.defaultGraphicsLayer.clear();
+                }
+                else
+                {
+                    map.defaultGraphicsLayer.remove(stops.features.pop());
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:RouteTask id="routeTask"
+                        concurrency="last"
+                        fault="faultHandler(event)"
+                        requestTimeout="30"
+                        showBusyCursor="true"
+                        solveComplete="solveCompleteHandler(event)"
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route"/>
+
+        <esri:RouteParameters id="routeParams" returnStops="true">
+            <esri:stops>
+                <esri:FeatureSet id="stops">
+                    <esri:features>
+                        <fx:Array/>
+                    </esri:features>
+                </esri:FeatureSet>
+            </esri:stops>
+        </esri:RouteParameters>
+
+        <esri:SimpleMarkerSymbol id="stopSymbol"
+                                 color="0xFF0000"
+                                 size="15"
+                                 style="circle">
+            <esri:SimpleLineSymbol width="1"/>
+        </esri:SimpleMarkerSymbol>
+
+        <esri:SimpleLineSymbol id="routeSymbol"
+                               width="5"
+                               alpha="0.5"
+                               color="0x0000FF"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the RouteTask to calculate a route
+            between two or more stops.  Click on the map to add stops and calculate
+            the route (requires two or more stops).
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map" mapClick="mapClickHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13042947" ymin="3856278" xmax="-13041347" ymax="3857116">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>

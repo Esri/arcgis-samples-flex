@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ViewNavigatorApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+                            xmlns:s="library://ns.adobe.com/flex/spark"
+                            xmlns:esri="http://www.esri.com/2008/ags"
+                            applicationDPI="160"
+                            creationComplete="creationCompleteHandler(event)"
+                            firstView="views.LoadingWebmapsView">
+
+    <fx:Style source="defaults.css"/>
+
+    <fx:Declarations>
+        <esri:Portal id="portal"
+                     load="portal_loadHandler(event)"
+                     url="http://www.arcgis.com/"/>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.PortalEvent;
+            import com.esri.ags.portal.supportClasses.PortalGroup;
+            import com.esri.ags.portal.supportClasses.PortalItem;
+            import com.esri.ags.portal.supportClasses.PortalQueryParameters;
+
+            import mx.collections.ArrayList;
+            import mx.events.FlexEvent;
+
+            import views.WebMapsView;
+
+            private function creationCompleteHandler(event:FlexEvent):void
+            {
+                portal.load();
+            }
+
+            private function portal_loadHandler(event:PortalEvent):void
+            {
+                var queryParameters:PortalQueryParameters = PortalQueryParameters.forQuery(portal.info.featuredItemsGroupQuery);
+                portal.addEventListener(PortalEvent.QUERY_GROUPS_COMPLETE, portal_queryGroupsCompleteHandler);
+                portal.queryGroups(queryParameters);
+            }
+
+            private function portal_queryGroupsCompleteHandler(event:PortalEvent):void
+            {
+                portal.removeEventListener(PortalEvent.QUERY_GROUPS_COMPLETE, portal_queryGroupsCompleteHandler);
+                if (event.queryResult && event.queryResult.results.length > 0)
+                {
+                    var group:PortalGroup = event.queryResult.results[0];
+                    var queryParams:PortalQueryParameters = new PortalQueryParameters();
+                    queryParams.ofType(PortalItem.TYPE_WEB_MAP).withLimit(24);
+                    group.queryItems(queryParams);
+                    group.addEventListener(PortalEvent.QUERY_ITEMS_COMPLETE, group_queryItemsCompleteHandler);
+                }
+            }
+
+            private function group_queryItemsCompleteHandler(event:PortalEvent):void
+            {
+                var group:PortalGroup = event.target as PortalGroup;
+                group.removeEventListener(PortalEvent.QUERY_ITEMS_COMPLETE, group_queryItemsCompleteHandler);
+
+                const source:ArrayList = new ArrayList();
+                source.source = event.queryResult.results;
+
+                // remove any previous search(s) on start up
+                persistenceManager.setProperty("searchText", null);
+                persistenceManager.setProperty("searchResults", null);
+                persistenceManager.setProperty("webmaps", source);
+
+                navigator.pushView(WebMapsView, portal);
+            }
+        ]]>
+    </fx:Script>
+</s:ViewNavigatorApplication>

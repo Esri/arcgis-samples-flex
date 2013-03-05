@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="application1_initializeHandler(event)"
+               pageTitle="Example - Query For Statistics">
+    <!--
+    Description:
+    This sample demonstrates new capabilities at ArcGIS 10.1 for calculating statistics on the server.
+    The sample is displaying statistics by US region, the server is calculating a summation on
+    the population 2000 field, and also calculating a count on the region field.
+
+    Note:
+    When your layer/table in a service reports in the Services Directory that "supportsStatistics" is true,
+    you will be able to use the following classes and parameters to have the server generate statistics.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html#outStatistics
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html#groupByFieldsForStatistics
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/StatisticDefinition.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/query.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.QueryEvent;
+            import com.esri.ags.tasks.supportClasses.Query;
+            import com.esri.ags.tasks.supportClasses.StatisticDefinition;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            protected function application1_initializeHandler(event:FlexEvent):void
+            {
+                var query:Query = new Query();
+
+                var statsDef1:StatisticDefinition = new StatisticDefinition();
+                statsDef1.onStatisticField = "POP2000";
+                statsDef1.outStatisticFieldName = "POP_SUM";
+                statsDef1.statisticType = StatisticDefinition.TYPE_SUMMATION;
+
+                var statsDef2:StatisticDefinition = new StatisticDefinition();
+                statsDef2.onStatisticField = "SUB_REGION";
+                statsDef2.outStatisticFieldName = "STATES_COUNT";
+                statsDef2.statisticType = StatisticDefinition.TYPE_COUNT;
+
+                query.groupByFieldsForStatistics = [ "SUB_REGION" ];
+                query.outStatistics = [ statsDef1, statsDef2 ];
+                queryTask.execute(query);
+            }
+
+            protected function queryTask_executeCompleteHandler(event:QueryEvent):void
+            {
+                var fields:Array = event.featureSet.fields;
+                var attributes:Array = event.featureSet.attributes;
+                dg.dataProvider = new ArrayCollection(attributes);
+            }
+
+            protected function esri_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+            }
+
+            protected function sumLabelFunction(item:Object, column:GridColumn):String
+            {
+                return numberFormatter.format(item["POP_SUM"]);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Query Task -->
+        <esri:QueryTask id="queryTask"
+                        executeComplete="queryTask_executeCompleteHandler(event)"
+                        fault="esri_faultHandler(event)"
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/3"/>
+        <!-- Initial Extent -->
+        <esri:Extent id="startExtent"
+                     xmin="-16971000" ymin="615000" xmax="-4448000" ymax="8110000">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+        <!-- Symbols -->
+        <esri:SimpleFillSymbol id="sfs0"
+                               color="0xFF7837"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs1"
+                               color="0xE8BD81"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs2"
+                               color="0xFFEF9D"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs3"
+                               color="0xDB1B2F"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs4"
+                               color="0x8C0C23"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs5"
+                               color="0xFFC06C"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs6"
+                               color="0xF09B63"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs7"
+                               color="0xEB704F"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs8"
+                               color="0xE33226"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfsDefault"
+                               alpha="0.7"
+                               color="0xA8B371"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleLineSymbol id="sfsOutline"
+                               alpha="0.1"
+                               color="0x1C272C"/>
+        <s:NumberFormatter id="numberFormatter" trailingZeros="false"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="90%">
+            This sample demonstrates new capabilities at ArcGIS 10.1 for calculating statistics on the server.
+            The sample is displaying statistics by US region, the server is calculating a summation on
+            the population 2000 field, and also calculating a count on the region field.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map extent="{startExtent}">
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="demographicsLayer"
+                                           imageFormat="png32"
+                                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayList>
+                    <fx:Number>3</fx:Number>
+                    <!-- Only show the states layer -->
+                </s:ArrayList>
+            </esri:visibleLayers>
+            <esri:layerDrawingOptions>
+                <esri:LayerDrawingOptions layerId="3">
+                    <esri:renderer>
+                        <esri:UniqueValueRenderer defaultSymbol="{sfsDefault}" field="SUB_REGION">
+                            <esri:UniqueValueInfo symbol="{sfs0}" value="East North Central"/>
+                            <esri:UniqueValueInfo symbol="{sfs1}" value="East South Central"/>
+                            <esri:UniqueValueInfo symbol="{sfs2}" value="Mid Atlantic"/>
+                            <esri:UniqueValueInfo symbol="{sfs3}" value="Moutain"/>
+                            <esri:UniqueValueInfo symbol="{sfs4}" value="New England"/>
+                            <esri:UniqueValueInfo symbol="{sfs7}" value="Pacific"/>
+                            <esri:UniqueValueInfo symbol="{sfs6}" value="South Atlantic"/>
+                            <esri:UniqueValueInfo symbol="{sfs5}" value="West North Central"/>
+                            <esri:UniqueValueInfo symbol="{sfs8}" value="West South Central"/>
+                        </esri:UniqueValueRenderer>
+                    </esri:renderer>
+                </esri:LayerDrawingOptions>
+            </esri:layerDrawingOptions>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+    <s:DataGrid id="dg"
+                width="280"
+                right="20" top="20">
+        <s:columns>
+            <s:ArrayList>
+                <s:GridColumn dataField="SUB_REGION" headerText="US Region"/>
+                <s:GridColumn dataField="POP_SUM"
+                              headerText="Region Population"
+                              labelFunction="sumLabelFunction"/>
+                <s:GridColumn width="49"
+                              dataField="STATES_COUNT"
+                              headerText="Count"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+</s:Application>

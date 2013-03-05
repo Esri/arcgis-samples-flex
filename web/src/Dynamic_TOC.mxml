@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:samples="com.esri.ags.samples.*"
+               backgroundColor="0xEEEEEE"
+               pageTitle="Turning individual layers on/off for an dynamic ArcGIS map service">
+    <!--
+    Description:
+    This sample demonstrates how you can use a custom Table of Contents (TOC) component
+    to allow end-users to easily turn on/off layers for any dynamic ArcGIS map service.
+
+    By default, the visible layers (as defined in the service) are used.
+    In this example, a datagrid (LayerTOC) with checkboxes for every layer in
+    the current service is displayed.  The datagrid itemrenderer (LayerVizRenderer)
+    will update the map service as users selects/clears checkboxes.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerInfos
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/LayerTOC.mxml
+    com/esri/ags/samples/LayerVizRenderer.mxml
+    -->
+
+    <s:layout>
+        <s:HorizontalLayout/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            protected function myDynamicService_loadErrorHandler(event:LayerEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "Layer Load Error " + event.fault.faultCode);
+            }
+
+            protected function myDynamicService_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "Layer Fault " + event.fault.faultCode);
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use a custom Table of Contents (TOC) component
+            to allow end-users to easily turn on/off layers for any dynamic ArcGIS map service.
+        </s:RichText>
+        <s:Label fontWeight="bold" text="URL of a dynamic (not cached) Map Service:"/>
+        <s:HGroup width="100%">
+            <s:TextInput id="myURL"
+                         width="95%"
+                         creationComplete="myDynamicService.url = myURL.text"
+                         enter="myDynamicService.url = myURL.text"
+                         text="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer"/>
+            <s:Button click="myDynamicService.url = myURL.text" label="Load"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map wrapAround180="true">
+        <esri:extent>
+            <esri:Extent xmin="-14408162" ymin="3592860" xmax="-11130542" ymax="5309942">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="myDynamicService"
+                                           fault="myDynamicService_faultHandler(event)"
+                                           load="myDynamicService.visibleLayers = null"
+                                           loadError="myDynamicService_loadErrorHandler(event)"/>
+    </esri:Map>
+    <samples:LayerTOC width="210" height="100%"
+                      mapLayer="{myDynamicService}"/>
+
+</s:Application>

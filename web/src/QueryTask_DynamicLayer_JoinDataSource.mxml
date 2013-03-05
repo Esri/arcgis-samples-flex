@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="0xEEEEEE"
+               pageTitle="Querying server-side table joins">
+    <!--
+    Description:
+    This sample demonstrates how to create a dynamic join with a layer
+    (states) in a map service to a table (ancestry) in a dynamic
+    workspace.  Click a record to see more information about a given state.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#joinType
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#leftTableKey
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#leftTableSource
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#rightTableKey
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#rightTableSource
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDataSource.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerMapSource.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TableDataSource.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#source
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/DataGrid.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/DataGrid.html#event:gridClick
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/gridClasses/GridColumn.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/gridClasses/GridColumn.html#labelFunction
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html
+    http://resources.arcgis.com/en/help/rest/apiref/ms_dyn_query.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_dynamic_layers/0154000004zv000000/
+
+    U.S. Census Bureau:
+    http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ACS_10_1YR_DP02&prodType=table
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.events.QueryEvent;
+            import com.esri.ags.utils.JSONUtil;
+
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.components.gridClasses.GridColumn;
+            import spark.events.GridEvent;
+
+            protected function dataGrid_initializeHandler(event:FlexEvent):void
+            {
+                queryTask.source = dynamicSource;
+                queryTask.execute(query);
+            }
+
+            protected function queryTask_executeCompleteHandler(event:QueryEvent):void
+            {
+                var featureSet:FeatureSet = event.featureSet;
+                if (featureSet)
+                {
+                    dataGrid.dataProvider = new ArrayList(featureSet.attributes);
+                }
+            }
+
+            protected function queryTask_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+            }
+
+            protected function dataGrid_gridClickHandler(event:GridEvent):void
+            {
+                var itemObject:Object = event.item;
+                if (itemObject)
+                {
+                    var details:String = "";
+
+                    details += "State ID: " + itemObject['states.OBJECTID'] + "\n";
+                    details += "Median Age: " + itemObject['states.MED_AGE'] + "\n";
+                    details += "Ancestry ID: " + itemObject['ancestry.OBJECTID'] + "\n";
+                    details += "State: " + itemObject['ancestry.State'] + "\n";
+
+                    for (var key:String in itemObject)
+                    {
+                        if (key.indexOf("ancestry") != -1)
+                        {
+                            if (key != "ancestry.OBJECTID" && key != "ancestry.State")
+                            {
+                                details += key.substr(key.indexOf(".") + 1) + ": " + numberFormatter.format(itemObject[key]) + "\n";
+                            }
+                            else if (key != "ancestry.OBJECTID" && key != "ancestry.State")
+                            {
+                                details += key.substr(key.indexOf(".") + 1) + ": " + itemObject[key] + "\n";
+                            }
+                        }
+                    }
+                    ancestryTextArea.text = details;
+                    ancestryPanel.title = itemObject["ancestry.State"] + " ancestry details";
+                    ancestryPanel.visible = true;
+                }
+            }
+
+            protected function myLabelFunction(item:Object, column:GridColumn):String
+            {
+                var obj:Object = item;
+                var columnName:String = column.dataField;
+                if (columnName != "ancestry.State")
+                {
+                    return numberFormatter.format(item[column.dataField]);
+                }
+                else
+                {
+                    return item[column.dataField];
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:NumberFormatter id="numberFormatter"/>
+
+        <esri:QueryTask id="queryTask"
+                        executeComplete="queryTask_executeCompleteHandler(event)"
+                        fault="queryTask_faultHandler(event)"
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/dynamicLayer"/>
+
+        <esri:Query id="query"
+                    orderByFields="[STATE_NAME]"
+                    outFields="*"
+                    returnGeometry="false"
+                    where="1=1"/>
+
+        <esri:LayerDataSource id="dynamicSource">
+            <esri:JoinDataSource joinType="esriLeftOuterJoin"
+                                 leftTableKey="STATE_NAME"
+                                 rightTableKey="State">
+                <esri:leftTableSource>
+                    <esri:LayerMapSource id="statesLayerMapSource" mapLayerId="3"/>
+                </esri:leftTableSource>
+                <esri:rightTableSource>
+                    <esri:LayerDataSource id="ancestryLayerDataSource">
+                        <!-- Dynamic Workspace (follow the link in the sample description for more information on dynamic workspaces -->
+                        <esri:TableDataSource dataSourceName="ancestry" workspaceId="CensusFileGDBWorkspaceID"/>
+                    </esri:LayerDataSource>
+                </esri:rightTableSource>
+            </esri:JoinDataSource>
+        </esri:LayerDataSource>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichEditableText width="100%" editable="false">
+            This sample demonstrates how to create a dynamic join with a layer
+            (states) in a map service to a table (ancestry) in a dynamic
+            workspace.  Click a record to see more information about a given state,
+            <s:a href="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/dynamicLayer?layer={JSONUtil.encode({ source: ancestryLayerDataSource })}" target="_blank">view the ancestry table</s:a>, or
+            <s:a href="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/3" target="_blank">view the states layer</s:a>.
+        </s:RichEditableText>
+    </s:controlBarContent>
+
+    <s:DataGrid id="dataGrid"
+                width="100%" height="100%"
+                left="10" right="10" top="7" bottom="7"
+                gridClick="dataGrid_gridClickHandler(event)"
+                initialize="dataGrid_initializeHandler(event)"
+                sortableColumns="false">
+        <s:columns>
+            <s:ArrayList>
+                <!-- ANCESTRY FIELDS -->
+                <s:GridColumn dataField="ancestry.State"
+                              headerText="State"
+                              labelFunction="myLabelFunction"/>
+                <s:GridColumn dataField="ancestry.American"
+                              headerText="American"
+                              labelFunction="myLabelFunction"/>
+                <s:GridColumn dataField="ancestry.French__except_Basque_"
+                              headerText="French"
+                              labelFunction="myLabelFunction"/>
+                <s:GridColumn dataField="ancestry.Swedish"
+                              headerText="Swedish"
+                              labelFunction="myLabelFunction"/>
+                <s:GridColumn dataField="ancestry.West_Indian__excluding_Hispanic_origin_groups_"
+                              headerText="West Indian"
+                              labelFunction="myLabelFunction"/>
+                <!-- STATES FIELDS -->
+                <s:GridColumn dataField="states.POP2007"
+                              headerText="Pop2007"
+                              labelFunction="myLabelFunction"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+
+    <s:Panel id="ancestryPanel"
+             width="300" height="300"
+             backgroundColor="0xEEEEEE"
+             horizontalCenter="0"
+             verticalCenter="0"
+             visible="false">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+        <s:TextArea id="ancestryTextArea"
+                    width="100%" height="100%"
+                    selectable="false"/>
+        <s:HGroup width="100%" horizontalAlign="center">
+            <s:Button click="ancestryPanel.visible = false" label="Close"/>
+        </s:HGroup>
+    </s:Panel>
+</s:Application>

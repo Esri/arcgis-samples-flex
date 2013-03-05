@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               backgroundColor="0xEEEEEE"
+               pageTitle="Query Task (without a map)">
+    <!--
+    Description:
+    This sample demonstrates how to use the query task without using
+    the map as a way to display the results of the query.  The
+    query is sent to the server using the execute() method on a QueryTask
+    and the result is displayed in a datagrid.  To perform another
+    search, enter any letter(s) of a state name and click the search button.
+
+    This sample sets up a QueryTask (what layer on what server to query).
+    When the user clicks the "Search" button, a Query is sent with
+    the user-provided text to search for.
+    Meanwhile a DataGrid has been created which listens for the results
+    (using executeLastResult) from the querytask.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#executeLastResult
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/query.html
+    -->
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center" paddingTop="20"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import mx.collections.ArrayCollection;
+
+            protected function doQuery():void
+            {
+                queryTask.execute(query);
+            }
+
+            private function formatPopulation(item:Object, dgColumn:GridColumn):String
+            {
+                return numberFormatter.format(item[dgColumn.dataField]);
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <esri:QueryTask id="queryTask"
+                        url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/5"
+                        useAMF="false"/>
+        <esri:Query id="query"
+                    outFields="[STATE_NAME,STATE_FIPS,SUB_REGION,STATE_ABBR,POP2000,POP2007]"
+                    returnGeometry="false"
+                    text="{stateName.text}"/>
+        <s:NumberFormatter id="numberFormatter"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the query task without using
+            the map as a way to display the results of the query.  The
+            query is sent to the server using the execute() method on a QueryTask
+            and the result is displayed in a datagrid.  To perform another
+            search, enter any letter(s) of a state name and click the search button.
+        </s:RichText>
+        <s:HGroup verticalAlign="middle">
+            <s:Label text="US state name: "/>
+            <s:TextInput id="stateName"
+                         enter="doQuery()"
+                         text="Ca"/>
+            <s:Button click="doQuery()" label="Search"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:DataGrid id="resultsGrid"
+                width="95%"
+                creationComplete="doQuery()"
+                dataProvider="{new ArrayCollection(queryTask.executeLastResult.attributes)}"
+                visible="{queryTask.executeLastResult != null}">
+        <s:columns>
+            <s:ArrayList>
+                <s:GridColumn dataField="STATE_NAME" headerText="State Name"/>
+                <s:GridColumn dataField="SUB_REGION" headerText="Region"/>
+                <s:GridColumn dataField="STATE_FIPS" headerText="FIPS"/>
+                <s:GridColumn dataField="STATE_ABBR" headerText="Abbreviation"/>
+                <s:GridColumn dataField="POP2000"
+                              headerText="Population 2000"
+                              labelFunction="formatPopulation"/>
+                <s:GridColumn dataField="POP2007"
+                              headerText="Population 2007"
+                              labelFunction="formatPopulation"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+</s:Application>

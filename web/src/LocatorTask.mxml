@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Locator task">
+    <!--
+    Description:
+    This sample demonstrates how to convert an address into a geographic
+    location on the map, which is commonly referred to as geocoding.
+    In this sample, the addressToLocations() method on the Locator
+    is used to find the location for a certain address.
+
+    The sample takes a user-provided address and sends it to the
+    server for geocoding.  When the response comes back, the OnResult()
+    function creates a graphic for the result and then sets the scale
+    appropriately based on if the match was a "street", "city" etc match.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html#addressToLocations()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
+
+    For more details on the World Geocoding Service follow the link below.
+    http://geocode.arcgis.com/arcgis/index.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/geocodeserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/candidates.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/Geocode_services/01540000035t000000/
+
+    ArcGIS for Desktop documentation:
+    What is geocoding?
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/What_is_geocoding/002500000001000000/
+    Essential geocoding vocabulary
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Essential_geocoding_vocabulary/002500000004000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.AddressCandidate;
+            import com.esri.ags.tasks.supportClasses.AddressToLocationsParameters;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+
+            import spark.utils.TextFlowUtil;
+
+            private function doFind():void
+            {
+                myMap.defaultGraphicsLayer.clear();
+
+                var parameters:AddressToLocationsParameters = new AddressToLocationsParameters();
+                //parameters such as 'SingleLine' are dependent upon the locator service used.
+                parameters.address = { SingleLine: onelineaddress.text };
+
+                // Use outFields to get back extra information
+                // The exact fields available depends on the specific locator service used.
+                parameters.outFields = [ "Loc_name" ];
+
+                locator.addressToLocations(parameters, new AsyncResponder(onResult, onFault));
+                function onResult(candidates:Array, token:Object = null):void
+                {
+                    if (candidates.length > 0)
+                    {
+                        var addressCandidate:AddressCandidate = candidates[0];
+                        var myGraphic:Graphic = new Graphic();
+
+                        // for 9.3 servers, or anything else returning latlong:  myGraphic.geometry = WebMercatorUtil.geographicToWebMercator(addressCandidate.location);
+
+                        myGraphic.geometry = addressCandidate.location;
+                        myGraphic.symbol = mySymbol;
+                        myGraphic.toolTip = addressCandidate.address.toString();
+                        myGraphic.id = "graphic";
+                        myMap.defaultGraphicsLayer.add(myGraphic);
+
+                        myMap.centerAt(myGraphic.geometry as MapPoint);
+
+                        // Zoom to an appropriate level
+                        // Note: your attribute and field value might differ depending on which Locator you are using...
+                        if (addressCandidate.attributes.Loc_name.indexOf("AddressPoint") != -1) // US_RoofTop
+                        {
+                            myMap.scale = 9028;
+                        }
+                        else if (addressCandidate.attributes.Loc_name.indexOf("StreetAddress") != -1)
+                        {
+                            myMap.scale = 18056;
+                        }
+                        else if (addressCandidate.attributes.Loc_name.indexOf("StreetName") != -1) // US_Streets, CAN_Streets, CAN_StreetName, EU_Street_Addr* or EU_Street_Name*
+                        {
+                            myMap.scale = 36112;
+                        }
+                        else if (addressCandidate.attributes.Loc_name.indexOf("Postal") != -1
+                            || addressCandidate.attributes.Loc_name.indexOf("PostalExt") != -1) // US_ZIP4, CAN_Postcode
+                        {
+                            myMap.scale = 144448;
+                        }
+                        else if (addressCandidate.attributes.Loc_name.indexOf("Postal") != -1) // US_Zipcode
+                        {
+                            myMap.scale = 144448;
+                        }
+                        else if (addressCandidate.attributes.Loc_name.indexOf("AdminPlaces") != -1) // US_CityState, CAN_CityProv
+                        {
+                            myMap.scale = 288895;
+                        }
+                        else if (addressCandidate.attributes.Loc_name.indexOf("WorldGazetteer") != -1) // US_CityState, CAN_CityProv
+                        {
+                            myMap.scale = 577791;
+                        }
+                        else
+                        {
+                            myMap.scale = 1155581;
+                        }
+                        myInfo.textFlow = TextFlowUtil.importFromString("<span fontWeight='bold'>Found:</span><br/>" + addressCandidate.address.toString()); // formated address
+                    }
+                    else
+                    {
+                        myInfo.textFlow = TextFlowUtil.importFromString("<span fontWeight='bold' color='#FF0000'>Found nothing :(</span>");
+
+                        Alert.show("Sorry, couldn't find a location for this address"
+                                   + "\nAddress: " + onelineaddress.text);
+                    };
+                }
+
+                function onFault(info:Object, token:Object = null):void
+                {
+                    myInfo.textFlow = TextFlowUtil.importFromString("<span fontWeight='bold'>Failure</span>" + info.toString());
+                    Alert.show("Failure: \n" + info.toString());
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Locator id="locator"
+                      outSpatialReference="{myMap.spatialReference}"
+                      url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"/>
+
+        <esri:SimpleMarkerSymbol id="mySymbol"
+                                 alpha="0.5"
+                                 color="0x008000"
+                                 size="21"
+                                 style="circle">
+            <esri:SimpleLineSymbol width="2"/>
+        </esri:SimpleMarkerSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to convert an address into a geographic
+            location on the map, which is commonly referred to as geocoding.
+            In this sample, the addressToLocations() method on the Locator
+            is used to find the location for a certain address.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap">
+        <esri:extent>
+            <esri:Extent xmin="-13046000" ymin="4028000" xmax="-13024000" ymax="4041000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+
+    <s:Panel width="300"
+             top="5"
+             backgroundColor="0xEEEEEE"
+             horizontalCenter="0"
+             title="Find an address">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center" verticalAlign="middle"/>
+        </s:layout>
+        <!-- Single line geocode -->
+        <s:TextInput id="onelineaddress"
+                     width="95%"
+                     click="onelineaddress.selectAll()"
+                     enter="doFind()"
+                     text="380 New York St, Redlands"/>
+        <s:Button click="doFind()" label="Find Address"/>
+        <s:RichText id="myInfo"
+                    width="100%"
+                    color="0x008000"
+                    textAlign="center"/>
+    </s:Panel>
+</s:Application>

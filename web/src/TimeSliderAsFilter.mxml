@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               backgroundColor="0xD3D1D1"
+               pageTitle="Major Earthquakes 1970-2009">
+    <!--
+    Description:
+    This sample demonstrates how to filter client-side data using time.
+    The earthquake service data is loaded using a FeatureLayer that is in snapshot
+    mode which will ask for all the data.  The sample shows how to set the timestops,
+    as well as how to render the earthquakes based on magnitude and display swatches
+    for those renderers.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GraphicEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html#createTimeStopsByCount()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#renderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Serving_time_aware_layers/00sq00000090000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_enabling_time_on_data/005z0000000p000000/
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.GraphicEvent;
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.events.MapEvent;
+
+            import mx.managers.ToolTipManager;
+
+            private var originalRenderer:ClassBreaksRenderer;
+
+            private const timeStops:Array = [
+                new Date("01/01/1970"), new Date("01/01/1971"), new Date("01/01/1972"), new Date("01/01/1973"), new Date("01/01/1974"),
+                new Date("01/01/1975"), new Date("01/01/1976"), new Date("01/01/1977"), new Date("01/01/1978"), new Date("01/01/1979"),
+                new Date("01/01/1980"), new Date("01/01/1981"), new Date("01/01/1982"), new Date("01/01/1983"), new Date("01/01/1984"),
+                new Date("01/01/1985"), new Date("01/01/1986"), new Date("01/01/1987"), new Date("01/01/1988"), new Date("01/01/1989"),
+                new Date("01/01/1990"), new Date("01/01/1991"), new Date("01/01/1992"), new Date("01/01/1993"), new Date("01/01/1994"),
+                new Date("01/01/1995"), new Date("01/01/1996"), new Date("01/01/1997"), new Date("01/01/1998"), new Date("01/01/1999"),
+                new Date("01/01/2000"), new Date("01/01/2001"), new Date("01/01/2002"), new Date("01/01/2003"), new Date("01/01/2004"),
+                new Date("01/01/2005"), new Date("01/01/2006"), new Date("01/01/2007"), new Date("01/01/2008"), new Date("01/01/2009")
+                ];
+
+            protected function myMap_loadHandler(event:MapEvent):void
+            {
+                ToolTipManager.showDelay = 0;
+            }
+
+            protected function fLayer_loadHandler(event:LayerEvent):void
+            {
+                originalRenderer = fLayer.renderer as ClassBreaksRenderer;
+
+                // ts.createTimeStopsByCount(d1.timeInfo.timeExtent, 10);
+                ts.createTimeStopsByCount(fLayer.layerDetails.timeInfo.timeExtent);
+                ts.thumbIndexes = [ 0, ts.timeStops.length - 1 ];
+                // add swatches for legend
+                h4.addElementAt(m4.createSwatch(35, 31), 0);
+                h5.addElementAt(m5.createSwatch(35, 31), 0);
+                h6.addElementAt(m6.createSwatch(35, 31), 0);
+                h7.addElementAt(m7.createSwatch(35, 31), 0);
+                h8.addElementAt(m8.createSwatch(35, 31), 0);
+            }
+
+            protected function fLayer_graphicAddHandler(event:GraphicEvent):void
+            {
+                // just so we can add tool tips
+                event.graphic.toolTip = "Magnitude " + myOneDecimalFormatter.format(event.graphic.attributes.Magnitude) + " earthquake";
+                if (event.graphic.attributes.Num_Deaths)
+                {
+                    event.graphic.toolTip += "\n(" + event.graphic.attributes.Num_Deaths + " people died)";
+                }
+            }
+
+            protected function chkBoxRenderer_clickHandler(event:MouseEvent):void
+            {
+                if (chkBoxRenderer.selected)
+                {
+                    fLayer.renderer = myRenderer;
+                }
+                else
+                {
+                    fLayer.renderer = originalRenderer;
+                }
+            }
+
+            protected function chkBoxTime_clickHandler(event:MouseEvent):void
+            {
+                if (chkBoxTime.selected)
+                {
+                    ts.timeStops = timeStops;
+                }
+                else // reset
+                {
+                    ts.createTimeStopsByCount(fLayer.layerDetails.timeInfo.timeExtent);
+                    myMap.timeExtent = fLayer.layerDetails.timeInfo.timeExtent;
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <s:DateTimeFormatter id="dateFormatterYYYY" dateTimePattern="yyyy"/>
+
+        <s:NumberFormatter id="myOneDecimalFormatter"
+                           fractionalDigits="1"
+                           useGrouping="true"/>
+
+        <esri:ClassBreaksRenderer id="myRenderer" field="Magnitude">
+            <esri:defaultSymbol>
+                <esri:SimpleMarkerSymbol color="0xFFFF00"
+                                         size="30"
+                                         style="diamond"/>
+            </esri:defaultSymbol>
+            <esri:ClassBreakInfo maxValue="5">
+                <esri:symbol>
+                    <esri:SimpleMarkerSymbol id="m4"
+                                             color="0xDDDD00"
+                                             size="14"
+                                             style="triangle"/>
+                </esri:symbol>
+            </esri:ClassBreakInfo>
+            <esri:ClassBreakInfo maxValue="6" minValue="5">
+                <esri:symbol>
+                    <esri:SimpleMarkerSymbol id="m5"
+                                             color="0xFF0000"
+                                             size="16"
+                                             style="triangle"/>
+                </esri:symbol>
+            </esri:ClassBreakInfo>
+            <esri:ClassBreakInfo maxValue="7" minValue="6">
+                <esri:symbol>
+                    <esri:SimpleMarkerSymbol id="m6"
+                                             color="0xDD0000"
+                                             size="19"
+                                             style="triangle"/>
+                </esri:symbol>
+            </esri:ClassBreakInfo>
+            <esri:ClassBreakInfo maxValue="8" minValue="7">
+                <esri:symbol>
+                    <esri:SimpleMarkerSymbol id="m7"
+                                             color="0xBB0000"
+                                             size="23"
+                                             style="triangle"/>
+                </esri:symbol>
+            </esri:ClassBreakInfo>
+            <esri:ClassBreakInfo minValue="8">
+                <esri:symbol>
+                    <esri:SimpleMarkerSymbol id="m8"
+                                             color="0x990000"
+                                             size="28"
+                                             style="triangle"/>
+                </esri:symbol>
+            </esri:ClassBreakInfo>
+        </esri:ClassBreaksRenderer>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to filter client-side data using time.
+            The earthquake service data is loaded using a FeatureLayer that is in snapshot
+            mode which will ask for all the data.  The sample shows how to set the timestops,
+            as well as how to render the earthquakes based on magnitude and display swatches
+            for those renderers.
+        </s:RichText>
+        <s:HGroup width="100%">
+
+            <s:CheckBox id="chkBoxTime"
+                        click="chkBoxTime_clickHandler(event)"
+                        label="Use 01/01 - 12/31 time periods"
+                        selected="false"/>
+            <s:CheckBox id="chkBoxRenderer"
+                        click="chkBoxRenderer_clickHandler(event)"
+                        label="Use renderers for thematic symbols"
+                        selected="false"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:Group width="100%" height="100%">
+        <esri:Map id="myMap"
+                  level="2"
+                  load="myMap_loadHandler(event)"
+                  timeSlider="{ts}"
+                  wrapAround180="true">
+            <esri:extent>
+                <esri:Extent xmin="-31204415" ymin="-3442511" xmax="-4983457" ymax="10294140">
+                    <esri:SpatialReference wkid="102100"/>
+                </esri:Extent>
+            </esri:extent>
+            <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+            <esri:FeatureLayer id="fLayer"
+                               alpha="0.80"
+                               graphicAdd="fLayer_graphicAddHandler(event)"
+                               load="fLayer_loadHandler(event)"
+                               mode="snapshot"
+                               outFields="[Magnitude,Num_Deaths]"
+                               url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/Since_1970/MapServer/0"/>
+        </esri:Map>
+
+        <s:BorderContainer id="theLegend"
+                           height="200"
+                           right="20" top="20"
+                           backgroundColor="0xEEEEEE"
+                           borderColor="0xD3D1D1"
+                           cornerRadius="10"
+                           visible="{Boolean(fLayer.renderer)}">
+            <s:layout>
+                <s:VerticalLayout gap="10"
+                                  paddingBottom="7"
+                                  paddingLeft="10"
+                                  paddingRight="10"
+                                  paddingTop="7"/>
+            </s:layout>
+            <s:Label fontSize="12"
+                     fontWeight="bold"
+                     text="Magnitude of Earthquake"/>
+            <s:HGroup id="h4"
+                      width="100%"
+                      alpha="{fLayer.alpha}">
+                <s:Spacer width="25%"/>
+                <s:Label paddingTop="10" text="Below 5"/>
+            </s:HGroup>
+            <s:HGroup id="h5"
+                      width="100%"
+                      alpha="{fLayer.alpha}">
+                <s:Spacer width="25%"/>
+                <s:Label paddingTop="10" text="5 - 6"/>
+            </s:HGroup>
+            <s:HGroup id="h6"
+                      width="100%"
+                      alpha="{fLayer.alpha}">
+                <s:Spacer width="25%"/>
+                <s:Label paddingTop="10" text="6 - 7"/>
+            </s:HGroup>
+            <s:HGroup id="h7"
+                      width="100%"
+                      alpha="{fLayer.alpha}">
+                <s:Spacer width="25%"/>
+                <s:Label paddingTop="10" text="7 - 8"/>
+            </s:HGroup>
+            <s:HGroup id="h8"
+                      width="100%"
+                      alpha="{fLayer.alpha}">
+                <s:Spacer width="25%"/>
+                <s:Label paddingTop="10" text="Above 8"/>
+            </s:HGroup>
+        </s:BorderContainer>
+    </s:Group>
+
+    <s:Line width="100%">
+        <s:stroke>
+            <s:SolidColorStroke color="0x000000" weight="1"/>
+        </s:stroke>
+    </s:Line>
+
+    <s:VGroup width="100%"
+              horizontalAlign="center"
+              paddingBottom="7"
+              paddingLeft="10"
+              paddingRight="10"
+              paddingTop="7">
+        <s:Label fontSize="14" text="{dateFormatterYYYY.format(ts.timeExtent.startTime)} - {dateFormatterYYYY.format(ts.timeExtent.endTime)}"/>
+        <esri:TimeSlider id="ts"
+                         width="90%"
+                         chromeColor="0xEEEEEE"
+                         enabled="{myMap.loaded}"
+                         thumbCount="2"/>
+        <s:Label width="100%"
+                 color="0x666666"
+                 fontStyle="italic"
+                 text="In total {fLayer.numGraphics} features."
+                 textAlign="center"
+                 visible="{fLayer.numGraphics>0}"/>
+    </s:VGroup>
+</s:Application>

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using a custom FieldInspector">
+    <!--
+    Description:
+    This sample demonstrates the programming patterns to customize the AttributeInspector through
+    creating your own custom FieldInspector renderer.
+
+    When you select a feature by clicking on the map and the attribute inspector is displayed, you can
+    see the custom field inspector next to the default calendar icon for the "Request Date".
+    Set the "Request Date" to "Today's Date" by clicking on the calendar icon with the red arrow.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/AttributeInspectorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/FieldInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResults.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/Field.html
+
+    This sample also uses the following file:
+    com/esri/ags/samples/components/MyCalendarEditor.as
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.AttributeInspectorEvent;
+            import com.esri.ags.events.FeatureLayerEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.supportClasses.FeatureEditResult;
+            import com.esri.ags.layers.supportClasses.FeatureEditResults;
+            import com.esri.ags.layers.supportClasses.Field;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.Fault;
+            import mx.rpc.events.FaultEvent;
+
+            private var activeFeatureChangedAttributes:Array = [];
+
+            private function map_mapClickHandler(event:MapMouseEvent):void
+            {
+                // We create a bounding box around where the user click to intersect the feature's point.
+                const point:Point = map.toScreen(map.toMapFromStage(event.stageX, event.stageY));
+                var topLeft:MapPoint = map.toMap(new Point(point.x - 10, point.y + 10));
+                var bottomRight:MapPoint = map.toMap(new Point(point.x + 10, point.y - 10));
+                const spatialReference:SpatialReference = map.spatialReference;
+                var selectionExtent:Extent = WebMercatorUtil.webMercatorToGeographic(new Extent(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, spatialReference)) as Extent; // create an extent of the clicked point
+
+                queryMapClick.geometry = selectionExtent;
+                myFeatureLayer.selectFeatures(queryMapClick);
+                map.infoWindow.hide();
+            }
+
+            private function myFeatureLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
+            {
+                // only show infoWindow if a feature was found
+                if (event.featureLayer.numGraphics > 0)
+                {
+                    map.infoWindow.show(WebMercatorUtil.geographicToWebMercator((queryMapClick.geometry as Extent).center) as MapPoint);
+                    map.infoWindow.closeButton.addEventListener(MouseEvent.CLICK, infoWindowCloseButtonClickHandler);
+                }
+            }
+
+            private function infoWindowCloseButtonClickHandler(event:MouseEvent):void
+            {
+                map.infoWindow.closeButton.removeEventListener(MouseEvent.CLICK, infoWindowCloseButtonClickHandler);
+                // save any unsaved changes
+                if (activeFeatureChangedAttributes.length)
+                {
+                    saveUnsavedAttributes(attrInsp.activeFeature, attrInsp.activeFeatureLayer);
+                }
+            }
+
+            private function attrInsp_deleteFeatureHandler(event:AttributeInspectorEvent):void
+            {
+                map.infoWindow.hide();
+
+                const deletes:Array = [ event.feature ];
+                event.featureLayer.applyEdits(null, null, deletes, false,
+                                              new AsyncResponder(featureLayer_editsCompleteHandler, featureLayer_faultHandler));
+            }
+
+            private function attrInsp_updateFeatureHandler(event:AttributeInspectorEvent):void
+            {
+                // store all the changes
+                activeFeatureChangedAttributes.push({ field: event.field, oldValue: event.oldValue, newValue: event.newValue });
+            }
+
+            private function attrInsp_saveFeatureHandler(event:AttributeInspectorEvent):void
+            {
+                if (activeFeatureChangedAttributes.length)
+                {
+                    // save the changes when 'Ok' button is clicked
+                    saveUnsavedAttributes(attrInsp.activeFeature, attrInsp.activeFeatureLayer);
+                }
+                map.infoWindow.hide();
+            }
+
+            private function saveUnsavedAttributes(feature:Graphic, featureLayer:FeatureLayer):void
+            {
+                const attributes:Object = {};
+                const objectIdField:String = featureLayer.layerDetails.objectIdField;
+                attributes[objectIdField] = feature.attributes[objectIdField];
+                for each (var attributeObject:Object in activeFeatureChangedAttributes)
+                {
+                    attributes[attributeObject.field.name] = attributeObject.newValue;
+                    feature.attributes[attributeObject.field.name] = attributeObject.newValue;
+                }
+
+                const feature1:Graphic = new Graphic(null, null, attributes);
+                const updates:Array = [ feature1 ];
+
+                featureLayer.applyEdits(null, updates, null, false,
+                                        new AsyncResponder(featureLayer_editsCompleteHandler, featureLayer_faultHandler, { feature: feature }));
+            }
+
+            private function featureLayer_editsCompleteHandler(featureEditResults:FeatureEditResults, token:Object = null):void
+            {
+                var doRefresh:Boolean = false;
+                for each (var deleteResult:FeatureEditResult in featureEditResults.deleteResults)
+                {
+                    if (deleteResult.success === true)
+                    {
+                        doRefresh = true;
+                    }
+                }
+
+                for each (var updateResult:FeatureEditResult in featureEditResults.updateResults)
+                {
+                    const feature:Graphic = token.feature;
+                    if (updateResult.success === false)
+                    {
+                        const field:Field = token.field;
+                        feature.attributes[field.name] = token.oldValue;
+                        if (attrInsp.activeFeature === feature)
+                        {
+                            attrInsp.refreshActiveFeature();
+                        }
+                    }
+                    else
+                    {
+                        doRefresh = true;
+
+                        //refresh the feature to see the changes client side
+                        feature.refresh();
+                    }
+                }
+
+                if (doRefresh)
+                {
+                    opsLayer.refresh();
+                }
+                activeFeatureChangedAttributes = [];
+            }
+
+            private function featureLayer_faultHandler(fault:Fault, token:Object = null):void
+            {
+                activeFeatureChangedAttributes = [];
+                Alert.show(fault.faultString, "Fault");
+            }
+
+            private function attrInsp_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.message, "Fault");
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Query id="queryMapClick"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates the programming patterns to customize the AttributeInspector through
+            creating your own custom FieldInspector renderer.
+            When you select a feature by clicking on the map and the attribute inspector is displayed, you can
+            see the custom field inspector next to the default calendar icon for the "Request Date".
+            Set the "Request Date" to "Today's Date" by clicking on the calendar icon with the red arrow.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              load="attrInsp.featureLayers = [myFeatureLayer]"
+              mapClick="map_mapClickHandler(event)">
+        <esri:extent>
+            <esri:WebMercatorExtent minlon="-122.51849427078236" minlat="37.770022236871846" maxlon="-122.49102845046914" maxlat="37.78533712512785"/>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer alpha="0.5" url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="opsLayer" url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/SF311/MapServer"/>
+        <esri:FeatureLayer id="myFeatureLayer"
+                           mode="selection"
+                           outFields="[req_type, req_date, address, status]"
+                           selectionComplete="myFeatureLayer_selectionCompleteHandler(event)"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/SF311/FeatureServer/0"
+                           useAMF="false"/>
+        <esri:infoWindowContent>
+            <s:BorderContainer backgroundColor="0xFFFFFF" borderVisible="false">
+                <esri:AttributeInspector id="attrInsp"
+                                         deleteFeature="attrInsp_deleteFeatureHandler(event)"
+                                         saveFeature="attrInsp_saveFeatureHandler(event)"
+                                         updateFeature="attrInsp_updateFeatureHandler(event)">
+                    <esri:FieldInspector editor="com.esri.ags.samples.components.MyCalendarEditor"
+                                         featureLayer="{myFeatureLayer}"
+                                         fieldName="req_date"/>
+                </esri:AttributeInspector>
+            </s:BorderContainer>
+        </esri:infoWindowContent>
+    </esri:Map>
+
+</s:Application>

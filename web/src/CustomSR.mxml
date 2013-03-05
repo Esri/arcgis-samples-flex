@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="0xEEEEEE"
+               pageTitle="Setting extent on Map different from first layer">
+    <!--
+    Description:
+    This sample demonstrates how to set the projection of the map in a different projection than the
+    one from the first map layer (the base map layer).
+
+    Set the map's extent in the SpatialReference you want to use. The map
+    will use the spatial reference of the extent instead of the base map layer.
+
+    NOTE: You cannot reproject a tiled map service layer.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#extent
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html#wkid
+
+    ArcGIS for Desktop Help
+    An overview of spatial references
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//003n0000001t000000
+
+    ArcGIS REST API Help
+    Projected Coordinate Systems List
+    http://resources.arcgis.com/en/help/rest/apiref/pcs.html
+    -->
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to set the projection of the map in a different projection than the
+            one from the first map layer (the base map layer).
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:Extent xmin="661140" ymin="-1420246" xmax="3015668" ymax="1594451">
+                <esri:SpatialReference wkid="26777"/>
+                <!-- Well-known ID: 2677, Name: NAD_1927_StatePlane_Kansas_North_FIPS_1501 -->
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Petroleum/KGS_OilGasFields_Kansas/MapServer"/>
+    </esri:Map>
+
+</s:Application>

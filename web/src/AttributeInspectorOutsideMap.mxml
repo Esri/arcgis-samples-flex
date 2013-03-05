@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Attribute Inspector outside the Map">
+    <!--
+    Description:
+    This sample demonstrates how you can use the AttributeInspector outside of
+    an InfoWindow.
+    The AttributeInspector can be placed anywhere.  Most samples show it
+    inside the InfoWindow, but it can also be in a floating panel, or beneath
+    the map - as in this example.
+
+    The AttributeInspector gets it content from the selection of the feature
+    layers that it is connected with.
+    <esri:AttributeInspector featureLayers="{[fLayer]}"/>
+
+    Selection by map click versus selection by rectangle:
+    There are multiple ways to catch user input.
+    If you want people to select feature using a rectangle, the easiest way
+    is to use the DrawTool with the EXTENT draw type.
+    To select features by clicking on the map, use either:
+    a) the mapClick event on the map, or
+    b) the DrawTool with the MAPPOINT draw type.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/FieldInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/AttributeInspectorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    -->
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.AttributeInspectorEvent;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GraphicEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Extent;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            private function select_clickHandler():void
+            {
+                myDrawTool.activate(DrawTool.EXTENT);
+            }
+
+            private function clear_clickHandler():void
+            {
+                highlightGraphicsLayer.clear();
+                fLayer.clearSelection();
+            }
+
+            protected function map_mapClickHandler(event:MapMouseEvent):void
+            {
+                // set the selection query based on the click
+                queryByGeometry.geometry = event.mapPoint;
+                fLayer.selectFeatures(queryByGeometry); // default selectionMethod is FeatureLayer.SELECTION_NEW
+            }
+
+            private function attributesinspector_showFeatureHandler(event:AttributeInspectorEvent):void
+            {
+                highlightGraphicsLayer.clear();
+                var g:Graphic = new Graphic(event.feature.geometry);
+                g.toolTip = event.feature.toolTip;
+                highlightGraphicsLayer.add(g);
+            }
+
+            private function drawEndHandler(event:DrawEvent):void
+            {
+                // const myDrawTool:DrawTool = event.target as DrawTool;
+                myDrawTool.deactivate();
+
+                if (event.graphic.geometry is Extent)
+                {
+                    queryByGeometry.geometry = event.graphic.geometry;
+                    fLayer.selectFeatures(queryByGeometry);
+                }
+            }
+
+            private function fLayer_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "FeatureLayer error " + event.fault.faultCode);
+            }
+
+            private function zoomToNorthCarolina():void
+            {
+                var northCarolinaExtent:Extent = new Extent(-9374000, 3987000, -8409000, 4386000, new SpatialReference(102100));
+                myMap.extent = northCarolinaExtent;
+
+                // make sure the whole extent is visible
+                if (!myMap.extent.contains(northCarolinaExtent))
+                {
+                    myMap.level--;
+                }
+            }
+
+            protected function fLayer_graphicAddHandler(event:GraphicEvent):void
+            {
+                // add tool tips
+                event.graphic.toolTip = event.graphic.attributes.NAME;
+            }
+
+            protected function getFeatureCount(value:Array):int
+            {
+                return value.length;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Query id="queryByGeometry"/>
+        <esri:DrawTool id="myDrawTool"
+                       drawEnd="drawEndHandler(event)"
+                       map="{myMap}"/>
+        <esri:SimpleFillSymbol id="countySymbol" alpha="0.2">
+            <esri:SimpleLineSymbol width="3" color="0xEEEEEE"/>
+        </esri:SimpleFillSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use the AttributeInspector outside of
+            an InfoWindow.  The AttributeInspector can be placed anywhere.  Most samples show it
+            inside the InfoWindow, but it can also be in a floating panel, or beneath
+            the map - as in this example.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              load="zoomToNorthCarolina()"
+              mapClick="map_mapClickHandler(event)"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer id="fLayer"
+                           definitionExpression="STATE_NAME='North Carolina'"
+                           fault="fLayer_faultHandler(event)"
+                           graphicAdd="fLayer_graphicAddHandler(event)"
+                           mode="snapshot"
+                           outFields="[MALES,FEMALES,NAME,MED_AGE,CNTY_FIPS]"
+                           symbol="{countySymbol}"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/3"/>
+        <esri:GraphicsLayer id="highlightGraphicsLayer"/>
+    </esri:Map>
+
+    <s:Group width="100%" height="240">
+        <s:Rect width="100%" height="100%">
+            <s:fill>
+                <s:SolidColor color="#D3D1D1"/>
+            </s:fill>
+        </s:Rect>
+
+        <s:HGroup width="100%" height="240"
+                  paddingLeft="6">
+            <s:BorderContainer backgroundColor="0xEEEEEE"
+                               borderColor="0xCECECE"
+                               borderWeight="2"
+                               contentBackgroundColor="0xEEEEEE"
+                               cornerRadius="5"
+                               minWidth="200"
+                               visible="{getFeatureCount(fLayer.selectedFeatures) > 0}">
+                <esri:AttributeInspector id="attributeInspector"
+                                         left="6" right="6" top="6" bottom="6"
+                                         featureLayers="{[fLayer]}"
+                                         formFieldsOrder="fieldInspector"
+                                         showFeature="attributesinspector_showFeatureHandler(event)">
+                    <esri:FieldInspector featureLayer="{fLayer}"
+                                         fieldName="NAME"
+                                         label="County Name"/>
+                    <esri:FieldInspector featureLayer="{fLayer}"
+                                         fieldName="MED_AGE"
+                                         label="Median Age"/>
+                    <esri:FieldInspector featureLayer="{fLayer}"
+                                         fieldName="FEMALES"
+                                         label="Women"/>
+                    <esri:FieldInspector featureLayer="{fLayer}"
+                                         fieldName="MALES"
+                                         label="Men"/>
+                    <esri:FieldInspector featureLayer="{fLayer}"
+                                         fieldName="CNTY_FIPS"
+                                         label="FIPS"/>
+                </esri:AttributeInspector>
+            </s:BorderContainer>
+            <s:VGroup width="50%" height="100%">
+                <s:Button id="extentButton"
+                          click="select_clickHandler()"
+                          label="Select by Extent"/>
+                <s:Button click="clear_clickHandler()" label="Clear Selection"/>
+                <s:Rect width="1" height="5"/>
+                <s:Label width="100%"
+                         fontStyle="italic"
+                         text="Select a county by clicking on it on the map, or use the 'Select by Extent' button to select multiple counties.  The attribute inspector will reflect the current selection."/>
+            </s:VGroup>
+        </s:HGroup>
+    </s:Group>
+</s:Application>

@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Measure Areas">
+    <!--
+    Description:
+    This sample demonstrates how to sketch an area/shape
+    and then calculate the area of that graphic in square kilometers.
+    The sample uses the DrawTool to sketch the feature, and then
+    uses the GeometryService to simply the graphic (if necessary),
+    project the polygon to a reference system that is good for
+    area calculations, measures the area of the graphic, and finally
+    calculate the correct placement for the label inside of the
+    area/polygon.  To calculate an area, draw a shape with at least three nodes.
+    To disable area calculations click the "Stop measuring" button.
+
+    Steps:
+    - simplify ("clean") the drawn polygon
+    - Project the polygon in 54034 spatial Reference
+    - measure the area of the polygon
+    - create a properly placed label for the polygon
+
+    Workflow for this sample:
+    1. Click on map to draw an area
+    2. Double-click to end the drawing
+    -> Calls drawTool_drawEndHandler (as set up in DrawTool):
+    Sends polygon to geometry service for clean-up/simplication if it's self intersecting.
+    -> When simplify has completed, geometryService_simplifyCompleteHandler(event) is called (as setup in GeometryService task):
+    Adds cleaned up graphic to the graphics layer.
+    Sends cleaned up graphic to geometry service for projecting the graphic in 54034 spatial reference.
+    ->When projection has completed, project_resultHandler is called which sends projected graphic to be "measured"
+    to geometry Service.
+    -> When areasAndLengths has completed successfully, areasAndLengths_resultHandler is called.
+    Get the area.
+    Sends request for best placement of the label
+    -> When labelPoints has completed successfully, labelPoints_resultHandler will:
+    Display a label with the area.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polygon.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/TextSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AreasAndLengthsParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AreasAndLengthsResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ProjectParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/areasandlengths.html
+    http://resources.arcgis.com/en/help/rest/apiref/labelpoints.html
+    http://resources.arcgis.com/en/help/rest/apiref/project.html
+    http://resources.arcgis.com/en/help/rest/apiref/simplify.html
+    http://resources.arcgis.com/en/help/rest/apiref/pcs.html#54034
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_the_geometry_service/0154000004n5000000/
+
+    ArcGIS for Desktop documentation:
+    About geodetic features
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//01m70000003q000000
+    Measuring distances and areas
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//00s500000022000000
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.Polygon;
+            import com.esri.ags.symbols.TextSymbol;
+            import com.esri.ags.tasks.supportClasses.AreasAndLengthsParameters;
+            import com.esri.ags.tasks.supportClasses.AreasAndLengthsResult;
+            import com.esri.ags.tasks.supportClasses.ProjectParameters;
+            import com.esri.ags.utils.GeometryUtil;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.Fault;
+
+            private function activateTool():void
+            {
+                drawTool.activate(DrawTool.POLYGON);
+                act.enabled = false;
+                deact.enabled = true;
+            }
+
+            private function deactivateTool():void
+            {
+                drawTool.deactivate();
+                deact.enabled = false;
+                act.enabled = true;
+            }
+
+            private function drawTool_drawEndHandler(event:DrawEvent):void
+            {
+                var polygon:Polygon = event.graphic.geometry as Polygon;
+                if (GeometryUtil.polygonSelfIntersecting(polygon))
+                {
+                    // simplify the drawn polygon
+                    // Note: As of version 2.0, GeometryService input is geometries (instead of graphics).
+                    geometryService.simplify([ polygon ]);
+                }
+                else
+                {
+                    addPolygonToMap(polygon);
+                    projectPolygon(polygon);
+                }
+            }
+
+            private function geometryService_simplifyCompleteHandler(event:GeometryServiceEvent):void
+            {
+                // Note: GeometryService returns geometries instead of graphics as of Flex API 2.0
+                if (event.result)
+                {
+                    var polygon:Polygon = (event.result as Array)[0]; // we only draw one area at a time
+                    addPolygonToMap(polygon);
+                    projectPolygon(polygon);
+                }
+            }
+
+            private function addPolygonToMap(polygon:Polygon):void
+            {
+                var newGraphic:Graphic = new Graphic(polygon);
+                myGraphicsLayer.add(newGraphic);
+            }
+
+            private function projectPolygon(polygon:Polygon):void
+            {
+                // project to 54034 (World_Cylindrical_Equal_Area)
+                const projectParameters:ProjectParameters = new ProjectParameters;
+                projectParameters.geometries = [ polygon ];
+                projectParameters.outSpatialReference = new SpatialReference(54034);
+                geometryService.project(projectParameters, new AsyncResponder(project_resultHandler, project_faultHandler, polygon));
+            }
+
+            private function project_resultHandler(result:Object, token:Object = null):void
+            {
+                if (result)
+                {
+                    var polygon:Geometry = (result as Array)[0];
+                    var areasAndLengthsParameters:AreasAndLengthsParameters = new AreasAndLengthsParameters();
+                    areasAndLengthsParameters.areaUnit = GeometryService.UNIT_SQUARE_KILOMETERS;
+                    areasAndLengthsParameters.polygons = [ polygon ];
+
+                    geometryService.areasAndLengths(areasAndLengthsParameters, new AsyncResponder(areasAndLengths_resultHandler, areasAndLengths_faultHandler, token));
+                }
+            }
+
+            private function project_faultHandler(fault:Fault, token:Object = null):void
+            {
+                Alert.show(fault.faultString + "\n\n" + fault.faultDetail, "project Fault " + fault.faultCode);
+            }
+
+            private function areasAndLengths_resultHandler(result:AreasAndLengthsResult, token:Object = null):void
+            {
+                const area:String = myNumberFormatter.format(result.areas[0]);
+                geometryService.labelPoints([ token ], new AsyncResponder(labelPoints_resultHandler, labelPoints_faultHandler, area + " km2"));
+            }
+
+            private function areasAndLengths_faultHandler(fault:Fault, token:Object = null):void
+            {
+                Alert.show(fault.faultString + "\n\n" + fault.faultDetail, "areasAndLengths Fault " + fault.faultCode);
+            }
+
+            private function labelPoints_resultHandler(result:Object, token:Object = null):void
+            {
+                for each (var geom:Geometry in result)
+                {
+                    var g:Graphic = new Graphic();
+                    g.geometry = geom;
+                    var tf:TextFormat = new TextFormat(null, 18, 0x41423A);
+                    g.symbol = new TextSymbol(String(token), null, 0xFFFFFF, 1, true, 0x41423A, true,
+                                              0xD8DACC, "middle", 0, 0, 0, tf);
+                    myGraphicsLayer.add(g);
+                }
+            }
+
+            private function labelPoints_faultHandler(fault:Fault, token:Object = null):void
+            {
+                Alert.show(fault.faultString + "\n\n" + fault.faultDetail, "labelPoints Fault " + fault.faultCode);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:DrawTool id="drawTool"
+                       drawEnd="drawTool_drawEndHandler(event)"
+                       fillSymbol="{mySFS}"
+                       map="{myMap}"/>
+
+        <esri:GeometryService id="geometryService"
+                              showBusyCursor="true"
+                              simplifyComplete="geometryService_simplifyCompleteHandler(event)"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+
+        <esri:SimpleFillSymbol id="mySFS" color="0xAA0000">
+            <esri:SimpleLineSymbol width="2" color="0xAA0000"/>
+        </esri:SimpleFillSymbol>
+
+        <!-- http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html -->
+        <s:NumberFormatter id="myNumberFormatter"
+                           fractionalDigits="2"
+                           useGrouping="true"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to sketch an area/shape
+            and then calculate the area of that graphic in square kilometers.
+            The sample uses the DrawTool to sketch the feature, and then
+            uses the GeometryService to simply the graphic (if necessary),
+            project the polygon to a reference system that is good for
+            area calculations, measures the area of the graphic, and finally
+            calculate the correct placement for the label inside of the
+            area/polygon.  To calculate an area, draw a shape with at least three nodes.
+            To disable area calculations click the "Stop measuring" button.
+        </s:RichText>
+        <s:HGroup width="100%" horizontalAlign="center">
+            <s:Button id="deact"
+                      click="deactivateTool()"
+                      label="Stop measuring"/>
+            <s:Button id="act"
+                      click="activateTool()"
+                      enabled="false"
+                      label="Start measuring"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              extent="{new Extent(-13658000, 5703000, -13655000, 5705000, new SpatialReference(102100))}"
+              load="drawTool.activate(DrawTool.POLYGON)">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer" symbol="{mySFS}"/>
+    </esri:Map>
+</s:Application>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Basic InfoSymbol example">
+    <!--
+    Description:
+    This sample demonstrates how to use an InfoSymbol to display
+    information on a map about a certain geographic locations.  The
+    InfoSymbol has its infoRenderer set to a DataRenderer component
+    that contains an image and a label.  The image url is read from
+    the attributes of the graphic.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html#attributes
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html#infoRenderer
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/Object.html
+    -->
+    <fx:Declarations>
+        <esri:InfoSymbol id="infoSymbol1">
+            <esri:infoRenderer>
+                <fx:Component>
+                    <s:DataRenderer>
+                        <s:layout>
+                            <s:VerticalLayout/>
+                        </s:layout>
+                        <s:Image source="{data.myImageURL}"/>
+                        <s:Label text="{data.myTitle}"/>
+                    </s:DataRenderer>
+                </fx:Component>
+            </esri:infoRenderer>
+        </esri:InfoSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use an InfoSymbol to display
+            information on a map about a certain geographic locations.  The
+            InfoSymbol has its infoRenderer set to a DataRenderer component
+            that contains an image and a label.  The image url is read from
+            the attributes of the graphic.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:Extent xmin="-14526410" ymin="-6369184" xmax="14003557" ymax="13433510">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer symbol="{infoSymbol1}">
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="11945000" y="6074000"/>
+                </esri:geometry>
+                <esri:attributes>
+                    <fx:Object>
+                        <fx:myImageURL>assets/mongolia.jpg</fx:myImageURL>
+                        <fx:myTitle>Mongolia</fx:myTitle>
+                    </fx:Object>
+                </esri:attributes>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="-7359000" y="2092000"/>
+                </esri:geometry>
+                <esri:attributes>
+                    <fx:Object>
+                        <fx:myImageURL>assets/sanjuan_pr.jpg</fx:myImageURL>
+                        <fx:myTitle>Puerto Rico</fx:myTitle>
+                    </fx:Object>
+                </esri:attributes>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+</s:Application>

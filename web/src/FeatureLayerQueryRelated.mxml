@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Related records">
+    <!--
+    Description:
+    This sample demonstrates how to use the FeatureLayer to perform graphical selections,
+    and then use that selection to perform a query for related records in another table.
+    The first selection which is made by a single click on the map selects features in the FeatureLayer.
+    A query is then performed to find related records, if the selected feature has any related
+    records those "related records" will be shown in the table beneath the map.  If there are no
+    related records for that feature then a message will be shown that reports there are  no
+    related records for that specific well.  Also, once a graphic has been selected; you can
+    click it again to see its InfoWindow containing the attributes for that feature.
+
+    This sample will look for related records in the TOPS table.
+    In this case, the relations have been setup in ArcMap, and the relationships information
+    made available in the Service Directory which lists two relationships.
+    See http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer
+    * a table - Tops: http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/2
+    * a point layer - Wells : http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0
+
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FeatureLayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#selectFeatures()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#queryRelatedFeatures()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#event:queryRelatedFeaturesComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RelationshipQuery.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+
+    ArcGIS REST API documentation
+    http://resources.arcgis.com/en/help/rest/apiref/queryrelatedrecords.html
+
+    ArcGIS for Desktop documentation
+    About relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_joining_and_relating_tables/005s0000002n000000/
+    Essentials of relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Essentials_of_relating_tables/005s0000002t000000/
+    Relating the attributes in one table to another
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Relating_the_attributes_in_one_table_to_another/005s0000002v000000/
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.events.FeatureLayerEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.tasks.supportClasses.Query;
+            import com.esri.ags.tasks.supportClasses.RelationshipQuery;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+
+            [Bindable]
+            private var selectedObjectID:Number;
+            [Bindable]
+            private var relatedRecordsCount:Number;
+
+            private function findWells(event:MapMouseEvent):void
+            {
+                // find wells near the mouse click
+                var tol:Number = map.extent.width / map.width * 5;
+                var x:Number = event.mapPoint.x;
+                var y:Number = event.mapPoint.y;
+                var queryExtent:Extent = new Extent(x - tol, y - tol, x + tol, y + tol, event.mapPoint.spatialReference);
+                var thisSelectionQuery:Query = new Query();
+                thisSelectionQuery.geometry = queryExtent;
+                wellsLayer.selectFeatures(thisSelectionQuery, FeatureLayer.SELECTION_NEW);
+            }
+
+            private function wellsLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
+            {
+                relatedDatagrid.dataProvider = null;
+                // check the first return feature to see if it has any related features
+                if (event.features.length > 0)
+                {
+                    relatedTopsQuery.objectIds = [ event.features[0].attributes.OBJECTID ];
+                    selectedObjectID = event.features[0].attributes.OBJECTID;
+                    wellsLayer.queryRelatedFeatures(relatedTopsQuery, new AsyncResponder(onResult, onFault));
+                    function onResult(relatedRecords:Object, token:Object = null):void
+                    {
+                        // get related records for the first feature
+                        var fset:FeatureSet = (relatedRecords[event.features[0].attributes.OBJECTID]);
+                        if (fset is FeatureSet)
+                        {
+                            relatedDatagrid.dataProvider = new ArrayCollection(fset.attributes)
+                            relatedRecordsCount = fset.attributes.length;
+                        }
+                        else
+                        {
+                            Alert.show("No related records for well #" + event.features[0].attributes.OBJECTID, "No related records");
+                            relatedRecordsCount = 0;
+                        }
+                    }
+                    function onFault(info:Object, token:Object = null):void
+                    {
+                        map.infoWindow.hide();
+                        Alert.show(info.toString(), "queryRelatedFeatures Problem");
+                    }
+                }
+                else
+                {
+                    map.infoWindow.hide();
+                    Alert.show("No wells found here, please try somewhere else.", "No features");
+                }
+            }
+
+            protected function showRelatedRecordsForObjectID(event:MouseEvent):void
+            {
+                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0/queryRelatedRecords?objectIds=' + selectedObjectID + '&relationshipId=3&definitionExpression=&returnGeometry=true&outSR=&outFields=*&f=html'
+                navigateToURL(new URLRequest(url), "_blank");
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:RelationshipQuery id="relatedTopsQuery"
+                                outFields="[OBJECTID,API_NUMBER,ELEVATION,FORMATION,TOP]"
+                                relationshipId="3"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the FeatureLayer to perform graphical selections,
+            and then use that selection to perform a query for related records in another table.
+            The first selection which is made by a single click on the map selects features in the FeatureLayer.
+            A query is then performed to find related records, if the selected feature has any related
+            records those "related records" will be shown in the table beneath the map.  If there are no
+            related records for that feature then a message will be shown that reports there are  no
+            related records for that specific well.  Also, once a graphic has been selected; you can
+            click it again to see its InfoWindow containing the attributes for that feature.
+        </s:RichText>
+        <s:Button click="showRelatedRecordsForObjectID(event)"
+                  label="Show Related Records ({relatedRecordsCount}) for well id: {selectedObjectID}"
+                  visible="{relatedRecordsCount > 0}"/>
+    </s:controlBarContent>
+
+    <esri:Map id="map" mapClick="findWells(event)">
+        <esri:extent>
+            <esri:Extent xmin="-10854000" ymin="4502000" xmax="-10829000" ymax="4524000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayCollection>
+                    <fx:Number>0</fx:Number>
+                    <fx:Number>1</fx:Number>
+                </s:ArrayCollection>
+            </esri:visibleLayers>
+        </esri:ArcGISDynamicMapServiceLayer>
+        <esri:FeatureLayer id="wellsLayer"
+                           mode="selection"
+                           outFields="[completion,plug_date]"
+                           selectionComplete="wellsLayer_selectionCompleteHandler(event)"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0">
+            <esri:infoWindowRenderer>
+                <fx:Component>
+                    <esri:LabelDataRenderer>
+                        <esri:layout>
+                            <s:VerticalLayout/>
+                        </esri:layout>
+                        <esri:label>Well ID {data.OBJECTID}</esri:label>
+                        <s:Label text="Plug date: {data.plug_date ? new Date(data.plug_date) : 'No date available'}"/>
+                        <s:Label text="Completion: {data.completion ? new Date(data.completion) : 'No date available'}"/>
+                    </esri:LabelDataRenderer>
+                </fx:Component>
+            </esri:infoWindowRenderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+    <s:DataGrid id="relatedDatagrid"
+                width="100%" height="45%">
+        <s:columns>
+            <s:ArrayList>
+                <s:GridColumn dataField="OBJECTID" headerText="ID"/>
+                <s:GridColumn dataField="API_NUMBER" headerText="API Number"/>
+                <s:GridColumn dataField="ELEVATION" headerText="Elevation"/>
+                <s:GridColumn dataField="FORMATION" headerText="Formation"/>
+                <s:GridColumn dataField="TOP" headerText="Top"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+
+</s:Application>

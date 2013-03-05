@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="MapClick - click map to get current location">
+    <!--
+    Description:
+    This sample demonstrates how to use the click event on the Map to
+    show an info window at the click location and display information
+    about that geographic location.
+
+    Problem:
+    You want to capture a "click" on the map, but not a pan or other mouse navigation actions.
+    Solution:
+    Use the mapClick property (new in version 1.1 of the ArcGIS API for Flex).
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#event:mapClick
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/Number.html#toFixed()
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+        esri|InfoWindow
+        {
+            backgroundColor: #000000;
+            backgroundAlpha: 0.5;
+            borderThickness: 3;
+            borderColor: #DEDEDE;
+            shadowDistance: 5;
+            shadowAlpha: 0.7;
+        }
+        esri|InfoWindowLabel
+        {
+            fontWeight: bold;
+            fontSize: 12;
+            color: #FFFFFF;
+        }
+        s|Label
+        {
+            color: #FFFFFF;
+        }
+
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            private function onMapClick(event:MapMouseEvent):void
+            {
+                var content:Object = {};
+                content.wm = event.mapPoint;
+                content.ll = WebMercatorUtil.webMercatorToGeographic(event.mapPoint) as MapPoint;
+                ldr.data = content;
+                ldr.label = "You clicked at ...";
+                myMap.infoWindow.show(event.mapPoint); // "Show the click"
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the click event on the Map to
+            show an info window at the click location and display information
+            about that geographic location.
+            Click on the map to see information about a location.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              mapClick="onMapClick(event)"
+              scale="50000000">
+        <esri:infoWindowContent>
+            <esri:LabelDataRenderer id="ldr">
+                <esri:layout>
+                    <s:VerticalLayout paddingBottom="5"
+                                      paddingLeft="5"
+                                      paddingRight="5"
+                                      paddingTop="5"/>
+                </esri:layout>
+                <s:Label text="X: {ldr.data.wm.x.toFixed(1)}"/>
+                <s:Label text="Y: {ldr.data.wm.y.toFixed(1)}"/>
+                <s:Label text="Lon: {ldr.data.ll.x.toFixed(1)}"/>
+                <s:Label text="Lat: {ldr.data.ll.y.toFixed(1)}"/>
+            </esri:LabelDataRenderer>
+        </esri:infoWindowContent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+</s:Application>

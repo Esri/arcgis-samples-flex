@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="WebTiled Layer">
+    <!--
+    Description:
+    This sample demonstrates how to add various third-party (tiled|cached)
+    map services to your ArcGIS API for Flex application using the WebTiledLayer class.
+    Select one of the various options from the drop down list or load a custom service
+    using the "Load custom web tiled layer" button.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#center
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#level
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorMapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WebTiledLayer.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+
+            import flash.net.navigateToURL;
+
+            import mx.controls.Alert;
+            import mx.events.CloseEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            private static const ESRI_NATGEO_URL:String = "http://{subDomain}.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{level}/{row}/{col}";
+            private static const MQ_URL:String = "http://{subDomain}.mqcdn.com/tiles/1.0.0/vx/map/{level}/{col}/{row}.jpg";
+            private static const OCM_URL:String = "http://{subDomain}.tile.opencyclemap.org/cycle/{level}/{col}/{row}.png";
+            private static const Trulia_CRIME_URL:String = "http://tiles.trulia.com/tiles/crime_heatmap/{level}/{col}/{row}.png";
+
+            private static const CM_MIDNIGHT_URL:String = "http://tile.cloudmade.com/1a1b06b230af4efdbb989ea99e9841af/999/256/{level}/{col}/{row}.png";
+            private static const CM_PALE_URL:String = "http://{subDomain}.tile.cloudmade.com/1a1b06b230af4efdbb989ea99e9841af/998/256/{level}/{col}/{row}.png";
+
+            private static const MB_LIGHT_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-light/{level}/{col}/{row}.png";
+            private static const MB_STREETS_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-streets/{level}/{col}/{row}.png";
+            private static const MB_TERRAIN_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-warden/{level}/{col}/{row}.png";
+
+            private static const STMN_TERRAIN_URL:String = "http://{subDomain}.tile.stamen.com/terrain/{level}/{col}/{row}.jpg";
+            private static const STMN_WATERCOLOR_URL:String = "http://{subDomain}.tile.stamen.com/watercolor/{level}/{col}/{row}.jpg";
+            private static const STMN_TONER_URL:String = "http://{subDomain}.tile.stamen.com/toner/{level}/{col}/{row}.png";
+
+            private static const APPLE_OSM_URL:String = "http://gsp2.apple.com/tile?api=1&style=slideshow&layers=default&lang=en_GB&z={level}&x={col}&y={row}&v=9";
+
+            //subdomains
+            private static const MQ_SUBDOMAINS:Array = [ "mtile01", "mtile02", "mtile03", "mtile04" ];
+            private static const ABC:Array = [ "a", "b", "c" ];
+            private static const ABCD:Array = [ "a", "b", "c", "d" ];
+
+            protected function ddlWebTiledLayer_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedItem:Object = DropDownList(event.currentTarget).selectedItem;
+                webTiledLayer.urlTemplate = selectedItem.urlTemplate;
+                webTiledLayer.copyright = selectedItem.copyright;
+
+                if (selectedItem.subDomains != null)
+                {
+                    webTiledLayer.subDomains = selectedItem.subDomains;
+                }
+            }
+
+            protected function loadWebTiledLayerButton_clickHandler(event:MouseEvent):void
+            {
+                if (customURLTemplate.text != "")
+                {
+                    var customWebTiledLayerObject:Object = {};
+                    if (customSubDomains.text != "")
+                    {
+                        var subDomainsArray:Array = customSubDomains.text.split(",");
+                        if (subDomainsArray.length >= 0)
+                        {
+                            customWebTiledLayerObject.subDomains = subDomainsArray;
+                        }
+                        else
+                        {
+                            customWebTiledLayerObject.subDomains = null;
+                        }
+                    }
+                    else
+                    {
+                        customWebTiledLayerObject.subDomains = null;
+                    }
+                    customWebTiledLayerObject.urlTemplate = customURLTemplate.text;
+                    customWebTiledLayerObject.copyright = customCopyright.text;
+
+                    setWebTiledLayer(customWebTiledLayerObject);
+                    customWebTileLayerPanel.visible = false;
+                }
+                else
+                {
+                    var msg:String = "URL Template must not be blank.\nTo read more about WebTiledLayer click 'OK'";
+                    Alert.show(msg, "WebTiledLayer Information", Alert.OK | Alert.CANCEL, this, onAlertClose, null, Alert.CANCEL);
+                    function onAlertClose(event:CloseEvent):void
+                    {
+                        switch (event.detail) {
+                            case Alert.OK:
+                            {
+                                navigateToURL(new URLRequest("http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WebTiledLayer.html"), "_blank");
+                                break;
+                            }
+                            case Alert.CANCEL:
+                            {
+                                customURLTemplate.selectAll();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            protected function setWebTiledLayer(value:Object):void
+            {
+                if (value)
+                {
+                    webTiledLayer.urlTemplate = value.urlTemplate;
+                    webTiledLayer.copyright = value.copyright;
+
+                    if (value.subDomains != null)
+                    {
+                        webTiledLayer.subDomains = value.subDomains;
+                    }
+                }
+            }
+
+            protected function clearWebTiledLayerFormButton_clickHandler(event:MouseEvent):void
+            {
+                customCopyright.text = "";
+                customSubDomains.text = "";
+                customURLTemplate.text = "";
+            }
+
+            protected function webTiledLayer_loadErrorHandler(event:LayerEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "WebTiledLayer load error " + event.fault.faultCode);
+
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add various third-party (tiled|cached)
+            map services to your ArcGIS API for Flex application using the WebTiledLayer class.
+            Select one of the various options from the drop down list or load a custom service
+            using the "Load custom web tiled layer" button.
+        </s:RichText>
+
+        <s:HGroup width="100%" verticalAlign="middle">
+            <s:Label text="Select a service "/>
+            <s:DropDownList id="ddlWebTiledLayer"
+                            width="220"
+                            change="ddlWebTiledLayer_changeHandler(event)"
+                            requireSelection="true">
+                <s:dataProvider>
+                    <s:ArrayList>
+                        <fx:Object copyright="MapQuest"
+                                   label="MapQuest"
+                                   subDomains="{MQ_SUBDOMAINS}"
+                                   urlTemplate="{MQ_URL}"/>
+
+                        <!--<fx:Object copyright="National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
+                                   label="Esri National Geographic"
+                                   subDomains="{[ 'services', 'server' ]}"
+                                   urlTemplate="{ESRI_NATGEO_URL}"/>-->
+
+                        <fx:Object copyright="Open Cycle Map"
+                                   label="OpenCycleMap"
+                                   subDomains="{ABC}"
+                                   urlTemplate="{OCM_URL}"/>
+
+                        <!--<fx:Object copyright="Trulia"
+                                   label="Trulia Crime Heat Map"
+                                   subDomains="{null}"
+                                   urlTemplate="{Trulia_CRIME_URL}"/>-->
+
+                        <fx:Object copyright="Cloudmade Midnight Commander"
+                                   label="Cloudmade Midnight Commander"
+                                   subDomains="{ABCD}"
+                                   urlTemplate="{CM_MIDNIGHT_URL}"/>
+
+                        <fx:Object copyright="Cloudmade Pale Dawn"
+                                   label="Cloudmade Pale Dawn"
+                                   subDomains="{ABC}"
+                                   urlTemplate="{CM_PALE_URL}"/>
+
+                        <fx:Object copyright="Mapbox Light"
+                                   label="MapBox Light"
+                                   subDomains="{ABCD}"
+                                   urlTemplate="{MB_LIGHT_URL}"/>
+
+                        <fx:Object copyright="Mapbox Streets"
+                                   label="MapBox Streets"
+                                   subDomains="{ABCD}"
+                                   urlTemplate="{MB_STREETS_URL}"/>
+
+                        <fx:Object copyright="Mapbox Terrain"
+                                   label="MapBox Terrain"
+                                   subDomains="{ABCD}"
+                                   urlTemplate="{MB_TERRAIN_URL}"/>
+
+                        <fx:Object copyright="Stamen Terrain"
+                                   label="Stamen Terrain"
+                                   subDomains="{ABCD}"
+                                   urlTemplate="{STMN_TERRAIN_URL}"/>
+
+                        <fx:Object copyright="Apple's rendering of OSM data."
+                                   label="Apple's OpenStreetMap"
+                                   subDomains="{null}"
+                                   urlTemplate="{APPLE_OSM_URL}"/>
+
+                        <fx:Object copyright="Stamen Toner"
+                                   label="Stamen Toner"
+                                   subDomains="{ABCD}"
+                                   urlTemplate="{STMN_TONER_URL}"/>
+
+                        <fx:Object copyright="Stamen Watercolor"
+                                   label="Stamen Watercolor"
+                                   subDomains="{ABCD}"
+                                   urlTemplate="{STMN_WATERCOLOR_URL}"/>
+
+                    </s:ArrayList>
+                </s:dataProvider>
+            </s:DropDownList>
+
+            <s:Label text=" or try "/>
+
+            <s:Button click="customWebTileLayerPanel.visible=true" label="custom web tiled layer"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map level="9" wrapAround180="true">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-116.693230" lat="33.820853"/>
+        </esri:center>
+        <esri:WebTiledLayer id="webTiledLayer"
+                            copyright="MapQuest"
+                            loadError="webTiledLayer_loadErrorHandler(event)"
+                            subDomains="{MQ_SUBDOMAINS}"
+                            urlTemplate="{MQ_URL}"/>
+    </esri:Map>
+
+    <s:Panel id="customWebTileLayerPanel"
+             horizontalCenter="0"
+             title="Custom Web Tiled Layer"
+             verticalCenter="0"
+             visible="false">
+        <s:Form width="100%" backgroundColor="0xEEEEEE">
+            <s:layout>
+                <s:FormLayout gap="-5"/>
+            </s:layout>
+            <s:FormItem label="Copyright:">
+                <s:TextArea id="customCopyright"
+                            width="220" height="50"
+                            editable="true"
+                            text="Mapbox Light"/>
+            </s:FormItem>
+            <s:FormItem label="subdomains:">
+                <s:TextArea id="customSubDomains"
+                            width="220" height="50"
+                            editable="true"
+                            text="a,b,c,d"/>
+            </s:FormItem>
+            <s:FormItem label="URL template:">
+                <s:TextArea id="customURLTemplate"
+                            width="220" height="50"
+                            editable="true"
+                            text="http://\{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-light/\{level}/\{col}/\{row}.png"/>
+            </s:FormItem>
+            <s:Spacer height="20"/>
+            <s:HGroup width="100%" horizontalAlign="center">
+                <s:Button id="clearWebTiledLayerFormButton"
+                          click="clearWebTiledLayerFormButton_clickHandler(event)"
+                          label="Clear Form"/>
+                <s:Button click="customWebTileLayerPanel.visible=false" label="Cancel"/>
+                <s:Button id="loadWebTiledLayerButton"
+                          click="loadWebTiledLayerButton_clickHandler(event)"
+                          label="OK"/>
+            </s:HGroup>
+        </s:Form>
+    </s:Panel>
+</s:Application>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Attribute Table">
+    <!--
+    Description:
+    This sample demonstrates how to use the AttributeTable component which allows viewing and editing feature atttributes.
+    The component uses a data grid where the columns correspond to the fields of a feature layer.
+
+    The application also allows user to click on a feature and select it. The AttributeTable then displays the selection
+    by highlighting the corresponding row in the grid.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeTable.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResults.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/Field.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.AttributeTableEvent;
+            import com.esri.ags.layers.supportClasses.FeatureEditResult;
+            import com.esri.ags.layers.supportClasses.FeatureEditResults;
+            import com.esri.ags.layers.supportClasses.Field;
+            import com.esri.ags.tasks.supportClasses.Query;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.Fault;
+
+            protected function myMap_clickHandler(event:MouseEvent):void
+            {
+                if (event.target is Graphic || event.target.parent is Graphic)
+                {
+                    var graphic:Graphic = event.target is Graphic ? Graphic(event.target) : Graphic(event.target.parent);
+                    var query:Query = new Query;
+                    query.objectIds = [ graphic.attributes[myFeatureLayer.layerDetails.objectIdField]]
+                    myFeatureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
+                }
+                else
+                {
+                    myFeatureLayer.clearSelection();
+                }
+            }
+
+            protected function fdg_updateFeatureHandler(event:AttributeTableEvent):void
+            {
+                const attributes:Object = {};
+                const objectIdField:String = event.featureLayer.layerDetails.objectIdField;
+                attributes[objectIdField] = event.feature.attributes[objectIdField];
+                attributes[event.field.name] = event.newValue;
+
+                // change the attributes on client right away
+                event.feature.attributes[event.field.name] = event.newValue;
+
+                const feature:Graphic = new Graphic(null, null, attributes);
+                const updates:Array = [ feature ];
+                event.featureLayer.applyEdits(null, updates, null, false,
+                                              new AsyncResponder(featureLayer_editsCompleteHandler, featureLayer_faultHandler,
+                                                                 { feature: event.feature, field: event.field, oldValue: event.oldValue }));
+            }
+
+            protected function fdg_deleteFeaturesHandler(event:AttributeTableEvent):void
+            {
+                const deletes:Array = event.features;
+                event.featureLayer.applyEdits(null, null, deletes, false,
+                                              new AsyncResponder(featureLayer_editsCompleteHandler, featureLayer_faultHandler));
+            }
+
+            private function featureLayer_editsCompleteHandler(featureEditResults:FeatureEditResults, token:Object = null):void
+            {
+                var doRefresh:Boolean = false;
+
+                for each (var deleteResult:FeatureEditResult in featureEditResults.deleteResults)
+                {
+                    if (deleteResult.success === false)
+                    {
+                        Alert.show("Could not delete feature");
+                        doRefresh = true;
+                    }
+                }
+
+                for each (var updateResult:FeatureEditResult in featureEditResults.updateResults)
+                {
+                    const feature:Graphic = token.feature;
+                    if (updateResult.success === false)
+                    {
+                        Alert.show("Could not update feature, Restoring old value", "Error");
+
+                        const field:Field = token.field;
+                        feature.attributes[field.name] = token.oldValue;
+                        doRefresh = true;
+                    }
+                    else
+                    {
+                        feature.refresh();
+                    }
+                }
+
+                if (doRefresh)
+                {
+                    myAttributeTable.refresh();
+                }
+            }
+
+            private function featureLayer_faultHandler(fault:Fault, token:Object = null):void
+            {
+                Alert.show(fault.faultString, "Fault");
+                myAttributeTable.refresh();
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the AttributeTable component which allows viewing and editing feature atttributes.
+            The component uses a data grid where the columns correspond to the fields of a feature layer.
+            The application also allows user to click on a feature and select it. The AttributeTable then displays the selection
+            by highlighting the corresponding row in the grid.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              width="100%" height="60%"
+              click="myMap_clickHandler(event)">
+        <esri:extent>
+            <esri:Extent id="sheepfire"
+                         xmin="-13638587" ymin="4543797" xmax="-13620242" ymax="4549912">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:FeatureLayer id="myFeatureLayer"
+                           mode="onDemand"
+                           outFields="*"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer/0"/>
+    </esri:Map>
+
+    <s:Line width="100%">
+        <s:stroke>
+            <s:SolidColorStroke color="0x000000" weight="1"/>
+        </s:stroke>
+    </s:Line>
+
+    <s:BorderContainer width="100%" height="40%"
+                       backgroundColor="0xEEEEEE"
+                       borderVisible="false">
+        <s:layout>
+            <s:HorizontalLayout paddingLeft="5"
+                                paddingRight="5"
+                                paddingTop="2"/>
+        </s:layout>
+        <esri:AttributeTable id="myAttributeTable"
+                             width="100%" height="100%"
+                             deleteFeatures="fdg_deleteFeaturesHandler(event)"
+                             featureLayer="{myFeatureLayer}"
+                             updateFeature="fdg_updateFeatureHandler(event)"/>
+    </s:BorderContainer>
+</s:Application>

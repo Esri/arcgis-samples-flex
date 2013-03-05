@@ -1,0 +1,22 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace esri "http://www.esri.com/2008/ags";       
+
+esri|PopUpRenderer
+{
+    skinClass: ClassReference("skins.PopUpRendererCustomSkin");
+}
+
+esri|InfoWindow
+{
+    border-thickness: 2;
+    borderColor: #000000;
+    background-color: #FFFFFF;
+    font-size: 16;
+    upper-left-radius: 10;
+    upper-right-radius: 10;
+    lowerLeftRadius: 10;
+    lowerRightRadius: 10;
+    info-placement: top;
+    info-offset-y: 12; 
+}

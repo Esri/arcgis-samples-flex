@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Charts in infowindow">
+    <!--
+    Description:
+    This sample demonstrates how to use the query task results to construct a chart
+    with the Flex PieChart. When running the sample, the results from the
+    query(cities) are placed on the map with the symbology being an InfoSymbol.
+    Mousing over the InfoSymbol, a pie chart of its population data under
+    different age groups is displayed.
+    Click a marker to see the InfoSymbol open up with a
+    pie chart of its population data under different age groups.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html#features
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/MyInfoRenderer.mxml
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|InfoSymbolWindow {
+            infoPlacementMode: none;
+            infoPlacement:top;
+            infoOffsetX: 12;
+            infoOffsetY: 12;
+            infoOffsetW: 6;
+            borderThickness: 2;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.MapEvent;
+            import com.esri.ags.tasks.QueryTask;
+            import com.esri.ags.tasks.supportClasses.Query;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.AsyncResponder;
+
+            protected function myMap_initializeHandler(event:MapEvent):void
+            {
+                // Query to get the cities under the specified state
+                var queryTask:QueryTask = new QueryTask();
+                queryTask.url = "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/0";
+                queryTask.useAMF = false;
+                var query:Query = new Query();
+                query.outSpatialReference = myMap.spatialReference;
+                query.outFields = [ "CITY_NAME", "AGE_UNDER5", "AGE_5_17", "AGE_18_64", "AGE_65_UP" ];
+                query.returnGeometry = true;
+                query.where = "STATE_NAME = 'Alaska' AND TYPE = 'city'";
+                queryTask.execute(query, new AsyncResponder(onResult, onFault));
+                // add the graphic on the map
+                function onResult(featureSet:FeatureSet, token:Object = null):void
+                {
+                    for each (var myGraphic:Graphic in featureSet.features)
+                    {
+                        myGraphicsLayer.add(myGraphic);
+                        // creating an arraycollection from the graphic attriobutes
+                        var object:ArrayCollection = new ArrayCollection(
+                            [
+                            { CITY_NAME: myGraphic.attributes.CITY_NAME, AGE: "Under 5", VALUE: myGraphic.attributes.AGE_UNDER5 },
+                            { CITY_NAME: myGraphic.attributes.CITY_NAME, AGE: "Age 5-17", VALUE: myGraphic.attributes.AGE_5_17 },
+                            { CITY_NAME: myGraphic.attributes.CITY_NAME, AGE: "Age 18-64", VALUE: myGraphic.attributes.AGE_18_64 },
+                            { CITY_NAME: myGraphic.attributes.CITY_NAME, AGE: "65 and up", VALUE: myGraphic.attributes.AGE_65_UP }
+                            ]);
+                        myGraphic.attributes = object;
+                    }
+                }
+                function onFault(info:Object, token:Object = null):void
+                {
+                    Alert.show(info.toString());
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:InfoSymbol id="infoSymbol" infoRenderer="com.esri.ags.samples.MyInfoRenderer"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the query task results to construct a chart
+            with the Flex PieChart. When running the sample, the results from the
+            query(cities) are placed on the map with the symbology being an InfoSymbol.
+            Mousing over the InfoSymbol, a pie chart of its population data under
+            different age groups is displayed.
+            Click a marker to see the InfoSymbol open up with a
+            pie chart of its population data under different age groups.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" load="myMap_initializeHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-19385000" ymin="6655000" xmax="-13222000" ymax="13326000">
+                <esri:spatialReference>
+                    <esri:SpatialReference wkid="102100"/>
+                </esri:spatialReference>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer" symbol="{infoSymbol}"/>
+    </esri:Map>
+
+</s:Application>

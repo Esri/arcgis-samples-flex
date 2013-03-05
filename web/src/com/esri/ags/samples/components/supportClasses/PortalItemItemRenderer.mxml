@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:mx="library://ns.adobe.com/flex/mx"
+                xmlns:components="com.esri.ags.samples.components.*"
+                autoDrawBackground="true"
+                buttonMode="true"
+                useHandCursor="true">
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="hovered"/>
+        <s:State name="selected"/>
+    </s:states>
+    <fx:Declarations>
+        <s:DateTimeFormatter id="dateTimeFormatter" dateTimePattern="MMMM d, yyyy"/>
+    </fx:Declarations>
+    <!-- drop shadow can't be hittable so it stays sibling of other graphics -->
+    <!--- @private -->
+    <s:RectangularDropShadow id="dropShadow"
+                             left="0" right="0" top="0" bottom="0"
+                             alpha="1"
+                             angle="90"
+                             blRadius="5"
+                             blurX="6"
+                             blurY="6"
+                             brRadius="5"
+                             color="#000000"
+                             distance="1"
+                             includeIn="hovered,selected"
+                             tlRadius="5"
+                             trRadius="5"/>
+    <s:Rect left="0" right="0" top="0" bottom="0"
+            radiusX="4"
+            radiusY="4">
+        <s:stroke>
+            <mx:SolidColorStroke alpha.hovered="0.5"
+                                 color.hovered="0x21759B"
+                                 color.normal="0xFFFFFF"
+                                 color.selected="0x21759B"
+                                 weight.hovered="1"
+                                 weight.normal="0"
+                                 weight.selected="2"/>
+        </s:stroke>
+    </s:Rect>
+    <s:HGroup width="540"
+              paddingBottom="5"
+              paddingLeft="5"
+              paddingRight="5"
+              paddingTop="5"
+              verticalAlign="top">
+        <s:Image width="160" height="100"
+                 enableLoadingState="true"
+                 source="{data.thumbnailURL}"/>
+
+        <s:VGroup width="365">
+            <s:Label width="100%"
+                     color="0x21759B"
+                     fontSize="14"
+                     fontWeight="bold"
+                     text="{data.title}"/>
+            <s:Label width="100%" text="{data.snippet}"/>
+            <s:HGroup verticalAlign="middle">
+                <s:Image source="{data.type == 'Web Map' ? 'http://www.arcgis.com/home/images/maps16.png' : 'http://www.arcgis.com/home/images/layers16.png'}"/>
+                <s:Label text="{data.type} by {data.owner}"/>
+            </s:HGroup>
+            <s:Label text="Last Modified: {dateTimeFormatter.format(data.modified)}"/>
+            <s:HGroup verticalAlign="middle">
+                <components:StarRatingComponent data="{data.avgRating}"/>
+                <s:Label text="({data.numRatings} rating, {data.numComments} comments, {data.numViews} views)"/>
+            </s:HGroup>
+        </s:VGroup>
+    </s:HGroup>
+
+</s:ItemRenderer>

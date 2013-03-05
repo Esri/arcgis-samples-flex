@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:text="flash.text.*"
+               pageTitle="Clustering with Flex API">
+    <!--
+    Description:
+    This sample demonstrates how to use clustering to conceptualize point data that could be
+    overly dense and decrease the visual impact of the data being presented.
+    The individual point data is grouped into clusters,
+    and then the cluster is rendered as one graphic.
+    Initially, the cluster is represented as circle with a count of the number of clustered graphics.
+    When the user hovers over circle, it flares to show the individual clustered elements.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/LabelDataRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/clusterers/WeightedClusterer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/clusterers/supportClasses/FlareSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#infoWindowRenderer
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/core/ClassFactory.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+        @namespace s "library://ns.adobe.com/flex/spark";
+        esri|ContentNavigator
+        {
+            headerBackgroundColor: #D3D1D1;
+            headerColor: #000000;
+        }
+
+        esri|InfoWindow
+        {
+            border-thickness: 1;
+            borderColor: #666666;
+            borderAlpha: 0.7;
+            background-color: #EEEEEE;
+            info-placement: top;
+            info-offset-y: 20;
+            shadowAlpha: 0.6;
+            shadowDistance: 10;
+        }
+    </fx:Style>
+
+    <fx:Declarations>
+        <text:TextFormat id="tf"
+                         color="0xE6E6E6"
+                         font="Arial"
+                         size="14"/>
+        <esri:FlareSymbol id="flareSymbol"
+                          backgroundAlphas="[0.7,1.0]"
+                          backgroundColor="0x394B8C"
+                          backgroundColors="[0x5B8C3E,0xBF2827]"
+                          borderColor="0x666666"
+                          flareMaxCount="30"
+                          flareSizeIncOnRollOver="3"
+                          sizes="[20,30]"
+                          textFormat="{tf}"
+                          weights="[30,60]"/>
+        <esri:WeightedClusterer id="clusterer"
+                                sizeInPixels="22"
+                                symbol="{flareSymbol}">
+            <esri:center>
+                <!--
+                x/y values are from the below extent x/y min/max values, these are the center of the extent.
+                To make sure that you have the same clusters every time and independently of the map size and extent, these values have to set explicity,
+                or you can let the cluster pick the map center at runtime.
+                -->
+                <esri:MapPoint x="{(-14477000-6677000)*0.5}" y="{(2273000+8399000)*0.5}"/>
+            </esri:center>
+        </esri:WeightedClusterer>
+        <esri:SimpleMarkerSymbol id="defaultsym"
+                                 alpha="0.8"
+                                 color="0xFF0000">
+            <esri:SimpleLineSymbol width="2" color="0xE6E6E6"/>
+        </esri:SimpleMarkerSymbol>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use clustering to conceptualize point data that could be
+            overly dense and decrease the visual impact of the data being presented.
+            The individual point data is grouped into clusters,
+            and then the cluster is rendered as one graphic.
+            Initially, the cluster is represented as circle with a count of the number of clustered graphics.
+            When the user hovers over circle, it flares to show the individual clustered elements.
+        </s:RichText>
+        <s:HGroup width="100%"
+                  gap="5"
+                  minHeight="10"
+                  verticalAlign="middle">
+            <s:Label text="{featureLayer.numGraphics}"/>
+            <s:Label text="Graphics - Overall cluster min count"/>
+            <s:Label text="{clusterer.overallMinCount}"/>
+            <s:Label text="max count"/>
+            <s:Label text="{clusterer.overallMaxCount}"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              infoWindowRendererHighlightColor="0x666666"
+              openHandCursorVisible="false">
+        <esri:extent>
+            <esri:Extent xmin="-14094328" ymin="3208011" xmax="-7539088" ymax="6642174">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:infoWindowContent>
+            <s:TextArea id="myTextArea"
+                        width="200" height="80"
+                        editable="false"/>
+        </esri:infoWindowContent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer"/>
+        <esri:FeatureLayer id="featureLayer"
+                           clusterer="{clusterer}"
+                           definitionExpression="POP1990 &gt; 75000"
+                           mode="snapshot"
+                           outFields="*"
+                           symbol="{defaultsym}"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/0">
+            <esri:infoWindowRenderer>
+                <fx:Component>
+                    <esri:LabelDataRenderer label="{data.CITY_NAME}">
+                        <s:BorderContainer backgroundColor="0xEEEEEE"
+                                           borderVisible="false"
+                                           minHeight="0"
+                                           minWidth="0">
+                            <s:layout>
+                                <s:VerticalLayout paddingBottom="5"
+                                                  paddingLeft="5"
+                                                  paddingRight="5"
+                                                  paddingTop="5"/>
+                            </s:layout>
+
+                            <s:Label text="State Name: { data.STATE_NAME }"/>
+                            <s:Label text="Age (5-17): { data.AGE_5_17 }"/>
+                            <s:Label text="Age (18-64): { data.AGE_18_64 }"/>
+                            <s:Label text="Age (65 and above): { data.AGE_65_UP }"/>
+
+                        </s:BorderContainer>
+                    </esri:LabelDataRenderer>
+                </fx:Component>
+            </esri:infoWindowRenderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+
+</s:Application>

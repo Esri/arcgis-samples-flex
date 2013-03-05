@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               creationComplete="application_creationCompleteHandler(event)"
+               pageTitle="Editing a feature layer without the Editor component">
+    <!--
+    Description:
+    Most editing applications will make use of the Editor component (see Editor* samples).
+    This sample only supports a small subset of the functionality available with the
+    Editor component.
+
+    In this sample the DrawTool, EditTool, TemplatePicker and some 'sample code' are used to
+    create a starting point for a more custom editing application than what the
+    Editor component provides.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TemplatePicker.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/EditEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FeatureLayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/TemplatePickerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureTemplate.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureLayerDetails.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/EditTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/featureserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/fslayer.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_feature_service/0154000002w8000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/Using_feature_services_in_a_client_application/0154000005sq000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.EditEvent;
+            import com.esri.ags.events.FeatureLayerEvent;
+            import com.esri.ags.events.TemplatePickerEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.layers.Layer;
+            import com.esri.ags.symbols.SimpleFillSymbol;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+            import mx.utils.ObjectUtil;
+
+            [Bindable]
+            private var selectedGraphic:Graphic = null;
+
+            private var drawingComplete:Boolean;
+            private var doNotAddFeature:Boolean;
+
+            protected function application_creationCompleteHandler(event:FlexEvent):void
+            {
+                myTemplatePicker.featureLayers = [ incidentsPointLayer, incidentsLineLayer, incidentsPolygonLayer ];
+                addEventListener(KeyboardEvent.KEY_DOWN, deleteKeyHandler);
+            }
+
+            protected function myTemplatePicker_selectedTemplateChangeHandler(event:TemplatePickerEvent):void
+            {
+                editTool.deactivate();
+                if (event.selectedTemplate)
+                {
+                    switch (event.selectedTemplate.featureLayer.layerDetails.geometryType)
+                    {
+                        case (Geometry.MAPPOINT):
+                        {
+                            if (event.selectedTemplate.featureLayer.renderer)
+                            {
+                                drawTool.markerSymbol = event.selectedTemplate.featureLayer.renderer.getSymbol(event.selectedTemplate.featureTemplate.prototype);
+                            }
+                            else if (event.selectedTemplate.featureLayer.symbol)
+                            {
+                                drawTool.markerSymbol = event.selectedTemplate.featureLayer.symbol;
+                            }
+
+                            drawTool.activate(DrawTool.MAPPOINT);
+                            break;
+                        }
+                        case (Geometry.POLYLINE):
+                        {
+                            if (event.selectedTemplate.featureLayer.renderer != null)
+                            {
+                                drawTool.lineSymbol = event.selectedTemplate.featureLayer.renderer.getSymbol(event.selectedTemplate.featureTemplate.prototype);
+                            }
+                            else if (event.selectedTemplate.featureLayer.symbol)
+                            {
+                                drawTool.lineSymbol = event.selectedTemplate.featureLayer.symbol;
+                            }
+
+                            drawTool.activate(DrawTool.POLYLINE);
+                            break;
+                        }
+                        case (Geometry.POLYGON):
+                        {
+                            if (event.selectedTemplate.featureLayer.renderer != null)
+                            {
+                                drawTool.fillSymbol = event.selectedTemplate.featureLayer.renderer.getSymbol(event.selectedTemplate.featureTemplate.prototype);
+                            }
+                            else if (event.selectedTemplate.featureLayer.symbol)
+                            {
+                                drawTool.fillSymbol = event.selectedTemplate.featureLayer.symbol;
+                            }
+
+                            drawTool.activate(DrawTool.POLYGON);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    drawTool.deactivate();
+                }
+            }
+
+            protected function draw_drawEndHandler(event:DrawEvent):void
+            {
+                if (event.graphic.geometry.type == Geometry.EXTENT) // selecting features within an extent
+                {
+                    for each (var layer:Layer in map.layers)
+                    {
+                        if (layer is FeatureLayer)
+                        {
+                            selectionQuery.geometry = event.graphic.geometry;
+                            FeatureLayer(layer).selectFeatures(selectionQuery, FeatureLayer.SELECTION_NEW);
+                        }
+                    }
+                    drawTool.deactivate();
+                }
+                else // creating new features
+                {
+                    drawingComplete = true;
+                    doNotAddFeature = false;
+
+                    //allows listening to the layer click handler before adding features to the feature layer
+                    callLater(addFeatureToFeatureLayer, [ event.graphic ]);
+                }
+            }
+
+            protected function layer_clickHandler(event:MouseEvent):void
+            {
+                drawTool.deactivate();
+
+                if (!drawingComplete) //just selection
+                {
+                    if (event.target is Graphic)
+                    {
+                        selectedGraphic = Graphic(event.target);
+                    }
+                    else if (event.target.parent is Graphic) //check for PictureMarkerSymbol
+                    {
+                        selectedGraphic = Graphic(event.target.parent);
+                    }
+                    editTool.activate(EditTool.EDIT_VERTICES | EditTool.MOVE, [ selectedGraphic ]);
+                }
+                else
+                {
+                    drawingComplete = false;
+                    if (event.currentTarget == incidentsPointLayer)
+                    {
+                        doNotAddFeature = true; // dont add feature to the feature layer if there is one underneath already
+                    }
+                }
+            }
+
+            private function addFeatureToFeatureLayer(graphic:Graphic):void
+            {
+                if (!doNotAddFeature && myTemplatePicker.selectedTemplate)
+                {
+                    if (myTemplatePicker.selectedTemplate.featureTemplate)
+                    {
+                        var newAtttrs:* = ObjectUtil.copy(myTemplatePicker.selectedTemplate.featureTemplate.prototype.attributes);
+                        var newGraphic:Graphic = new Graphic(graphic.geometry, null, newAtttrs);
+                        myTemplatePicker.selectedTemplate.featureLayer.applyEdits([ newGraphic ], null, null);
+                    }
+                    else
+                    {
+                        myTemplatePicker.selectedTemplate.featureLayer.applyEdits([ graphic ], null, null);
+                    }
+                }
+            }
+
+            private function deleteKeyHandler(event:KeyboardEvent):void
+            {
+                // remove any selected features when delete key is pressed
+                if (event.keyCode == Keyboard.DELETE)
+                {
+                    if (selectedGraphic != null)
+                    {
+                        (selectedGraphic.parent as FeatureLayer).applyEdits(null, null, [ selectedGraphic ]);
+                        selectedGraphic = null;
+                    }
+                    else
+                    {
+                        for each (var layer:Layer in map.layers)
+                        {
+                            if (layer is FeatureLayer && FeatureLayer(layer).selectedFeatures.length > 0)
+                            {
+                                // Exercise for developer - "simplify" geometry before sending them to server (in case users draws invalid geometries)
+                                FeatureLayer(layer).applyEdits(null, null, FeatureLayer(layer).selectedFeatures);
+                            }
+                        }
+                    }
+                }
+            }
+
+            protected function map_clickHandler(event:MouseEvent):void
+            {
+                if (!(event.target is Graphic || event.target.parent is Graphic))
+                {
+                    editTool.deactivate();
+                }
+            }
+
+            protected function flayer_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "FeatureLayer Fault " + event.fault.faultCode);
+                trace("f: " + event.toString());
+            }
+
+            protected function flayer_editsCompleteHandler(event:FeatureLayerEvent):void
+            {
+                trace("e: " + event.toString());
+
+            }
+
+            protected function selectFeatures_clickHandler(event:MouseEvent):void
+            {
+                myTemplatePicker.clearSelection();
+
+                drawTool.fillSymbol = new SimpleFillSymbol;
+                drawTool.activate(DrawTool.EXTENT);
+            }
+
+            protected function clearSelection_clickHandler(event:MouseEvent):void
+            {
+                for (var i:Number = 0; i < map.layers.length; i++)
+                {
+                    if (map.layers[i] is FeatureLayer && FeatureLayer(map.layers[i]).selectedFeatures.length > 0)
+                    {
+                        FeatureLayer(map.layers[i]).clearSelection();
+                    }
+                }
+            }
+
+            protected function editTool_vertexAddDeleteHandler(event:EditEvent):void
+            {
+                applyEdits(event.graphic);
+            }
+
+            protected function editTool_graphicsMoveFirstHandler(event:EditEvent):void
+            {
+                editTool.addEventListener(EditEvent.GRAPHICS_MOVE_STOP, editTool_graphicsMoveStopHandler);
+            }
+
+            protected function editTool_graphicsMoveStopHandler(event:EditEvent):void
+            {
+                // only one graphic is moved at a time
+                editTool.removeEventListener(EditEvent.GRAPHICS_MOVE_STOP, editTool_graphicsMoveStopHandler);
+                applyEdits(event.graphics[0]);
+            }
+
+            protected function editTool_vertexMoveFirstHandler(event:EditEvent):void
+            {
+                editTool.addEventListener(EditEvent.VERTEX_MOVE_STOP, editTool_vertexMoveStopHandler);
+            }
+
+            protected function editTool_vertexMoveStopHandler(event:EditEvent):void
+            {
+                editTool.removeEventListener(EditEvent.VERTEX_MOVE_STOP, editTool_vertexMoveStopHandler);
+                applyEdits(event.graphic);
+            }
+
+            private function applyEdits(graphic:Graphic):void
+            {
+                // applyEdits
+                FeatureLayer(graphic.graphicsLayer).applyEdits(null, [ graphic ], null);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:DrawTool id="drawTool"
+                       drawEnd="draw_drawEndHandler(event)"
+                       map="{map}"/>
+        <esri:EditTool id="editTool"
+                       graphicsMoveFirst="editTool_graphicsMoveFirstHandler(event)"
+                       map="{map}"
+                       vertexAdd="editTool_vertexAddDeleteHandler(event)"
+                       vertexDelete="editTool_vertexAddDeleteHandler(event)"
+                       vertexMoveFirst="editTool_vertexMoveFirstHandler(event)"/>
+        <esri:Query id="selectionQuery"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            Most editing applications will make use of the Editor component (see Editor* samples).
+            This sample only supports a small subset of the functionality available with the
+            Editor component.
+            In this sample the DrawTool, EditTool, TemplatePicker and some 'sample code' are used to
+            create a starting point for a more custom editing application than what the
+            Editor component provides.
+        </s:RichText>
+        <s:HGroup width="100%">
+            <s:Button id="selectFeatures"
+                      click="selectFeatures_clickHandler(event)"
+                      fontSize="14"
+                      label="Select features by rectangle"/>
+            <s:Button id="clearSelection"
+                      click="clearSelection_clickHandler(event)"
+                      fontSize="14"
+                      label="Clear Selection"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <mx:HDividedBox width="100%" height="100%">
+        <s:Group width="70%" height="100%">
+            <esri:Map id="map"
+                      click="map_clickHandler(event)"
+                      wrapAround180="true">
+                <esri:extent>
+                    <esri:Extent xmin="-13697000" ymin="4496000" xmax="-13551000" ymax="4599000">
+                        <esri:SpatialReference wkid="102100"/>
+                    </esri:Extent>
+                </esri:extent>
+                <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+                <esri:FeatureLayer id="incidentsPolygonLayer"
+                                   click="layer_clickHandler(event)"
+                                   editsComplete="flayer_editsCompleteHandler(event)"
+                                   fault="flayer_faultHandler(event)"
+                                   mode="onDemand"
+                                   url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/HomelandSecurity/operations/FeatureServer/2"/>
+                <esri:FeatureLayer id="incidentsLineLayer"
+                                   click="layer_clickHandler(event)"
+                                   editsComplete="flayer_editsCompleteHandler(event)"
+                                   fault="flayer_faultHandler(event)"
+                                   mode="onDemand"
+                                   url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/HomelandSecurity/operations/FeatureServer/1"/>
+                <esri:FeatureLayer id="incidentsPointLayer"
+                                   click="layer_clickHandler(event)"
+                                   editsComplete="flayer_editsCompleteHandler(event)"
+                                   fault="flayer_faultHandler(event)"
+                                   mode="onDemand"
+                                   url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/HomelandSecurity/operations/FeatureServer/0"/>
+            </esri:Map>
+
+        </s:Group>
+        <s:BorderContainer width="200" height="100%">
+            <s:borderStroke>
+                <s:SolidColorStroke weight="3"/>
+            </s:borderStroke>
+            <esri:TemplatePicker id="myTemplatePicker"
+                                 width="100%" height="99%"
+                                 enabled="{incidentsPolygonLayer.loaded}"
+                                 selectedTemplateChange="myTemplatePicker_selectedTemplateChangeHandler(event)"/>
+        </s:BorderContainer>
+    </mx:HDividedBox>
+</s:Application>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Combining dynamic maps and projected map tiles">
+    <!--
+    Description:
+    This sample demonstrates how to combine mulitple map services together.
+    This map combines a street map service (cached/tiles) with a census map
+    service (dynamic) showing census block points (blue markers).
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#visibleLayers
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/tile.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_map_service/0154000002m7000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_map_caching/01540000048q000000/
+    -->
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to combine mulitple map services together.
+            This map combines a street map service (cached/tiles) with a census map
+            service (dynamic) showing census block points (blue markers).
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:WebMercatorExtent id="lowerManhatten"
+                                    minlon="-74.03" minlat="40.70" maxlon="-73.99" maxlat="40.72"/>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayList>
+                    <fx:Number>0</fx:Number>
+                    <!-- Show census block points only -->
+                </s:ArrayList>
+            </esri:visibleLayers>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+</s:Application>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Example - dynamic maps on top of projected map tiles">
+    <!--
+    Description:
+    This sample demonstrates how a FeatureLayer can be used to enhance the user experience.
+    Since the features are client-side, you can enable interactivity through mouse over tooltips
+    as well as specifying the symbology client-side.  A FeatureLayer can be used with either a
+    map service or feature service, you just reference a specific layer in the service.
+
+    This is similar to the MapCombo.mxml sample where only one layer of a dynamic mapservice is used.
+    A major difference is that the dynamic map service creates an image on the server,
+    while the FeatureLayer gets the actual feature down to the client.
+    This allows for Tooltips and changing the symbols.
+    In this example this is accomplished by:
+    - a renderer is defined and then used by the FeatureLayer
+    - using the graphicAdd on the FeatureLayer to add the tooltips when the features are added (as graphics) to the FeatureLayer.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#event:graphicAdd
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        mx|ToolTip
+        {
+            backgroundColor: #E4342A;
+            color: #FFFFFF;
+            fontFamily: "Helvetica";
+            fontSize: 14;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.GraphicEvent;
+
+            protected function featurelayer1_graphicAddHandler(event:GraphicEvent):void
+            {
+                event.graphic.toolTip = "Population: " + numberFormatter.format(event.graphic.attributes.POP2000);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:NumberFormatter id="numberFormatter"/>
+        <esri:SimpleMarkerSymbol id="symbol1"
+                                 alpha="0.7"
+                                 color="0xFF0000"
+                                 size="6"
+                                 style="triangle"/>
+        <esri:SimpleMarkerSymbol id="symbol2"
+                                 alpha="0.7"
+                                 color="0xFF0000"
+                                 size="10"
+                                 style="triangle"/>
+        <esri:SimpleMarkerSymbol id="symbol3"
+                                 alpha="0.7"
+                                 color="0xFF0000"
+                                 size="16"
+                                 style="triangle"/>
+        <esri:SimpleMarkerSymbol id="symbol4"
+                                 alpha="0.7"
+                                 color="0xFF0000"
+                                 size="22"
+                                 style="triangle"/>
+        <esri:SimpleMarkerSymbol id="symbol5"
+                                 alpha="0.7"
+                                 color="0xFF0000"
+                                 size="26"
+                                 style="triangle"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how a FeatureLayer can be used to enhance the user experience.
+            Since the features are client-side, you can enable interactivity through mouse over tooltips
+            as well as specifying the symbology client-side.  A FeatureLayer can be used with either a
+            map service or feature service, you just reference a specific layer in the service.
+            This map combines a tiled street map with a FeatureLayer service showing census block points rendered using a class break renderer.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:Extent id="lowerManhattan"
+                         xmin="-8239000" ymin="4968000" xmax="-8235000" ymax="4971000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer graphicAdd="featurelayer1_graphicAddHandler(event)"
+                           outFields="[FIPS,POP2000]"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/0">
+            <esri:renderer>
+                <esri:ClassBreaksRenderer field="POP2000">
+                    <esri:ClassBreakInfo maxValue="61" symbol="{symbol1}"/>
+                    <esri:ClassBreakInfo maxValue="264"
+                                         minValue="62"
+                                         symbol="{symbol2}"/>
+                    <esri:ClassBreakInfo maxValue="759"
+                                         minValue="265"
+                                         symbol="{symbol3}"/>
+                    <esri:ClassBreakInfo maxValue="1900"
+                                         minValue="760"
+                                         symbol="{symbol4}"/>
+                    <esri:ClassBreakInfo minValue="1901" symbol="{symbol5}"/>
+                </esri:ClassBreaksRenderer>
+            </esri:renderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+</s:Application>

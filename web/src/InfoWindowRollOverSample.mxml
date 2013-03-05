@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:samples="com.esri.ags.samples.*"
+               pageTitle="InfoWindow as MapTips">
+    <!--
+    Description:
+    This sample demonstrates how to create map tips functionality using
+    a custom info window content component.  It also shows how you can
+    style the InfoWindow component though CSS.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#infoWindow
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#hide()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#show()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GraphicEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/InfoWindowRollOverContent.mxml
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+        @namespace samples "com.esri.ags.samples.*";
+        esri|InfoWindow
+        {
+            backgroundColor: #A5000E;
+            borderThickness: 2;
+            borderColor: #C20011;
+            shadowDistance: 5;
+            shadowAlpha: 0.7;
+        }
+        esri|InfoWindowLabel
+        {
+            fontWeight: bold;
+            fontSize: 12;
+            color: #FFFFFF;
+        }
+        samples|InfoWindowRollOverContent
+        {
+            color: #FFFFFF;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.GraphicEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            // Constants to define the format.
+            public static const LAT:String = "lat";
+            public static const LON:String = "lon";
+
+            /**
+             * Utility function to format a decimal degree number into a pretty string with degrees, minutes and seconds.
+             * @param decDeg the decimal degree number.
+             * @param decDir "lat" for a latitude number, "lon" for a longitude value.
+             * @return A pretty print string with degrees, minutes and seconds.
+             */
+            public static function format(decDeg:Number, decDir:String):String
+            {
+                var d:Number = Math.abs(decDeg);
+                const deg:Number = Math.floor(d);
+                d = d - deg;
+                var min:Number = Math.floor(d * 60);
+                const av:Number = d - min / 60;
+                var sec:Number = Math.floor(av * 60 * 60);
+                if (sec == 60)
+                {
+                    min++;
+                    sec = 0;
+                }
+                if (min == 60)
+                {
+                    deg++;
+                    min = 0;
+                }
+                const smin:String = min < 10 ? "0" + min + "' " : min + "' ";
+                const ssec:String = sec < 10 ? "0" + sec + "\"" : sec + "\"";
+                const sdir:String = (decDir == LAT) ? (decDeg < 0 ? "S " : "N ") : (decDeg < 0 ? "W " : "E ");
+                return sdir + deg + "\xB0 " + smin + ssec;
+            }
+
+            private function graphicAddHandler(event:GraphicEvent):void
+            {
+                var graphic:Graphic = event.graphic;
+                graphic.addEventListener(MouseEvent.ROLL_OVER, rollOverHandler);
+                graphic.addEventListener(MouseEvent.ROLL_OUT, rollOutHandler);
+            }
+
+            private function rollOverHandler(event:MouseEvent):void
+            {
+                const graphic:Graphic = event.currentTarget as Graphic;
+                if (graphic)
+                {
+
+                    const mapPoint:MapPoint = MapPoint(graphic.geometry);
+                    var geoMapPoint:MapPoint = WebMercatorUtil.webMercatorToGeographic(mapPoint) as MapPoint;
+                    content.dmslat = format(geoMapPoint.y, LAT);
+                    content.dmslon = format(geoMapPoint.x, LON);
+                    content.lat = mapPoint.y.toFixed(3);
+                    content.lon = mapPoint.x.toFixed(3);
+                    const point:Point = map.toScreen(mapPoint);
+                    point.y -= mySimpleMarkerSymbol.size / 2;
+                    map.infoWindow.label = graphic.attributes['areaname'];
+                    map.infoWindow.show(map.toMap(point));
+                }
+            }
+
+            private function rollOutHandler(event:MouseEvent):void
+            {
+                const graphic:Graphic = event.currentTarget as Graphic;
+                if (graphic)
+                {
+                    map.infoWindow.hide();
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <s:initialize>
+        <![CDATA[
+            map.infoWindow.labelVisible = true;
+            map.infoWindow.closeButtonVisible = false;
+        ]]>
+    </s:initialize>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create map tips functionality using
+            a custom info window content component.  It also shows how you can
+            style the InfoWindow component though CSS.  Move your mouse over the
+            red symbols to see a map tip (InfoWindow).
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-14279700" ymin="2402000" xmax="-7011000" ymax="6716700">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:infoWindowContent>
+            <samples:InfoWindowRollOverContent id="content"/>
+        </esri:infoWindowContent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer"/>
+        <esri:FeatureLayer id="citiesFeatureLayer"
+                           definitionExpression="pop2000 &gt; 100000 AND st NOT IN ('AK','HI')"
+                           graphicAdd="graphicAddHandler(event)"
+                           mode="snapshot"
+                           outFields="[st,pop2000,areaname]"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0">
+            <esri:symbol>
+                <esri:SimpleMarkerSymbol id="mySimpleMarkerSymbol"
+                                         color="0xA5000E"
+                                         size="10"
+                                         style="diamond">
+                    <esri:SimpleLineSymbol width="1" color="0xC20011"/>
+                </esri:SimpleMarkerSymbol>
+            </esri:symbol>
+        </esri:FeatureLayer>
+    </esri:Map>
+</s:Application>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Example - Unique ValueRenderer">
+    <!--
+    Description:
+    This sample demonstrates how to create a UniqueValueRenderer using client-side methods,
+    which has been available in the API since version 1.2.
+    The difference here is that we're not applying this to client-side graphics, but
+    sending the renderer information to the server which is generating the map on the fly at runtime.
+
+    This is part of the dynamic server capabilities of ArcGIS 10.1, when your service supports dynamic layers.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/UniqueValueRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/UniqueValueInfo.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html
+
+    ArcGIS for Server documentation:
+    About dynamic layers
+    http://resources.arcgis.com/en/help/main/10.1/0154/0154000004zv000000.htm-->
+
+    <fx:Declarations>
+        <esri:Extent id="startExtent"
+                     xmin="-16971000" ymin="615000" xmax="-4448000" ymax="8110000">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+        <esri:SimpleFillSymbol id="sfs0"
+                               color="0xFF7837"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs1"
+                               color="0xE8BD81"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs2"
+                               color="0xFFEF9D"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs3"
+                               color="0xDB1B2F"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs4"
+                               color="0x8C0C23"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs5"
+                               color="0xFFC06C"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs6"
+                               color="0xF09B63"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs7"
+                               color="0xEB704F"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfs8"
+                               color="0xE33226"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleFillSymbol id="sfsDefault"
+                               alpha="0.7"
+                               color="0xA8B371"
+                               outline="{sfsOutline}"
+                               style="solid"/>
+        <esri:SimpleLineSymbol id="sfsOutline"
+                               alpha="0.1"
+                               color="0x1C272C"/>
+    </fx:Declarations>
+    <s:controlBarLayout>
+        <s:VerticalLayout paddingBottom="5"
+                          paddingLeft="5"
+                          paddingRight="5"
+                          paddingTop="5"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="90%">
+            This sample demonstrates how to create a UniqueValueRenderer using client-side methods,
+            which has been available in the API since version 1.2.
+            The difference here is that we're not applying this to client-side graphics, but
+            sending the renderer information to the server which is generating the map on the fly at runtime.
+            This is part of the dynamic server capabilities of ArcGIS 10.1, when your service supports dynamic layers.
+        </s:RichText>
+    </s:controlBarContent>
+    <esri:Map id="map" extent="{startExtent}">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="demographicsLayer" name="Regions"
+                                           imageFormat="png32"
+                                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayList>
+                    <fx:Number>3</fx:Number>
+                    <!-- Only show the states layer -->
+                </s:ArrayList>
+            </esri:visibleLayers>
+            <esri:layerDrawingOptions>
+                <esri:LayerDrawingOptions layerId="3">
+                    <esri:UniqueValueRenderer defaultSymbol="{sfsDefault}" field="SUB_REGION">
+                        <esri:UniqueValueInfo label="East North Central"
+                                              symbol="{sfs0}"
+                                              value="East North Central"/>
+                        <esri:UniqueValueInfo label="East South Central"
+                                              symbol="{sfs1}"
+                                              value="East South Central"/>
+                        <esri:UniqueValueInfo label="Mid Atlantic"
+                                              symbol="{sfs2}"
+                                              value="Mid Atlantic"/>
+                        <esri:UniqueValueInfo label="Mountain"
+                                              symbol="{sfs3}"
+                                              value="Mountain"/>
+                        <esri:UniqueValueInfo label="New England"
+                                              symbol="{sfs4}"
+                                              value="New England"/>
+                        <esri:UniqueValueInfo label="Pacific"
+                                              symbol="{sfs7}"
+                                              value="Pacific"/>
+                        <esri:UniqueValueInfo label="South Atlantic"
+                                              symbol="{sfs6}"
+                                              value="South Atlantic"/>
+                        <esri:UniqueValueInfo label="West North Central"
+                                              symbol="{sfs5}"
+                                              value="West North Central"/>
+                        <esri:UniqueValueInfo label="West South Central"
+                                              symbol="{sfs8}"
+                                              value="West South Central"/>
+                    </esri:UniqueValueRenderer>
+                </esri:LayerDrawingOptions>
+            </esri:layerDrawingOptions>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+    <s:Group right="5" bottom="60">
+        <s:RectangularDropShadow left="0" right="0" top="0" bottom="0"
+                                 alpha="1"
+                                 angle="90"
+                                 blRadius="5"
+                                 blurX="6"
+                                 blurY="6"
+                                 brRadius="5"
+                                 color="#000000"
+                                 distance="1"
+                                 tlRadius="5"
+                                 trRadius="5"/>
+        <s:Rect left="0" right="0" top="0" bottom="0"
+                radiusX="5"
+                radiusY="5">
+            <s:fill>
+                <s:SolidColor alpha="0.8" color="0xC5C5C9"/>
+            </s:fill>
+        </s:Rect>
+        <esri:Legend left="5" right="5" top="5" bottom="5"
+                     layers="{[demographicsLayer]}"
+                     map="{map}"/>
+    </s:Group>
+</s:Application>

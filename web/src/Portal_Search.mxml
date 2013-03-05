@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:supportClasses="com.esri.ags.samples.components.supportClasses.*"
+               xmlns:components="com.esri.ags.samples.components.*"
+               currentState="portalState"
+               initialize="initializeHandler(event)">
+    <!--
+    Description:
+    This sample demonstrates how to use the Portal API to search ArcGIS Online
+    to find public webmap or layer items (services).  There are different types
+    of items that can be shared on ArcGIS Online, but this sample specifically
+    focuses on web maps and services that can be added to the ArcGIS API for Flex Map class.
+
+    Usage:  The sample will show content that has been tagged with 'Tornado' and is not a 'Web Mapping Application'.
+    To learn more about query search parameters follow the links listed below.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html#queryItems()
+
+    ArcGIS Portal API documentation:
+    Searching:  http://www.arcgis.com/apidocs/rest/searchreference.html
+    Item Types:  http://www.arcgis.com/apidocs/rest/itemtypes.html
+    Item properties: http://www.arcgis.com/apidocs/rest/item.html
+
+    For more information on ArcGIS Online and searching see:
+    http://help.arcgis.com/en/arcgisonline/help/010q/010q0000000n000000.htm
+
+    This sample also uses the following files:
+    com/esri/ags/samples/components/supportClasses/PortalItemItemRenderer
+    com/esri/ags/samples/components/StarRatingComponent
+    com/esri/ags/samples/components/PortalQueryResultPager
+    com/esri/ags/samples/events/PortalQueryEvent
+    com/esri/ags/samples/skins/PortalQueryResultPagerSkin
+    -->
+
+    <s:states>
+        <s:State name="portalState"/>
+        <s:State name="portalSearchingState"/>
+        <s:State name="mapState"/>
+    </s:states>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Map;
+            import com.esri.ags.events.PortalEvent;
+            import com.esri.ags.events.WebMapEvent;
+            import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+            import com.esri.ags.layers.ArcGISImageServiceLayer;
+            import com.esri.ags.layers.FeatureLayer;
+            import com.esri.ags.layers.KMLLayer;
+            import com.esri.ags.layers.Layer;
+            import com.esri.ags.portal.supportClasses.PortalItem;
+            import com.esri.ags.portal.supportClasses.PortalQueryParameters;
+            import com.esri.ags.portal.supportClasses.PortalQueryResult;
+            import com.esri.ags.samples.events.PortalQueryEvent;
+            import com.esri.ags.virtualearth.VETiledLayer;
+
+            import mx.collections.ArrayCollection;
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.events.CloseEvent;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            private static const QUERY_LIMIT:int = 5;
+
+            private var defaultQueryParameters:PortalQueryParameters;
+
+            [Bindable]
+            private var lastQueryString:String;
+
+            [Bindable]
+            private var lastQueryResult:PortalQueryResult;
+
+            [Bindable]
+            private var portalItemsArrayList:ArrayList;
+
+            private var map:Map;
+
+            private var portalResultItemTitle:String;
+
+            private var portalResultItemResource:String;
+
+            [Bindable]
+            private var portalResultsMessage:String;
+
+            protected function initializeHandler(event:FlexEvent):void
+            {
+                defaultQueryParameters = new PortalQueryParameters();
+                defaultQueryParameters.withLimit(QUERY_LIMIT);
+                defaultQueryParameters.withQuery('(+type:("Web Map" OR "KML" OR "Image Service" OR "Map Service" OR "Feature Service" OR "WMS" OR "WMTS") AND -type:"Web Mapping Application")');
+                portalService.load();
+            }
+
+            protected function portalService_loadHandler(event:PortalEvent):void
+            {
+                portalService_sendQueryItems('tags:Tornado');
+            }
+
+            protected function esriService_faultHandler(event:FaultEvent):void
+            {
+                var faultstring:String = event.fault.faultString;
+                Alert.show(faultstring);
+                var serviceFaultErrors:String = "";
+                showPortalItemLoadErrors(serviceFaultErrors, "");
+                currentState = 'portalState';
+            }
+
+            protected function portalService_sendQueryItems(queryString:String):void
+            {
+                lastQueryString = queryString;
+                var queryParameters:PortalQueryParameters = defaultQueryParameters.clone();
+                queryParameters.addQueryCondition(queryString);
+                portalService.queryItems(queryParameters);
+            }
+
+            protected function portalService_queryItemsCompleteHandler(event:PortalEvent):void
+            {
+                lastQueryResult = event.queryResult as PortalQueryResult;
+                var totalNumResults:uint = lastQueryResult.totalResults;
+                var resultsArray:Array = lastQueryResult.results;
+                var numResults:int = resultsArray.length;
+                portalItemsList.selectedIndex = -1;
+                if (numResults > 0)
+                {
+                    portalItemsArrayList = new ArrayList(resultsArray);
+                    portalItemsList.selectedItem = null;
+                    if (totalNumResults > 1)
+                    {
+                        portalResultsMessage = totalNumResults + " results for '" + lastQueryString + "'";
+                    }
+                    else
+                    {
+                        portalResultsMessage = totalNumResults + " result for '" + lastQueryString + "'";
+                    }
+                }
+                else
+                {
+                    portalResultsMessage = "No results for '" + lastQueryString + "'";
+                }
+            }
+
+            protected function portalItemsList_changeHandler(event:IndexChangeEvent):void
+            {
+                var portalItem:PortalItem = List(event.currentTarget).selectedItem as PortalItem;
+                currentState = 'portalSearchingState';
+                loadingTitle.text = portalItem.title;
+                portalResultItemTitle = portalItem.title;
+                portalResultItemResource = portalItem.id;
+                if (portalItem.type == PortalItem.TYPE_WEB_MAP)
+                {
+                    loadingDescription.text = "web map id: " + portalItem.id;
+                    webMapUtil.createMapById(portalItem.id);
+                }
+                else
+                {
+                    loadingDescription.text = "layer url: " + portalItem.url;
+                    map = new Map();
+                    map.addLayer(baseMap);
+
+                    var layer:Layer;
+
+                    switch (portalItem.type)
+                    {
+                        case PortalItem.TYPE_FEATURE_SERVICE:
+                        {
+                            layer = new FeatureLayer(portalItem.url);
+                            break;
+                        }
+                        case PortalItem.TYPE_MAP_SERVICE:
+                        {
+                            layer = new ArcGISDynamicMapServiceLayer(portalItem.url);
+                            break;
+                        }
+                        case PortalItem.TYPE_KML_SERVICE:
+                        {
+                            layer = new KMLLayer(portalItem.url);
+                            break;
+                        }
+                        case PortalItem.TYPE_IMAGE_SERVICE:
+                        {
+                            layer = new ArcGISImageServiceLayer(portalItem.url);
+                            break;
+                        }
+                        default:
+                        {
+                            Alert.show(portalItem.type + " type not implemented in this sample.", "Unable to process layer type.");
+                            break;
+                        }
+                    }
+                    if (layer)
+                    {
+                        map.addLayer(layer);
+                        currentState = 'mapState';
+                        loadingLabel.visible = true;
+                        mapGroup.removeAllElements();
+                        mapGroup.addElement(map);
+                        loadingLabel.visible = false;
+                    }
+                    else
+                    {
+                        currentState = 'portalState';
+                    }
+                }
+            }
+
+            protected function search_enterHandler(event:FlexEvent):void
+            {
+                if (portalUserQuery.text && portalUserQuery.text.length > 3)
+                {
+                    portalService_sendQueryItems(portalUserQuery.text);
+                }
+                else
+                {
+                    portalService_sendQueryItems("tags:Tornado");
+                }
+            }
+
+            protected function webMapUtil_createMapByIdCompleteHandler(event:WebMapEvent):void
+            {
+                /*
+                * event.item (the web map item)
+                * event.itemData (the actual information that makes up the web map [ baseMap, operationalLayers, version, etc])
+                *
+                * var webMapItem:Object = event.item;
+                * webMapItem.id (web map id)
+                * webMapItem.owner (Who owns the document on ArcGIS.com)
+                * webMapItem.snippet (web map summary)
+                * webMapItem.title (web map title)
+                */
+                currentState = 'mapState';
+                loadingLabel.visible = true;
+                mapGroup.removeAllElements();
+                map = event.map;
+                var layer:Layer = ArrayCollection(map.layers).getItemAt(0) as Layer;
+                if (layer is com.esri.ags.virtualearth.VETiledLayer)
+                {
+                    var veErrorString:String = "Bing Key requirement";
+                    showPortalItemLoadErrors(veErrorString, "Web Map Load Errors");
+                }
+                mapGroup.addElement(map);
+                loadingLabel.visible = false;
+
+                if (event.errors.length > 0)
+                {
+                    var errorString:String = "";
+                    var errorsArray:Array = event.errors;
+                    for (var i:int = 0; i < errorsArray.length; i++)
+                    {
+                        errorString = errorsArray[i];
+                    }
+                    showPortalItemLoadErrors(errorString, "Web Map Load Errors");
+                }
+            }
+
+            protected function closeMapState_clickHandler(event:MouseEvent):void
+            {
+                currentState = 'portalState';
+            }
+
+            protected function showPortalItemLoadErrors(resourceErrors:String, resourceTitle:String):void
+            {
+                var str:String = resourceErrors;
+                str = "I'm really sorry, but we were unable to load some resources.\nThe server might be missing a cross domain policy file, the web map might need a Bing maps key or the item may no longer be available.";
+                str += "\n\nWould you like to view the item (" + portalResultItemTitle + ") on ArcGIS Online?\n";
+                Alert.show(str, resourceTitle, Alert.YES | Alert.NO, null, alertWindowCloseHandler);
+
+                function alertWindowCloseHandler(closeEvent:CloseEvent):void
+                {
+                    var response:int = closeEvent.detail;
+                    if (response == Alert.YES)
+                    {
+                        var url:String = "http://www.arcgis.com/home/webmap/viewer.html?webmap=" + portalResultItemResource;
+                        navigateToURL(new URLRequest(url), "_blank");
+                    }
+                }
+            }
+
+            protected function queryresultpager_newQueryHandler(event:PortalQueryEvent):void
+            {
+                portalService.queryItems(event.queryParameters);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Portal id="portalService"
+                     fault="esriService_faultHandler(event)"
+                     load="portalService_loadHandler(event)"
+                     queryItemsComplete="portalService_queryItemsCompleteHandler(event)"
+                     url="http://www.arcgis.com/"/>
+        <esri:WebMapUtil id="webMapUtil"
+                         createMapByIdComplete="webMapUtil_createMapByIdCompleteHandler(event)"
+                         fault="esriService_faultHandler(event)"/>
+        <esri:ArcGISTiledMapServiceLayer id="baseMap" url="http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the Portal API to search ArcGIS Online
+            to find public webmap or layer items (services).  There are different types
+            of items that can be shared on ArcGIS Online, but this sample specifically
+            focuses on web maps and services that can be added to the ArcGIS API for Flex Map class.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <s:VGroup width="100%" height="100%"
+              horizontalAlign="right"
+              includeIn="portalState,portalSearchingState"
+              paddingBottom="5"
+              paddingLeft="5"
+              paddingRight="5"
+              paddingTop="5">
+        <s:HGroup right="0" verticalAlign="middle">
+            <s:Label color="0x535353"
+                     fontSize="12"
+                     text="Search: "/>
+            <s:TextInput id="portalUserQuery"
+                         width="250"
+                         enter="search_enterHandler(event)"
+                         prompt="tags:Tornado AND owner:esri_event"/>
+            <s:Button width="50"
+                      chromeColor="0x21759B"
+                      click="navigateToURL(new URLRequest('http://help.arcgis.com/en/arcgisonline/help/index.html#/Using_search/010q0000000n000000/'))"
+                      color="0xFFFFFF"
+                      label="Help"
+                      toolTip="Finding and Opening Content: Using Search"/>
+        </s:HGroup>
+        <s:VGroup width="100%"
+                  horizontalAlign="center"
+                  includeIn="portalSearchingState">
+            <s:Label id="loadingTitle"/>
+            <s:Label id="loadingDescription"/>
+            <mx:ProgressBar width="75%" indeterminate="true"/>
+        </s:VGroup>
+        <s:Label width="100%"
+                 color="0x535353"
+                 fontSize="14"
+                 fontWeight="bold"
+                 text="{portalResultsMessage}"
+                 textAlign="center"/>
+        <s:List id="portalItemsList"
+                width="100%" height="95%"
+                allowMultipleSelection="false"
+                borderVisible="false"
+                change="portalItemsList_changeHandler(event)"
+                dataProvider="{portalItemsArrayList}"
+                rollOverColor="0xFFFFFF"
+                selectionColor="0xFFFFFF">
+            <s:layout>
+                <s:VerticalLayout/>
+            </s:layout>
+            <s:itemRenderer>
+                <fx:Component>
+                    <supportClasses:PortalItemItemRenderer/>
+                </fx:Component>
+            </s:itemRenderer>
+        </s:List>
+        <components:PortalQueryResultPager width="100%"
+                                           newQuery="queryresultpager_newQueryHandler(event)"
+                                           queryResult="{lastQueryResult}"
+                                           skinClass="com.esri.ags.samples.skins.PortalQueryResultPagerSkin"/>
+    </s:VGroup>
+    <s:Group id="mapContainer"
+             width="100%" height="100%"
+             includeIn="mapState">
+        <s:Group id="mapGroup"
+                 width="100%" height="100%"/>
+        <s:Label id="loadingLabel"
+                 left="120" top="20"
+                 fontSize="18"
+                 fontWeight="bold"
+                 includeIn="mapState"
+                 text="Loading...."
+                 visible="false"/>
+        <s:Button width="120" height="40"
+                  right="20" top="20"
+                  chromeColor="0x21759B"
+                  click="closeMapState_clickHandler(event)"
+                  color="0xFFFFFF"
+                  label="Search again"/>
+    </s:Group>
+</s:Application>

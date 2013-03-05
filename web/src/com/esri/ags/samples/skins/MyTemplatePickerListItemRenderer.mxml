@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:mx="library://ns.adobe.com/flex/mx"
+                name="MyTemplateListSimpleItemRenderer"
+                width="40" height="40"
+                focusEnabled="false"
+                mouseChildren="false">
+
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="hovered"/>
+        <s:State name="selected"/>
+    </s:states>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.layers.FeatureLayer;
+            import com.esri.ags.symbols.CompositeSymbol;
+            import com.esri.ags.symbols.SimpleFillSymbol;
+            import com.esri.ags.symbols.SimpleLineSymbol;
+            import com.esri.ags.symbols.SimpleMarkerSymbol;
+            import com.esri.ags.symbols.Symbol;
+
+            import flashx.textLayout.formats.TextAlign;
+
+            import mx.core.IVisualElement;
+
+            override public function set data(value:Object):void
+            {
+                super.data = value;
+
+                //First emove everything from the contentGroup
+                contentGroup.removeAllElements();
+
+                if (value.featureTemplate)
+                {
+                    toolTip = (value.featureTemplate.description != "") ? value.featureTemplate.name + ": " + value.featureTemplate.description : value.featureTemplate.name;
+                }
+
+                if (value.featureLayer.renderer)
+                {
+                    var symbol:Symbol = value.featureLayer.renderer.getSymbol(value.featureTemplate.prototype);
+                    if (symbol)
+                    {
+                        if (symbol is CompositeSymbol)
+                        {
+                            // get default symbol based on geometry type as composite symbols do not support createSwatch()
+                            contentGroup.addElement(IVisualElement(getDefaultSymbolBasedOnGeometry(value.featureLayer).createSwatch(contentGroup.width, contentGroup.height)));
+                        }
+                        else
+                        {
+                            contentGroup.addElement(IVisualElement(symbol.createSwatch(contentGroup.width, contentGroup.height, value.featureTemplate ? value.featureTemplate.drawingTool : null)));
+                        }
+                    }
+                    else
+                    {
+                        contentGroup.addElement(IVisualElement(getDefaultSymbolBasedOnGeometry(value.featureLayer).createSwatch(contentGroup.width, contentGroup.height)));
+                    }
+                }
+                else if (value.featureLayer.symbol)
+                {
+                    contentGroup.addElement(IVisualElement(Symbol(value.featureLayer.symbol).createSwatch(contentGroup.width, contentGroup.height)));
+                }
+                else
+                {
+                    contentGroup.addElement(IVisualElement(getDefaultSymbolBasedOnGeometry(value.featureLayer).createSwatch(contentGroup.width, contentGroup.height)));
+                }
+            }
+
+            private function getDefaultSymbolBasedOnGeometry(fLayer:FeatureLayer):Symbol
+            {
+                var sym:Symbol;
+                switch (fLayer.layerDetails.geometryType)
+                {
+                    case Geometry.MAPPOINT:
+                    {
+                        sym = new SimpleMarkerSymbol();
+                        break;
+                    }
+                    case Geometry.POLYLINE:
+                    {
+                        sym = new SimpleLineSymbol();
+                        break;
+                    }
+                    case Geometry.POLYGON:
+                    {
+                        sym = new SimpleFillSymbol();
+                        break;
+                    }
+                }
+                return sym;
+            }
+        ]]>
+    </fx:Script>
+
+    <!-- border/background rectangle -->
+    <s:Rect left="0" right="0" top="0" bottom="0">
+        <s:stroke>
+            <mx:SolidColorStroke color="0xD3D1D1"
+                                 color.hovered="0x000000"
+                                 color.selected="0x000000"
+                                 weight="2"
+                                 weight.selected="3"/>
+        </s:stroke>
+
+        <s:fill>
+            <mx:SolidColor color.hovered="0xD0E0F0"
+                           color.normal="0xEEEEEE"
+                           color.selected="0xEEEEEE"/>
+        </s:fill>
+    </s:Rect>
+
+    <s:Group id="contentGroup"
+             width="30" height="30"
+             left="5" right="5" top="5" bottom="5"/>
+</s:ItemRenderer>

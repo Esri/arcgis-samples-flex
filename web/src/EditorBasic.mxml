@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="application1_initializeHandler(event)"
+               pageTitle="Using the Editor component">
+    <!--
+    Description:
+    This sample demonstrates how to use the editor component.
+    The Editor component provides out-of-the-box editing capabilities using an editable layer in a Feature Service.
+    It combines functionality from the out-of-the-box TemplatePicker, DrawTool, EditTool and GeometryService classes with additional editing functionality.
+    When writing editing applications, try to take advantage of the skinnable and customizable out-of-the-box Editor component if you can.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/featureserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/fslayer.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_feature_service/0154000002w8000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/Using_feature_services_in_a_client_application/0154000005sq000000/
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|InfoWindow
+        {
+            background-color: #FFFFFF;
+            border-thickness: 2;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import mx.events.FlexEvent;
+
+            protected function application1_initializeHandler(event:FlexEvent):void
+            {
+                myEditor.featureLayers = [ incidentsAreas ];
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:GeometryService id="myGeometryService" url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    </fx:Declarations>
+
+    <s:BorderContainer width="100%" backgroundColor="#D7D7D7">
+        <s:layout>
+            <s:VerticalLayout paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the editor component.
+            The Editor component provides out-of-the-box editing capabilities using an editable layer in a Feature Service.
+            It combines functionality from the out-of-the-box TemplatePicker, DrawTool, EditTool and GeometryService classes with additional editing functionality.
+        </s:RichText>
+    </s:BorderContainer>
+
+    <esri:Map id="myMap" wrapAround180="true">
+        <esri:extent>
+            <esri:Extent id="socal"
+                         xmin="-13471000" ymin="3834000" xmax="-12878000" ymax="4124000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer id="incidentsAreas"
+                           mode="snapshot"
+                           outFields="[data_security,description]"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/HomelandSecurity/operations/FeatureServer/2"/>
+    </esri:Map>
+
+    <esri:Editor id="myEditor"
+                 width="100%" height="180"
+                 geometryService="{myGeometryService}"
+                 map="{myMap}"/>
+</s:Application>

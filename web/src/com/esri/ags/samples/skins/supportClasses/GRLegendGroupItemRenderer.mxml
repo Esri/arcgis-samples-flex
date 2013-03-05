@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+The default item renderer for the Legend skin.
+@private
+-->
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:mx="library://ns.adobe.com/flex/mx"
+                name="LegendGroupItemRenderer"
+                width="150" height="35"
+                autoDrawBackground="false"
+                focusEnabled="false"
+                mouseChildren="false">
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.symbols.CompositeSymbol;
+            import com.esri.ags.symbols.Symbol;
+
+            import flashx.textLayout.formats.TextAlign;
+
+            import mx.core.IVisualElement;
+
+            override public function set data(value:Object):void
+            {
+                super.data = value;
+
+                //First remove everything from the contentGroup
+                contentGroup.removeAllElements();
+
+                // set style on the label
+                templateLabel.setStyle("textAlign", TextAlign.CENTER);
+
+                var valuesArr:Array = value.label.split(' - ');
+                if (valuesArr)
+                {
+                    var str:String = numberFormatter.format(valuesArr[0]) + ' - ' + numberFormatter.format(valuesArr[1]);
+                    templateLabel.text = str;
+                }
+                else
+                {
+                    templateLabel.text = value.label;
+                }
+
+                if (value.symbol)
+                {
+                    if (!(value.symbol is CompositeSymbol)) // do not show legend for composite symbols
+                    {
+                        contentGroup.addElement(IVisualElement(Symbol(value.symbol).createSwatch(contentGroup.width, contentGroup.height)));
+                    }
+                }
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <s:NumberFormatter id="numberFormatter"
+                           fractionalDigits="2"
+                           trailingZeros="true"/>
+    </fx:Declarations>
+    <s:HGroup paddingLeft="10" verticalAlign="middle">
+        <s:Group id="contentGroup"
+                 width="30" height="30"/>
+        <s:Label id="templateLabel"/>
+    </s:HGroup>
+</s:ItemRenderer>

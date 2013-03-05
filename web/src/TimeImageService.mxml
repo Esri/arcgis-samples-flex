@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Time-aware Image service">
+    <!--
+    Description:
+    This sample demonstrates how to add an ArcGISImageServiceLayer and apply a time extent
+    filter to dynamically modify the display of the raster dataset.
+    The map listens to time slider changes and asks the layer
+    in the map to update themselves (if they are time-aware).
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#timeSlider
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISImageServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?imageserver.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Key_concepts_for_image_services/0154000003v2000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Image_service_parameters/015400000524000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Server_side_processing_with_raster_functions/0154000003w6000000/
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.supportClasses.TimeInfo;
+
+            protected function imageLayer_loadHandler(event:LayerEvent):void
+            {
+                timeSlider.createTimeStopsByTimeInterval(imageLayer.timeInfo.timeExtent, 1, TimeInfo.UNIT_MONTHS);
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add an ArcGISImageServiceLayer and apply a time extent
+            filter to dynamically modify the display of the raster dataset.
+            The map listens to time slider changes and asks the layer
+            in the map to update themselves (if they are time-aware).
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map timeSlider="{timeSlider}">
+        <esri:ArcGISImageServiceLayer id="imageLayer"
+                                      imageFormat="jpg"
+                                      load="imageLayer_loadHandler(event)"
+                                      url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/World/MODIS/ImageServer"/>
+    </esri:Map>
+
+    <esri:TimeSlider id="timeSlider"
+                     top="10"
+                     horizontalCenter="0"
+                     singleThumbAsTimeInstant="true"
+                     thumbMovingRate="1500"/>
+
+</s:Application>

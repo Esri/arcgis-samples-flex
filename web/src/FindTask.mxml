@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="0xCECECE"
+               pageTitle="Find features in Map Layers">
+    <!--
+    Description:
+    This sample demonstrates how to use the FindTask to search for features
+    in multiple layers of a map service based upon a string value.
+
+    The search can be conducted on a single field of a single layer,
+    on many fields of a layer, or on many fields of many layers.
+
+    The FindParameters designate which layers and fields will be searched.
+    If multiple layers contain the same field name (for example "NAME")
+    both fields will be searched.
+
+    Note that in this example returnGeometry is set to true so that the results
+    can be displayed on the map.
+
+    The searchText of the FindParameters is what the task will search for.
+    This text comes from the input box and is sent to the execute function when
+    the user click the Find button. This line executes the task:
+    findTask.execute(myFindParams);
+
+    When the task finishes executing, the executeCompleteHandler function loops
+    through the array of graphics in the FindResult and adds each graphic to the map.
+
+    The datagrid at the bottom gets its content directly from the task:
+    dataProvider="{new ArrayCollection(findTask.executeLastResult)}"
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/FindTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/FindParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/FindTask.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FindEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FindEvent.html#findResults
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?find.html
+    -->
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.FindEvent;
+            import com.esri.ags.geometry.Geometry;
+
+            import mx.collections.ArrayCollection;
+
+            private function doFind():void
+            {
+                findTask.execute(myFindParams);
+            }
+
+            private function executeCompleteHandler(event:FindEvent):void
+            {
+                myGraphicsLayer.clear();
+                var graphic:Graphic;
+                resultSummary.text = "Found " + event.findResults.length + " results.";
+                var resultCount:int = event.findResults.length;
+                for (var i:Number = 0; i < resultCount; i++)
+                {
+                    graphic = event.findResults[i].feature;
+                    graphic.toolTip = event.findResults[i].foundFieldName + ": " + event.findResults[i].value;
+
+                    switch (graphic.geometry.type)
+                    {
+                        case Geometry.MAPPOINT:
+                        {
+                            graphic.symbol = smsFind;
+                            break;
+                        }
+                        case Geometry.POLYLINE:
+                        {
+                            graphic.symbol = slsFind;
+                            break;
+                        }
+                        case Geometry.POLYGON:
+                        {
+                            graphic.symbol = sfsFind;
+                            break;
+                        }
+                    }
+                    myGraphicsLayer.add(graphic);
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Symbol for Find Result as Polyline -->
+        <esri:SimpleLineSymbol id="slsFind"
+                               width="3"
+                               alpha="0.9"
+                               color="0xFFFF00"
+                               style="solid"/>
+
+        <!-- Symbol for Find Result as Point -->
+        <esri:SimpleMarkerSymbol id="smsFind"
+                                 alpha="0.9"
+                                 color="0xFFFF00"
+                                 size="11"
+                                 style="square">
+            <esri:SimpleLineSymbol color="0x000000"/>
+        </esri:SimpleMarkerSymbol>
+
+        <!-- Symbol for Find Result as Polygon -->
+        <esri:SimpleFillSymbol id="sfsFind"
+                               alpha="0.7"
+                               color="0xFFFF00"/>
+
+        <!-- Find Task -->
+        <esri:FindTask id="findTask"
+                       executeComplete="executeCompleteHandler(event)"
+                       url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer"/>
+        <esri:FindParameters id="myFindParams"
+                             contains="true"
+                             layerIds="[0,1,2]"
+                             outSpatialReference="{map.spatialReference}"
+                             returnGeometry="true"
+                             searchFields="[CITY_NAME,NAME,SYSTEM,STATE_ABBR,STATE_NAME]"
+                             searchText="{fText.text}"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the FindTask to search for features
+            in multiple layers of a map service based upon a string value.
+        </s:RichText>
+        <s:HGroup width="100%"
+                  horizontalAlign="center"
+                  verticalAlign="middle">
+            <s:Label text="Search for names of States, Cities, and Rivers:"/>
+            <s:TextInput id="fText"
+                         enter="doFind()"
+                         maxWidth="400"
+                         text="Miss"/>
+            <s:Button click="doFind()" label="Find"/>
+            <s:Label id="resultSummary"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-125.34967" ymin="25.42261" xmax="-66.46295" ymax="49.51035">
+                <esri:SpatialReference wkid="4326"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+    <s:DataGrid width="100%" height="40%"
+                dataProvider="{new ArrayCollection(findTask.executeLastResult)}">
+        <s:columns>
+            <s:ArrayList>
+                <s:GridColumn width="70"
+                              dataField="layerId"
+                              headerText="Layer ID"/>
+                <s:GridColumn dataField="layerName" headerText="Layer Name"/>
+                <s:GridColumn dataField="foundFieldName" headerText="Found Field Name"/>
+                <s:GridColumn dataField="value" headerText="Found Field Value"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+
+</s:Application>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:samples="com.esri.ags.samples.*"
+               pageTitle="WMTS Layer">
+    <!--
+    Description:
+    This sample demonstrates how to add a Web Map Tile Service(WMTS)
+    as a custom layer.  The ArcGIS API for Flex allows for extending the API
+    to access layer types not included as part of the API.
+    In this example, the tiled layer (TiledMapServiceLayer) is extended to access WMTS tiles.
+
+    Steps involved:
+    1. Creating new ActionScript class(WMTSLayer.as) that extends TiledMapServiceLayer.
+    2. Hardcoding some of the configuration settings:
+    fullExtent, initialExtent, spatialReference, tileInfo, and units.
+    3. Overriding the protected function getTileURL() to obtain the appropriate
+    tiles and place them accurately on the map.
+    4. Using the extended class with MXML or ActionScript :)
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LOD.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TileInfo.html
+
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Types_of_layers/017p00000027000000/
+
+    This sample also uses the following files:
+    com/esri/ags/samples/WMTSLayer.as
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import flashx.textLayout.conversion.TextConverter;
+
+            import mx.events.FlexEvent;
+
+            protected function citationInfo_initializeHandler(event:FlexEvent):void
+            {
+                var htmlText:String = '<a href="http://v2.suite.opengeo.org/geoserver/gwc/service/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities">WMTS</a> served by '
+                    + '<a href="http://opengeo.org/" target="_blank">OpenGeo</a>';
+                citationInfo.textFlow = TextConverter.importToFlow(htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT);
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add a Web Map Tile Service(WMTS)
+            as a custom layer.  The ArcGIS API for Flex allows for extending the API
+            to access layer types not included as part of the API.
+            In this example, the tiled layer (TiledMapServiceLayer) is extended to access WMTS tiles.
+        </s:RichText>
+        <s:RichEditableText id="citationInfo"
+                            editable="false"
+                            initialize="citationInfo_initializeHandler(event)"
+                            selectable="false"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap">
+        <esri:extent>
+            <esri:WebMercatorExtent xmin="-13686470.64" ymin="5203832.72" xmax="-13669272.31" ymax="5215298.28">
+                <esri:SpatialReference wkid="3857"/>
+            </esri:WebMercatorExtent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <samples:WMTSLayer/>
+    </esri:Map>
+
+</s:Application>

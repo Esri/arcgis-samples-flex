@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         xmlns:esri="http://www.esri.com/2008/ags"
+         currentState="hidePrintState">
+    <s:states>
+        <s:State name="showPrintState"/>
+        <s:State name="hidePrintState"/>
+    </s:states>
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Map;
+            import com.esri.ags.events.PrintEvent;
+            import com.esri.ags.layers.Layer;
+            import com.esri.ags.tasks.supportClasses.DataFile;
+            import com.esri.ags.tasks.supportClasses.JobInfo;
+            import com.esri.ags.tasks.supportClasses.LegendLayer;
+            import com.esri.ags.tasks.supportClasses.LegendOptions;
+            import com.esri.ags.tasks.supportClasses.ParameterValue;
+            import com.esri.ags.tasks.supportClasses.PrintServiceInfo;
+
+            import mx.controls.Alert;
+
+            [Bindable]
+            public var map:Map;
+
+            [Bindable]
+            private var m_url:String;
+
+            public function set url(value:String):void
+            {
+                m_url = value;
+            }
+
+            public function set author(value:String):void
+            {
+                printParametersLayoutOptions.author = value;
+            }
+
+            public function set title(value:String):void
+            {
+                printParametersLayoutOptions.title = value;
+            }
+
+            public function set copyright(value:String):void
+            {
+                printParametersLayoutOptions.copyright = value;
+            }
+
+            public function set legendLayers(value:Array):void
+            {
+                if (value)
+                {
+                    printParametersLayoutOptions.legendOptions = new LegendOptions();
+                    var layersArr:Array = [];
+                    for (var i:int = 0; i < value.length; i++)
+                    {
+                        if (value[i] is Layer)
+                        {
+                            var layer:Layer = value[i] as Layer;
+                            var legendLayer:LegendLayer = new LegendLayer();
+                            legendLayer.layerId = layer.id;
+                            layersArr.push(legendLayer);
+                        }
+                        else if (value[i] is LegendLayer)
+                        {
+                            layersArr.push(value[i]);
+                        }
+                    }
+
+                    printParametersLayoutOptions.legendOptions.legendLayers = layersArr;
+                }
+                else
+                {
+                    printParametersLayoutOptions.legendOptions = null;
+                }
+            }
+
+            private function printBtn_clickHandler(event:MouseEvent):void
+            {
+                if (printTask.getServiceInfoLastResult.isServiceAsynchronous)
+                {
+                    printTask.submitJob(printParameters);
+                }
+                else
+                {
+                    printTask.execute(printParameters);
+                }
+            }
+
+            private function printTask_jobCompleteHandler(event:PrintEvent):void
+            {
+                var jobInfo:JobInfo = event.jobInfo;
+                if (jobInfo.jobStatus == JobInfo.STATUS_SUCCEEDED
+                    && printTask.getServiceInfoLastResult.hasResultData)
+                {
+                    printTask.getResultData(jobInfo.jobId);
+                }
+                else
+                {
+                    Alert.show(jobInfo.jobStatus);
+                }
+            }
+
+            private function printTask_getResultDataCompleteHandler(event:PrintEvent):void
+            {
+                var dataFile:DataFile = event.parameterValue.value as DataFile;
+                if (dataFile)
+                {
+                    navigateToURL(new URLRequest(dataFile.url));
+                    currentState = 'hidePrintState';
+                }
+            }
+
+            private function printTask_executeCompleteHandler(event:PrintEvent):void
+            {
+                if (event.executeResult.results && event.executeResult.results.length > 0)
+                {
+                    var paramValue:ParameterValue = event.executeResult.results[0];
+                    var dataFile:DataFile = paramValue.value as DataFile;
+                    if (dataFile)
+                    {
+                        navigateToURL(new URLRequest(dataFile.url));
+                        currentState = 'hidePrintState';
+                    }
+                }
+            }
+
+            protected function printTask_getServiceInfoCompleteHandler(event:PrintEvent):void
+            {
+                var printServiceInfo:PrintServiceInfo = event.serviceInfo;
+                layoutTemplates.dataProvider = printServiceInfo.layoutTemplates;
+
+                for (var i:int = 0; i < layoutTemplates.dataProvider.length; i++)
+                {
+                    var currentItem:String = layoutTemplates.dataProvider.getItemAt(i) as String;
+                    if (currentItem == "A4 Landscape")
+                    {
+                        layoutTemplates.selectedIndex = i;
+                    }
+                }
+
+            }
+
+            protected function showPrintStateButton_clickHandler(event:MouseEvent):void
+            {
+                if (printTask.getServiceInfoLastResult == null)
+                {
+                    printTask.getServiceInfo();
+                }
+                currentState = 'showPrintState';
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:PrintTask id="printTask"
+                        executeComplete="printTask_executeCompleteHandler(event)"
+                        fault="Alert.show(event.fault.faultString)"
+                        getResultDataComplete="printTask_getResultDataCompleteHandler(event)"
+                        getServiceInfoComplete="printTask_getServiceInfoCompleteHandler(event)"
+                        jobComplete="printTask_jobCompleteHandler(event)"
+                        showBusyCursor="true"
+                        url="{m_url}"/>
+        <esri:PrintParameters id="printParameters"
+                              format="{formats.selectedItem}"
+                              layoutTemplate="{layoutTemplates.selectedItem}"
+                              map="{map}">
+            <esri:layoutOptions>
+                <esri:LayoutOptions id="printParametersLayoutOptions"
+                                    author="ArcGIS for Flex Team"
+                                    copyright="&#169; Esri 2012"
+                                    title="My Map"/>
+            </esri:layoutOptions>
+        </esri:PrintParameters>
+        <s:Scale id="componentHideEffect"
+                 duration="600"
+                 scaleXFrom="1.0"
+                 scaleXTo="0.0"/>
+        <s:Scale id="componentShowEffect"
+                 duration="600"
+                 scaleXFrom="0"
+                 scaleXTo="1.0"/>
+    </fx:Declarations>
+    <s:Button id="hidePrintStateGroup"
+              click="showPrintStateButton_clickHandler(event)"
+              fontWeight="bold"
+              includeIn="hidePrintState"
+              label="Show Print Options"/>
+
+    <s:BorderContainer id="showPrintStateGroup"
+                       width="300"
+                       backgroundAlpha="0.7"
+                       backgroundColor="0xC5C5C9"
+                       cornerRadius="5"
+                       dropShadowVisible="true"
+                       hideEffect="{componentHideEffect}"
+                       includeIn="showPrintState"
+                       showEffect="{componentShowEffect}">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              horizontalAlign="right"
+                              paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label width="100" text="Layout Templates"/>
+            <s:DropDownList id="layoutTemplates"
+                            width="175"
+                            requireSelection="true"/>
+        </s:HGroup>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label width="100" text="Formats"/>
+            <s:DropDownList id="formats"
+                            width="100"
+                            dataProvider="{printTask.getServiceInfoLastResult.formats}"
+                            requireSelection="true"/>
+        </s:HGroup>
+        <s:HGroup>
+            <s:Button click="{currentState = 'hidePrintState'}" label="Cancel"/>
+            <s:Button id="printBtn"
+                      click="printBtn_clickHandler(event)"
+                      enabled="{printTask.getServiceInfoLastResult != null}"
+                      fontWeight="bold"
+                      label="Print"/>
+        </s:HGroup>
+
+    </s:BorderContainer>
+</s:Group>

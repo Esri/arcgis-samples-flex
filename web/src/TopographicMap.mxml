@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="World Topographic Map">
+    <!--
+    Description:
+    This sample demonstrates how to add an ArcGISTiledMapServiceLayer
+    to your Map using the ArcGIS API for Flex.  The tiled layer is
+    typically used as a basemap layer in the map and its source is
+    a map service that has been cached or has map tiles.
+    This map is the World Topographic map service from ArcGIS Online.
+
+    You can browse the ArcGIS.com site for additional online basemap and reference
+    map services or publish your own geographic data as a service using ArcGIS Server.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Types_of_layers/017p00000027000000/
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/tile.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_map_service/0154000002m7000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_map_caching/01540000048q000000/
+    -->
+
+    <fx:Declarations>
+        <esri:Extent id="initialExtent"
+                     xmin="-13635000" ymin="4541000" xmax="-13625000" ymax="4547000">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add an ArcGISTiledMapServiceLayer
+            to your Map using the ArcGIS API for Flex.  The tiled layer is
+            typically used as a basemap layer in the map and its source is
+            a map service that has been cached or has map tiles.
+            This map is the World Topographic map service from ArcGIS Online.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map extent="{initialExtent}">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+    </esri:Map>
+</s:Application>

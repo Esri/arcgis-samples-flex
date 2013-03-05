@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Calculate Viewshed">
+    <!--
+    Description:
+    This sample demonstrates how you can use a geoprocessing service to
+    expose a model that calculates the viewshed of a point given a
+    user defined location and viewing distance.  Click anywhere on the map to
+    see all areas that are visible within X miles of that point. It may take
+    a few seconds for the model to run and send back the results.
+
+    This service will work for any point on the earth except points that
+    fall in the ocean and points above 80 degrees North or South latitude.
+    The maximum viewshed distance is 20000 meters or roughly 12 miles.
+
+    This task is based on a python script tool that does the following:
+
+    1. Buffers the "Input Observation Point" by the "Viewshed Distance"
+    2. Uses the buffer to run Extract by Mask on a global 90m DEM.
+       This reduces the viewshed calculation to a manageable size.
+    3. Runs the Viewshed tool on the extracted raster and returns this as its output.
+
+    Input Observation Point: The input location from which the viewshed should be calculated.
+    Viewshed Distance: The maximum distance from the input point for which the viewshed should be calculated. The maximum allowed distance is 20000 meters.
+    Viewshed Result:  The resulting viewshed feature class given the user location and maximum distance.
+
+    Note:
+    One of the most important things to notice when publishing your geoprocessing service is to notice
+    the "Execution mode" in the parameters setting.  The execution mode will be either
+    "Synchronous" or "Asynchronous".  When a service is set to synchronous, the client waits for the task
+    to finish.  An asynchronous task typically takes longer to execute, and the client must periodically
+    ask the server if the task has finished and, if it has finished, get the result.  In the ArcGIS API for Flex,
+    if your service is "Synchronous" you will call the "gp.execute()" method or "gp.submitJob()" method
+    if your service is "Asynchronous".  Another important item to observe is the parameter names and types, you
+    can find out the name, case-sensitivity, and data type through exploring the service in the ArcGIS REST
+    Services Directory.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/LinearUnit.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/gpserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/gptask.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpexecute.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpsubmit.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpjob.html
+
+    ArcGIS for Server documentation:
+    What is a geoprocessing service?
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_geoprocessing_service/0154000004v5000000/
+    A quick tour of authoring and sharing geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/A_quick_tour_of_authoring_and_sharing_geoprocessing_services/01540000054n000000/
+    Essential vocabulary for geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/Essential_vocabulary_for_geoprocessing_services/0154000004v2000000/
+    Geoprocessing service settings: Parameters
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Parameters/01540000054v000000/
+
+    ArcGIS for Desktop documentation:
+    A quick tour of creating custom tools
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//001500000001000000
+    A quick tour of creating tools with ModelBuilder
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_ModelBuilder/00150000001t000000/
+    A quick tour of creating tools with Python
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_Python/00150000002q000000/
+
+    See also: http://support.esri.com/index.cfm?fa=knowledgebase.gisDictionary.search&searchTerm=viewshed
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.GeoprocessorEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.LinearUnit;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            private var myViewshedDistance:LinearUnit = new LinearUnit();
+
+            private function doViewshedGP(event:MapMouseEvent):void
+            {
+                myGraphicsLayer.clear();
+                var myMapPoint:MapPoint = event.mapPoint;
+                var graphic:Graphic = new Graphic(myMapPoint, viewshedSimpleMarker);
+                myGraphicsLayer.add(graphic);
+
+                var myFeatureSet:FeatureSet = new FeatureSet([{ geometry: myMapPoint }]);
+                myViewshedDistance.distance = Number(viewshedDistance.text);
+                myViewshedDistance.units = "esriMiles";
+                var params:Object = {
+                        "Input_Observation_Point": myFeatureSet,
+                        "Viewshed_Distance": myViewshedDistance
+                    };
+                gp.execute(params);
+            }
+
+            private function executeCompleteHandler(event:GeoprocessorEvent):void
+            {
+                for each (var myGraphic:Graphic in event.executeResult.results[0].value.features)
+                {
+                    myGraphic.symbol = viewshedSimpleFill;
+                    myGraphicsLayer.add(myGraphic);
+                }
+            }
+
+            private function faultHandler(fe:FaultEvent, token:Object = null):void
+            {
+                if (fe.type == "fault" && fe.fault.name == "Error" && fe.fault.faultString == "Error Executing Task")
+                {
+                    Alert.show("Oops - no results.  Maybe try a smaller number.");
+                }
+                else
+                {
+                    Alert.show("Unexpected fault:\n" + fe.toString());
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleMarkerSymbol id="viewshedSimpleMarker"
+                                 alpha="0.5"
+                                 size="15"
+                                 style="circle">
+            <esri:SimpleLineSymbol width="2" color="0xFFFF00"/>
+        </esri:SimpleMarkerSymbol>
+        <esri:SimpleFillSymbol id="viewshedSimpleFill"
+                               alpha="0.5"
+                               color="0xFF0000">
+            <esri:SimpleLineSymbol width="1"
+                                   alpha="0.5"
+                                   color="0x000000"/>
+        </esri:SimpleFillSymbol>
+        <esri:Geoprocessor id="gp"
+                           executeComplete="executeCompleteHandler(event)"
+                           fault="faultHandler(event)"
+                           outSpatialReference="{map.spatialReference}"
+                           showBusyCursor="true"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Elevation/ESRI_Elevation_World/GPServer/Viewshed"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use a geoprocessing service to
+            expose a model that calculates the viewshed of a point given a
+            user defined location and viewing distance.  Click anywhere on the map to
+            see all areas that are visible within 6 miles of that point. It may take
+            a few seconds for the model to run and send back the results.
+            This service will work for any point on the earth except points that
+            fall in the ocean and points above 80 degrees North or South latitude.
+            The maximum viewshed distance is 20,000 meters or roughly 12 miles.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label text="Click map to see the"/>
+            <s:TextInput id="viewshedDistance"
+                         width="30"
+                         paddingLeft="5"
+                         paddingRight="0"
+                         text="6"/>
+            <s:Label text=" mile viewshed."/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map" mapClick="doViewshedGP(event)">
+        <esri:extent>
+            <esri:Extent xmin="9650873" ymin="3234035" xmax="9702085" ymax="3260864">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+</s:Application>

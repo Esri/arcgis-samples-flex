@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:tasks="com.esri.ags.samples.tasks.*"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Example - SOE GetElevationAtLonLat">
+    <!--
+    Description:
+    This sample demonstrates the programming patterns to create your own
+    custom Task which extends BaseTask.  The sample calculates the elevation
+    at a location given a x,y as input.  Select a mountain to see its elevation,
+    or click on the map.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/BaseTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    http://sampleserver4.arcgisonline.com/ArcGIS/rest/services/Elevation/ESRI_Elevation_World/MapServer/exts/ElevationsSOE "Live service"
+    http://blogs.esri.com/Dev/blogs/apl/archive/2010/10/07/Elevation-Server-Object-Extension.aspx "Blog article on SOE"
+    http://resources.arcgis.com/gallery/file/arcobjects-net-api/details?entryID=87BEC705-1422-2418-34B5-308930DE323A "Source code for SOE"
+    http://www.arcgis.com/home/item.html?id=b9d247c297f144459854751740f59f68 "FlexViewer SOE widgets"
+
+    For more details on the World Geocoding Service follow the link below.
+    http://geocode.arcgis.com/arcgis/index.html
+
+    ArcGIS REST API documentation:
+    http://sampleserver4.arcgisonline.com/ArcGIS/rest/services/Elevation/ESRI_Elevation_World/MapServer/exts/ElevationsSOE/ElevationLayers/1/GetElevationAtLonLat
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/What_is_a_server_object_extension/0154000004s5000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Steps_for_developing_and_deploying_a_server_object_extension/0154000004s7000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Alternatives_to_server_object_extensions/015400000528000000/
+
+    This sample also uses the following files:
+    com/esri/ags/samples/tasks/ElevationsSOETask.as
+    com/esri/ags/samples/tasks/supportClasses/ElevationsSOEParameters.as
+    com/esri/ags/samples/tasks/supportClasses/ElevationsSOEResult.as
+    com/esri/ags/samples/tasks/supportClasses/InterpolatedRasterProperties.as
+    com/esri/ags/samples/events/ElevationsSOEEvent.as
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        s|Panel
+        {
+            backgroundColor: #C0C2B7;
+            chromeColor: #9D7037;
+        }
+        s|ButtonBar
+        {
+            chromeColor: #AF8E56;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.LocatorEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.samples.events.ElevationsSOEEvent;
+            import com.esri.ags.samples.tasks.supportClasses.ElevationsSOEParameters;
+            import com.esri.ags.samples.tasks.supportClasses.ElevationsSOEResult;
+            import com.esri.ags.tasks.supportClasses.AddressCandidate;
+            import com.esri.ags.tasks.supportClasses.AddressToLocationsParameters;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            [Bindable]
+            private var placeElevation:Number = 0.0;
+            [Bindable]
+            private var placeResultDescription:String = "";
+
+            protected function placeSelectedChangeHandler(event:IndexChangeEvent):void
+            {
+                placeResultDescription = "";
+                placeElevation = 0.0;
+                var selectedItem:Object = ButtonBar(event.currentTarget).selectedItem as Object;
+                if (selectedItem)
+                {
+                    var params:AddressToLocationsParameters = new AddressToLocationsParameters();
+                    var place:Object = { SingleLine: selectedItem.data };
+                    params.address = place;
+                    params.outFields = [ 'Match_Addr' ];
+                    setProgress("Locating " + selectedItem.data + "...", true);
+                    placesLocator.addressToLocations(params);
+                }
+            }
+
+            protected function map_clickHandler(event:MapMouseEvent):void
+            {
+
+                var mapPoint:MapPoint = event.mapPoint as MapPoint;
+                addPlace(mapPoint);
+                placeResultDescription = "";
+                placeElevation = 0.0;
+                var geographicGeom:MapPoint = WebMercatorUtil.webMercatorToGeographic(mapPoint) as MapPoint;
+                var params:ElevationsSOEParameters = new ElevationsSOEParameters();
+                params.longitude = geographicGeom.x;
+                params.latitude = geographicGeom.y;
+                soeTask.executeGetElevationAtLatLon(params);
+            }
+
+            protected function addPlace(value:MapPoint):void
+            {
+                map.defaultGraphicsLayer.clear();
+                var gra:Graphic = new Graphic(value, elevationAtSymbol);
+                map.defaultGraphicsLayer.add(gra);
+            }
+
+            protected function setProgress(value:String, visible:Boolean):void
+            {
+                progressBar.visible = visible;
+                progressBar.label = value;
+                progressBar.includeInLayout = visible;
+            }
+
+            protected function placesLocator_addressToLocationsCompleteHandler(event:LocatorEvent):void
+            {
+                placesButtonBar.selectedIndex = -1;
+                var placesResults:Array = event.addressCandidates as Array;
+                if (placesResults[0])
+                {
+                    var placeCandidate:AddressCandidate = placesResults[0] as AddressCandidate;
+                    placeResultDescription = placeCandidate.attributes["Match_Addr"];
+                    var mapPoint:MapPoint = placeCandidate.location as MapPoint;
+                    var webMercatorGeom:MapPoint = WebMercatorUtil.geographicToWebMercator(mapPoint) as MapPoint;
+                    addPlace(webMercatorGeom);
+                    map.level = 11;
+                    map.centerAt(webMercatorGeom);
+                    setProgress("Calculating the elevation at " + placeCandidate.address + "...", true);
+
+                    var params:ElevationsSOEParameters = new ElevationsSOEParameters();
+                    params.longitude = mapPoint.x;
+                    params.latitude = mapPoint.y;
+                    soeTask.executeGetElevationAtLatLon(params);
+                }
+
+            }
+
+            protected function soeTask_executeCompleteHandler(event:ElevationsSOEEvent):void
+            {
+                var elevationResult:ElevationsSOEResult = event.elevationsSOEResult;
+                placeElevation = elevationResult.elevation;
+                setProgress("", false);
+            }
+
+            protected function esriService_faultHandler(event:FaultEvent):void
+            {
+                placesButtonBar.selectedIndex = -1;
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:SimpleMarkerSymbol id="elevationAtSymbol"
+                                 color="0xB5804E"
+                                 outline="{smsOutline}"
+                                 size="30"
+                                 style="triangle"/>
+        <esri:SimpleLineSymbol id="smsOutline"
+                               width="1"
+                               color="0x578DB8"
+                               style="solid"/>
+        <tasks:ElevationsSOETask id="soeTask"
+                                 executeComplete="soeTask_executeCompleteHandler(event)"
+                                 fault="esriService_faultHandler(event)"
+                                 url="http://sampleserver4.arcgisonline.com/ArcGIS/rest/services/Elevation/ESRI_Elevation_World/MapServer/exts/ElevationsSOE/ElevationLayers/1"/>
+        <esri:Locator id="placesLocator"
+                      addressToLocationsComplete="placesLocator_addressToLocationsCompleteHandler(event)"
+                      fault="esriService_faultHandler(event)"
+                      url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"/>
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="0"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates the programming patterns to create your own
+            custom Task which extends BaseTask.  The sample calculates the elevation
+            at a location given a x,y as input.  Select a mountain to see its elevation,
+            or click on the map.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              mapClick="map_clickHandler(event)"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+    </esri:Map>
+    <s:Panel width="450" height="130"
+             right="20" top="20"
+             title="Get the elevation at a location.">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+        <s:ButtonBar id="placesButtonBar" change="placeSelectedChangeHandler(event)">
+            <s:ArrayList>
+                <fx:Object data="Mount St. Helens" label="Mount St. Helens"/>
+                <fx:Object data="Gunung Merapi" label="Mount Merapi"/>
+                <fx:Object data="Mount Pinatubo" label="Mount Pinatubo"/>
+                <fx:Object data="Kilauea Volcano" label="Kilauea Volcano"/>
+            </s:ArrayList>
+        </s:ButtonBar>
+
+        <s:Label id="placeResult"
+                 width="95%"
+                 fontSize="14"
+                 includeInLayout="{placeResultDescription != ''}"
+                 text="{placeResultDescription}"
+                 visible="{placeResultDescription != ''}"/>
+        <s:Label id="placeElevationResult"
+                 width="100%"
+                 fontSize="14"
+                 fontWeight="bold"
+                 includeInLayout="{placeElevation > 0.0}"
+                 text="Elevation: {numberFormatter.format(placeElevation)} meters"
+                 visible="{placeElevation > 0.0}"/>
+        <mx:ProgressBar id="progressBar"
+                        width="80%"
+                        includeInLayout="false"
+                        indeterminate="true"
+                        visible="false"/>
+    </s:Panel>
+</s:Application>

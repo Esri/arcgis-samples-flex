@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This file is used by InfoWindowRollOverSample.mxml
+-->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          paddingBottom="10"
+          paddingLeft="10"
+          paddingRight="10"
+          paddingTop="10">
+    <fx:Declarations>
+        <fx:String id="lat">0</fx:String>
+        <fx:String id="lon">0</fx:String>
+        <fx:String id="dmslat">0</fx:String>
+        <fx:String id="dmslon">0</fx:String>
+    </fx:Declarations>
+    <s:Label fontWeight="bold" text="Web Mercator"/>
+    <s:Label paddingLeft="10" text="Latitude: {lat}"/>
+    <s:Label paddingLeft="10" text="Longitude: {lon}"/>
+    <s:Line width="100%">
+        <s:stroke>
+            <s:SolidColorStroke color="0xFFFFFF" weight="2"/>
+        </s:stroke>
+    </s:Line>
+    <s:Label fontWeight="bold" text="Degrees, Minutes, Seconds"/>
+    <s:Label paddingLeft="10" text="Latitude: {dmslat}"/>
+    <s:Label paddingLeft="10" text="Longitude: {dmslon}"/>
+</s:VGroup>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Map Extent and Mouse Coordinates">
+    <!--
+    Description:
+    This sample demonstrates how to use event listeners on the
+    mouse to display current information about the mouse location.
+    The map's current extent and scale is also displayed as you
+    change the extent by navigating the map (pan/zoom) or use the
+    navigation slider to zoom in/out.
+
+    The current extent of the map is available directly through myMap.extent.
+    Similarly, the current scale is myMap.scale.
+
+    Other properties easily accessible is myMap.
+
+    To get the current coordinates of the mouse cursor, you can add an event listener for "MOUSE_MOVE"
+    on the map. In the listener you can access the current stage location using stageX and stageY.
+    Then use the toMapFromStage method to easily get those stage coordinates into map coordinates.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#extent
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#toMapFromStage()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/Number.html#toFixed()
+    About data binding
+    http://help.adobe.com/en_US/flex/using/WS2db454920e96a9e51e63e3d11c0bf64c3d-7fff.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            // when mouse (cursor) is on the map ...
+            private function loadHandler():void
+            {
+                myMap.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+            }
+
+            // ... show coordinates of current (mouse) location
+            private function mouseMoveHandler(event:MouseEvent):void
+            {
+                const mapPoint:MapPoint = myMap.toMapFromStage(event.stageX, event.stageY);
+                const latlong:MapPoint = WebMercatorUtil.webMercatorToGeographic(mapPoint) as MapPoint;
+                mousecoords.text =
+                    "x,y is " + mapPoint.x.toFixed(0) + "," + mapPoint.y.toFixed(0)
+                    + " and Lat/Long is: " + latlong.y.toFixed(6)
+                    + " / " + latlong.x.toFixed(6);
+            }
+
+            // convert current projected extent to geographic and show as such
+            protected function showExtentInGeographic(extent:Extent):String
+            {
+                const geoExtent:Extent = WebMercatorUtil.webMercatorToGeographic(myMap.extent) as Extent;
+                // return geoExtent.toString() + ".." ;
+                return " " + geoExtent.xmin.toFixed(6)
+                    + ", " + geoExtent.ymin.toFixed(6)
+                    + ", " + geoExtent.xmax.toFixed(6)
+                    + ", " + geoExtent.ymax.toFixed(6)
+                    + "   (wkid: " + geoExtent.spatialReference.wkid + ")";
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use event listeners on the
+            mouse to display current information about the mouse location.
+            The map's current extent and scale is also displayed as you
+            change the extent by navigating the map (pan/zoom) or use the
+            navigation slider to zoom in/out.
+        </s:RichText>
+        <s:HGroup>
+            <s:Label fontWeight="bold" text="Current map extent:"/>
+            <s:RichEditableText editable="false" text='xmin="{myMap.extent.xmin.toFixed(0)}" ymin="{myMap.extent.ymin.toFixed(0)}" xmax="{myMap.extent.xmax.toFixed(0)}" ymax="{myMap.extent.ymax.toFixed(0)}"   (wkid="{myMap.spatialReference.wkid}")'/>
+        </s:HGroup>
+        <s:HGroup>
+            <s:Label fontWeight="bold" text="Current map extent (in geographic):"/>
+            <s:RichEditableText editable="false" text="{showExtentInGeographic(myMap.extent)}"/>
+        </s:HGroup>
+        <s:HGroup>
+            <s:Label fontWeight="bold" text="Current Mouse Coordinates:"/>
+            <s:RichEditableText id="mousecoords"
+                                editable="false"
+                                text="Move the mouse over the map to see its current coordinates..."/>
+        </s:HGroup>
+        <s:HGroup>
+            <s:Label fontWeight="bold" text="Current map scale is"/>
+            <s:RichEditableText editable="false" text="1:{myMap.scale.toFixed(0)} (level {myMap.level})"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" load="loadHandler()">
+        <esri:extent>
+            <esri:Extent xmin="3035000" ymin="4305000" xmax="3475000" ymax="10125000">
+                <esri:SpatialReference wkid="102100"/>
+                <!-- same as tiled map service below -->
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>

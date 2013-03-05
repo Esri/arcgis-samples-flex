@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               initialize="initApp()"
+               pageTitle="Example - using Renderers">
+    <!--
+    Description:
+    This sample demonstrates how to use a class breaks renderer
+    with a graphics layer to symbolize points differently based
+    upon an attribute.  The renderer on the graphics layer separates
+    the points into three different "breaks" or groups based upon
+    the value in the graphic's attribute and then sets a
+    different symbol for each graphic.
+
+    This sample first creates 100 random MapPoints, sets the tooltip (of the MapPoints)
+    and adds them to a graphics layer.  The renderer then kicks in to set the
+    symbol based on the "ranking" attribute.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#renderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.geometry.MapPoint;
+
+            private function initApp():void
+            {
+                // add 100 random graphics to the GraphicsLayer
+                for (var i:int; i < 100; i++)
+                {
+                    var mapX:Number = Math.random() * 40044000 - 20022000;
+                    var mapY:Number = Math.random() * 40044000 - 20022000;
+
+                    var attributes:Object = { "ranking": Math.random()};
+                    var graphic:Graphic = new Graphic(
+                        new MapPoint(mapX, mapY),
+                        null,
+                        attributes
+                        );
+                    graphic.toolTip = "Ranking: " + Number(graphic.attributes.ranking).toFixed(3);
+                    graphicsLayer.add(graphic);
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleMarkerSymbol id="smallSym"
+                                 alpha="0.7"
+                                 color="0xFF0000"
+                                 size="6"/>
+        <esri:SimpleMarkerSymbol id="mediumSym"
+                                 alpha="0.7"
+                                 color="0xFF0000"
+                                 size="10"/>
+        <esri:SimpleMarkerSymbol id="largeSym"
+                                 alpha="0.7"
+                                 color="0xFF0000"
+                                 size="16"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use a class breaks renderer
+            with a graphics layer to symbolize points differently based
+            upon an attribute.  The renderer on the graphics layer separates
+            the points into three different "breaks" or groups based upon
+            the value in the graphic's attribute and then sets a
+            different symbol for each graphic.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map wrapAround180="true">
+        <esri:extent>
+            <esri:Extent xmin="-25623917" ymin="-13626628" xmax="26817999" ymax="16429635">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="graphicsLayer">
+            <esri:renderer>
+                <esri:ClassBreaksRenderer field="ranking">
+                    <esri:ClassBreakInfo maxValue="0.33" symbol="{smallSym}"/>
+                    <esri:ClassBreakInfo maxValue="0.67"
+                                         minValue="0.33"
+                                         symbol="{mediumSym}"/>
+                    <esri:ClassBreakInfo minValue="0.67" symbol="{largeSym}"/>
+                </esri:ClassBreaksRenderer>
+            </esri:renderer>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+</s:Application>

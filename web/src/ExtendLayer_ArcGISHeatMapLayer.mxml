@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:layers="com.esri.ags.samples.layers.*"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               pageTitle="Extending Layer: ArcGISHeatMapLayer sample">
+    <!--
+    Description:
+    This sample demonstrates the programming patterns to extend the base layer class and
+    create your own custom layer.  The base layer class can be extended to support other layer types,
+    such as a custom heatmap layer generated from an ArcGIS service that returns point features.
+
+    How it works
+    * The source url for the ArcGISHeatMapLayer can be either an ArcGIS MapService layer
+      or an ArcGIS FeatureService layer containing point data.
+    * The ArcGISHeatMapLayer contains internal tasks to get the details (metadata) of the
+      source ArcGIS service layer that will be used as input to generate the heatmap.
+    * The details (metadata) is used to determine if the service is time-aware, in which
+      case your heatmap can support time as well.
+    * The custom layer also uses an internal QueryTask to query the ArcGIS service layer
+      (points only), the FeatureSet is returned in the HeatMapEvent object.
+
+    Features of the sample:
+    * Toggle the theme switcher to change the heatmap theme.
+    * Click on a record in the DataGrid to show more information about that particular record.
+    * Click the button ("Filter is On") to turn on or off the TimeSlider.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/DetailsTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DetailsEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDetails.html
+
+    This sample also uses the following files:
+    com\esri\ags\samples\components\HeatMapThemeView.mxml
+    com\esri\ags\samples\events\HeatMapEvent.as
+    com\esri\ags\samples\geometry\HeatMapPoint.as
+    com\esri\ags\samples\layers\ArcGISHeatMapLayer.as
+    com\esri\ags\samples\layers\supportClasses\HeatMapGradientDict.as
+    com\esri\ags\samples\skins\HeatMapButtonBarImageButtonSkin.mxml
+    com\esri\ags\samples\skins\HeatMapButtonBarImageSkin.mxml
+    com\esri\ags\samples\utils\ColorMatrixUtil.as
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace layers "com.esri.ags.samples.layers.*";
+        @namespace esri "http://www.esri.com/2008/ags";
+        @namespace components "com.esri.ags.samples.components.*";
+        .infoLabel
+        {
+            fontSize: 14;
+            fontWeight: bold;
+        }
+        .infoContent
+        {
+            fontSize: 12;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DetailsEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.supportClasses.TimeInfo;
+            import com.esri.ags.samples.events.HeatMapEvent;
+            import com.esri.ags.samples.layers.supportClasses.HeatMapGradientDict;
+            import com.esri.ags.samples.utils.ColorMatrixUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.utils.ObjectUtil;
+
+            import spark.events.GridEvent;
+            import spark.events.GridSortEvent;
+
+            [Bindable]
+            private var timeInfo:TimeInfo;
+
+            protected function getDetailsCompleteHandler(event:DetailsEvent):void
+            {
+                timeInfo = event.layerDetails.timeInfo;
+                heatMapTimeSlider.createTimeStopsByTimeInterval(timeInfo.timeExtent, timeInfo.timeInterval, timeInfo.timeIntervalUnits);
+            }
+
+            protected function refreshStartHandler(event:HeatMapEvent):void
+            {
+                heatMapLayer.filters = [ ColorMatrixUtil.blackAndWhite ];
+                fadeEffectOut.play();
+            }
+
+            protected function refreshEndHandler(event:HeatMapEvent):void
+            {
+                fadeEffectIn.play();
+                heatMapLayer.filters = [];
+                dg.dataProvider = new ArrayCollection(event.featureSet.features);
+                lblLayerCount.text = event.featureSet.features.length + " earthquakes were used to generate this heatmap";
+            }
+
+            protected function themeSelectionChangedHandler(event:Event):void
+            {
+                heatMapLayer.theme = heatMapThemeView.selectedTheme;
+            }
+
+            private function checkNull(item:Object):String
+            {
+                if (item != null)
+                {
+                    return ObjectUtil.toString(item);
+                }
+                return "";
+            }
+
+            private function magLabelFunction(item:Object, column:GridColumn):String
+            {
+                var fieldNameComponents:Array = column.dataField.split(".");
+                if (fieldNameComponents.length > 0)
+                {
+
+                    return numberFormatter.format(item.attributes[fieldNameComponents[1]]);
+                }
+                else
+                {
+                    return "NaN";
+                }
+            }
+
+            private function dateLabelFunction(item:Object, column:GridColumn):String
+            {
+                var fieldNameComponents:Array = column.dataField.split(".");
+                if (fieldNameComponents.length > 0)
+                {
+
+                    return convertMillisecondsToDate(item.attributes[fieldNameComponents[1]], dateFormatter.dateTimePattern, false);
+                }
+                else
+                {
+                    return "NaN";
+                }
+            }
+
+            private function convertMillisecondsToDate(ms:Number, dateFormat:String, useUTC:Boolean):String
+            {
+                var date:Date = new Date(ms);
+                if (date.milliseconds == 999) // workaround for REST bug
+                {
+                    date.milliseconds++;
+                }
+                if (useUTC)
+                {
+                    date.minutes += date.timezoneOffset;
+                }
+
+                if (dateFormat)
+                {
+                    dateFormatter.dateTimePattern = dateFormat;
+                    var result:String = dateFormatter.format(date);
+                    if (result)
+                    {
+                        return result;
+                    }
+                    else
+                    {
+                        return dateFormatter.errorText;
+                    }
+                }
+                else
+                {
+                    return date.toLocaleString();
+                }
+            }
+
+            protected function dg_gridClickHandler(event:GridEvent):void
+            {
+                if (event.item)
+                {
+                    graphicsLayer.clear();
+                    var gra:Graphic = event.item as Graphic;
+                    gra.symbol = earthquakeSymbol;
+                    map.centerAt(gra.geometry as MapPoint);
+                    var infoGraphic:Graphic = new Graphic(gra.geometry as MapPoint, earthquakeInfoSymbol, gra.attributes);
+                    graphicsLayer.add(infoGraphic);
+                    graphicsLayer.add(gra);
+                }
+            }
+
+            protected function dg_sortChangingHandler(event:GridSortEvent):void
+            {
+                //since the DataGrid has complex objects (Esri Graphic) the standard sort won't work
+                //add you own custom sort logic here
+            }
+
+            protected function dg_sortChangeHandler(event:GridSortEvent):void
+            {
+                event.preventDefault();
+            }
+
+            protected function timeToggleButtonChangeHandler(event:Event):void
+            {
+                graphicsLayer.clear();
+                if (timeInfo && heatMapLayer.loaded)
+                {
+                    if (timeToggleButton.selected)
+                    {
+                        heatMapTimeSlider.createTimeStopsByTimeInterval(timeInfo.timeExtent, timeInfo.timeInterval, timeInfo.timeIntervalUnits);
+                        map.timeSlider = heatMapTimeSlider;
+                    }
+                    else
+                    {
+                        heatMapTimeSlider.pause();
+                        map.timeExtent = null;
+                        map.timeSlider = null;
+                        heatMapLayer.timeExtent = timeInfo.timeExtent;
+                    }
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:SimpleMarkerSymbol id="earthquakeSymbol"
+                                 color="0xEAEAEA"
+                                 size="15"
+                                 style="circle">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="2" color="0xC2C2C6"/>
+            </esri:outline>
+        </esri:SimpleMarkerSymbol>
+        <!-- InfoSymbol for graphic -->
+        <esri:InfoSymbol id="earthquakeInfoSymbol" infoPlacement="upperLeft">
+            <esri:infoRenderer>
+                <fx:Component>
+                    <s:DataRenderer>
+                        <s:layout>
+                            <s:VerticalLayout paddingBottom="5"
+                                              paddingLeft="5"
+                                              paddingRight="5"
+                                              paddingTop="5"/>
+                        </s:layout>
+                        <s:Label styleName="infoLabel" text="{data.Name}"/>
+                        <s:Line width="90%">
+                            <s:stroke>
+                                <s:SolidColorStroke color="0x000000" weight="2"/>
+                            </s:stroke>
+                        </s:Line>
+                        <s:Label styleName="infoContent" text="Magnitude: {data.Magnitude}"/>
+                        <s:Label styleName="infoContent" text="Number of Deaths: {data.Num_Deaths}"/>
+                        <s:Label styleName="infoContent" text="Number of Injured People: {data.Num_Injured}"/>
+                        <s:Label styleName="infoContent" text="Damages: {data.Mill_Damages} million"/>
+                        <s:Label styleName="infoContent" text="Houses destroyed: {data.Num_Houses_Dest}"/>
+                        <s:Label styleName="infoContent" text="Houses damaged: {data.Num_Houses_Dam}"/>
+                        <s:Label styleName="infoContent" text="Latitude: {data.Latitude}"/>
+                        <s:Label styleName="infoContent" text="Longitude: {data.Longitude}"/>
+                    </s:DataRenderer>
+                </fx:Component>
+            </esri:infoRenderer>
+        </esri:InfoSymbol>
+        <s:Fade id="fadeEffectOut"
+                alphaFrom="1"
+                alphaTo="0.5"
+                repeatCount="1"
+                targets="{[heatMapLayer]}"/>
+        <s:Fade id="fadeEffectIn"
+                alphaFrom="0.5"
+                alphaTo="1"
+                repeatCount="1"
+                targets="{[heatMapLayer]}"/>
+        <!--
+        http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/DateTimeFormatter.html
+        http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
+        -->
+        <s:DateTimeFormatter id="dateFormatter" dateTimePattern="MMMM dd, yyyy"/>
+        <!-- http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html -->
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="2"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates the programming patterns to extend the base layer class and
+            create your own custom layer.  The base layer class can be extended to support other layer types,
+            such as a custom heatmap layer generated from an ArcGIS service that returns point features.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              level="2"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <layers:ArcGISHeatMapLayer id="heatMapLayer"
+                                   alpha="0.7"
+                                   getDetailsComplete="getDetailsCompleteHandler(event)"
+                                   outFields="*"
+                                   refreshEnd="refreshEndHandler(event)"
+                                   refreshStart="refreshStartHandler(event)"
+                                   url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/Since_1970/MapServer/0"
+                                   useAMF="true"/>
+        <esri:GraphicsLayer id="graphicsLayer"/>
+    </esri:Map>
+    <s:Panel height="290"
+             right="20" top="20"
+             cornerRadius="5"
+             title="Heatmap settings">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <components:HeatMapThemeView id="heatMapThemeView"
+                                     theme="{HeatMapGradientDict.RAINBOW_TYPE}"
+                                     themeLabel="Color:"
+                                     themeSelectionChanged="themeSelectionChangedHandler(event)"/>
+        <s:HGroup id="boxTime"
+                  width="100%"
+                  gap="10"
+                  horizontalAlign="center"
+                  includeInLayout="{timeInfo != null}"
+                  verticalAlign="middle"
+                  visible="{timeInfo != null}">
+            <s:ToggleButton id="timeToggleButton"
+                            width="85%"
+                            change="timeToggleButtonChangeHandler(event)"
+                            chromeColor="{timeToggleButton.selected ? 0xBB2634 : 0x218300}"
+                            color="0xFEFFFE"
+                            cornerRadius="5"
+                            fontWeight="bold"
+                            label="{timeToggleButton.selected ? 'Click to disable the time slider' : 'Click to enable time slider'}"
+                            selected="false"/>
+        </s:HGroup>
+        <s:VGroup width="100%"
+                  horizontalAlign="left"
+                  includeInLayout="{timeToggleButton.selected}"
+                  verticalAlign="middle"
+                  visible="{timeToggleButton.selected}">
+            <esri:TimeSlider id="heatMapTimeSlider"
+                             enabled="{heatMapLayer.loaded}"
+                             loop="true"
+                             thumbMovingRate="1200"/>
+            <s:Label fontSize="14"
+                     fontWeight="bold"
+                     text="{dateFormatter.format(heatMapTimeSlider.timeExtent.endTime)}"/>
+        </s:VGroup>
+        <s:Label id="lblLayerCount"/>
+        <s:DataGrid id="dg"
+                    width="90%" height="50%"
+                    gridClick="dg_gridClickHandler(event)"
+                    sortChange="dg_sortChangeHandler(event)"
+                    sortChanging="dg_sortChangingHandler(event)">
+            <s:columns>
+                <s:ArrayList>
+                    <!--
+                    {"name":"OBJECTID","type":"esriFieldTypeOID","alias":"Object Id"},
+                    {"name":"Tsu","type":"esriFieldTypeString","alias":"Tsunami","length":255},
+                    {"name":"Name","type":"esriFieldTypeString","alias":"Name","length":255},
+                    {"name":"Latitude","type":"esriFieldTypeDouble","alias":"Latitude"},
+                    {"name":"Longitude","type":"esriFieldTypeDouble","alias":"Longitude"},
+                    {"name":"Focal","type":"esriFieldTypeDouble","alias":"Focal"},
+                    {"name":"Magnitude","type":"esriFieldTypeDouble","alias":"Magnitude"},
+                    {"name":"Num_Deaths","type":"esriFieldTypeDouble","alias":"Number of Deaths"},
+                    {"name":"Num_Injured","type":"esriFieldTypeDouble","alias":"Number of Injured People"},
+                    {"name":"Mill_Damages","type":"esriFieldTypeDouble","alias":"Damages (Million$)"},
+                    {"name":"Num_Houses_Dest","type":"esriFieldTypeDouble","alias":"Houses Destroyed"},
+                    {"name":"Num_Houses_Dam","type":"esriFieldTypeDouble","alias":"Houses Damaged"},
+                    {"name":"Date_","type":"esriFieldTypeDate","alias":"Earthquake Date","length":8},
+                    {"name":"YYYYMMDD","type":"esriFieldTypeString","alias":"YYYYMMDD","length":255},
+                    {"name":"Shape","type":"esriFieldTypeGeometry","alias":"Shape"}
+                    -->
+                    <s:GridColumn dataField="attributes.Magnitude"
+                                  headerText="Magnitude"
+                                  labelFunction="magLabelFunction"/>
+                    <s:GridColumn dataField="attributes.Date_"
+                                  headerText="Date"
+                                  labelFunction="dateLabelFunction"/>
+                    <!--
+                    <s:GridColumn dataField="attributes.source" headerText="Source"/>
+                    <s:GridColumn dataField="attributes.region" headerText="Region"/>
+                    <s:GridColumn dataField="attributes.numstations" headerText="No. Stations"/>
+                    <s:GridColumn dataField="attributes.latitude" headerText="Lat"/>
+                    <s:GridColumn dataField="attributes.longitude" headerText="Long"/>
+                    -->
+                </s:ArrayList>
+            </s:columns>
+        </s:DataGrid>
+    </s:Panel>
+
+</s:Application>

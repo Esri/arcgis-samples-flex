@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by ArcIMS_TOC.mxml and Dynamic_TOC.mxml -->
+<s:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+            xmlns:s="library://ns.adobe.com/flex/spark"
+            width="100%" height="100%"
+            resizableColumns="false"
+            sortableColumns="false">
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+            import com.esri.ags.layers.ArcIMSMapServiceLayer;
+            import com.esri.ags.layers.Layer;
+            import com.esri.ags.layers.supportClasses.LayerInfo;
+
+            import mx.collections.ArrayList;
+            import mx.collections.IList;
+            import mx.utils.ObjectUtil;
+
+            private var _layerInfos:Array;
+
+            private var _layer:Layer;
+            private var _layerChanged:Boolean;
+
+            public function get mapLayer():Layer
+            {
+                return _layer;
+            }
+
+            public function set mapLayer(value:Layer):void
+            {
+                _layer = value;
+                _layerChanged = true;
+                invalidateProperties();
+            }
+
+            override protected function commitProperties():void
+            {
+                if (_layerChanged)
+                {
+                    _layerChanged = false;
+                    if (mapLayer)
+                    {
+                        mapLayer.addEventListener(LayerEvent.UPDATE_END, removeBusyCursor, false, 0, true);
+                        if (mapLayer.loaded)
+                        {
+                            setDataProvider();
+                        }
+                        else
+                        {
+                            mapLayer.addEventListener(LayerEvent.LOAD, layerLoadHandler, false, 0, true);
+                        }
+                    }
+                }
+
+                // calling this last fixes an issue when the mapLayer is set late via AS
+                super.commitProperties();
+            }
+
+            private function setDataProvider():void
+            {
+                if (mapLayer is ArcGISDynamicMapServiceLayer)
+                {
+                    _layerInfos = ArcGISDynamicMapServiceLayer(mapLayer).layerInfos;
+                }
+                else if (mapLayer is ArcIMSMapServiceLayer)
+                {
+                    _layerInfos = ArcIMSMapServiceLayer(mapLayer).layerInfos;
+                }
+
+                if (_layerInfos)
+                {
+                    // make sure copy has typed LayerInfo objects
+                    registerClassAlias("com.esri.ags.layers.supportClasses.LayerInfo", LayerInfo);
+                    // create a copy since it'll be modified
+                    _layerInfos = ObjectUtil.copy(_layerInfos) as Array;
+
+                    // remove group layers and correct defaultVisibility
+                    if (mapLayer is ArcGISDynamicMapServiceLayer)
+                    {
+                        var visibleLayers:Array = getDefaultVisibleLayers();
+                        var layerInfos:Array = _layerInfos.concat(); // create a shallow clone
+                        _layerInfos = [];
+                        for each (var layerInfo:LayerInfo in layerInfos)
+                        {
+                            if (!layerInfo.subLayerIds) // skip group layers
+                            {
+                                layerInfo.defaultVisibility = visibleLayers.indexOf(layerInfo.layerId) != -1;
+                                _layerInfos.push(layerInfo);
+                            }
+                        }
+                    }
+
+                    dataProvider = new ArrayList(_layerInfos);
+                }
+            }
+
+            private function getDefaultVisibleLayers():Array
+            {
+                var result:Array = [];
+
+                for each (var layerInfo:LayerInfo in _layerInfos)
+                {
+                    if (layerInfo.parentLayerId >= 0 && result.indexOf(layerInfo.parentLayerId) == -1)
+                    {
+                        // layer is not visible if it's parent is not visible
+                        continue;
+                    }
+                    if (layerInfo.defaultVisibility)
+                    {
+                        result.push(layerInfo.layerId);
+                    }
+                }
+
+                return result;
+            }
+
+            private function layerLoadHandler(event:LayerEvent):void
+            {
+                setDataProvider();
+            }
+
+            public function showLayer(layerInfo:LayerInfo):void
+            {
+                var visibleLayers:IList;
+                if (mapLayer is ArcGISDynamicMapServiceLayer)
+                {
+                    var dynamicLayer:ArcGISDynamicMapServiceLayer = mapLayer as ArcGISDynamicMapServiceLayer;
+                    visibleLayers = dynamicLayer.visibleLayers;
+                    if (visibleLayers)
+                    {
+                        visibleLayers.addItem(layerInfo.layerId); // add id
+                    }
+                    else
+                    {
+                        visibleLayers = dynamicLayer.visibleLayers = getDynamicVisibleLayers();
+                    }
+                }
+                else if (mapLayer is ArcIMSMapServiceLayer)
+                {
+                    var arcIMSLayer:ArcIMSMapServiceLayer = mapLayer as ArcIMSMapServiceLayer;
+                    visibleLayers = arcIMSLayer.visibleLayers;
+                    if (visibleLayers)
+                    {
+                        visibleLayers.addItem(layerInfo.name); // add name
+                    }
+                    else
+                    {
+                        visibleLayers = arcIMSLayer.visibleLayers = getArcIMSVisibleLayers();
+                    }
+                }
+                if (visibleLayers)
+                {
+                    cursorManager.setBusyCursor();
+                }
+            }
+
+            public function hideLayer(layerInfo:LayerInfo):void
+            {
+                var visibleLayers:IList;
+                if (mapLayer is ArcGISDynamicMapServiceLayer)
+                {
+                    var dynamicLayer:ArcGISDynamicMapServiceLayer = mapLayer as ArcGISDynamicMapServiceLayer;
+                    visibleLayers = dynamicLayer.visibleLayers;
+                    if (visibleLayers)
+                    {
+                        var idIndex:int = visibleLayers.getItemIndex(layerInfo.layerId);
+                        if (idIndex != -1)
+                        {
+                            visibleLayers.removeItemAt(idIndex);
+                        }
+                    }
+                    else
+                    {
+                        visibleLayers = dynamicLayer.visibleLayers = getDynamicVisibleLayers();
+                    }
+                }
+                else if (mapLayer is ArcIMSMapServiceLayer)
+                {
+                    var arcIMSLayer:ArcIMSMapServiceLayer = mapLayer as ArcIMSMapServiceLayer;
+                    visibleLayers = arcIMSLayer.visibleLayers;
+                    if (visibleLayers)
+                    {
+                        var nameIndex:int = visibleLayers.getItemIndex(layerInfo.name);
+                        if (nameIndex != -1)
+                        {
+                            visibleLayers.removeItemAt(nameIndex);
+                        }
+                    }
+                    else
+                    {
+                        visibleLayers = arcIMSLayer.visibleLayers = getArcIMSVisibleLayers();
+                    }
+                }
+                if (visibleLayers)
+                {
+                    cursorManager.setBusyCursor();
+                }
+            }
+
+            private function getDynamicVisibleLayers():IList
+            {
+                var result:ArrayList = new ArrayList();
+
+                for each (var layerInfo:LayerInfo in _layerInfos)
+                {
+                    if (layerInfo.defaultVisibility)
+                    {
+                        result.addItem(layerInfo.layerId);
+                    }
+                }
+
+                return result;
+            }
+
+            private function getArcIMSVisibleLayers():IList
+            {
+                var result:ArrayList = new ArrayList();
+
+                for each (var layerInfo:LayerInfo in _layerInfos)
+                {
+                    if (layerInfo.defaultVisibility)
+                    {
+                        result.addItem(layerInfo.name);
+                    }
+                }
+
+                return result;
+            }
+
+            private function removeBusyCursor(event:Event):void
+            {
+                cursorManager.removeBusyCursor();
+            }
+        ]]>
+    </fx:Script>
+
+    <s:columns>
+        <s:ArrayList>
+            <s:GridColumn width="70"
+                          headerText="Visibility"
+                          itemRenderer="com.esri.ags.samples.LayerVizRenderer"/>
+            <s:GridColumn dataField="name" headerText="Layer Name"/>
+        </s:ArrayList>
+    </s:columns>
+
+</s:DataGrid>

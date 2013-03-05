@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:s="library://ns.adobe.com/flex/spark"
+             xmlns:mx="library://ns.adobe.com/flex/mx">
+
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.components.TimeSlider")]
+    </fx:Metadata>
+
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="disabled"/>
+    </s:states>
+
+    <s:layout>
+        <s:HorizontalLayout verticalAlign="middle"/>
+    </s:layout>
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        .myDataTipStyle
+        {
+            fontSize: 14;
+            fontWeight: bold;
+            backgroundColor: #4C4C4C;
+            color:  #F3F3F3;
+        }
+    </fx:Style>
+    <fx:Declarations>
+        <!-- http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern() -->
+        <s:DateTimeFormatter id="dateFormatter" dateTimePattern="yyyy"/>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+            private function dataTipFormatter(value:Number):String
+            {
+                return dateFormatter.format(hostComponent.timeStops[value]);
+            }
+        ]]>
+    </fx:Script>
+
+    <!--<s:Button id="playButton"
+         enabled.disabled="false"
+         label="Play"/>
+
+         <s:Button id="pauseButton"
+         enabled.disabled="false"
+         label="Pause"/>-->
+
+    <!--<s:ToggleButton id="playPauseButton"
+         enabled.disabled="false"
+         skinClass="spark.skins.spark.mediaClasses.normal.PlayPauseButtonSkin"/>-->
+
+    <mx:HSlider id="slider"
+                width="100%"
+                dataTipFormatFunction="dataTipFormatter"
+                dataTipStyleName="myDataTipStyle"
+                enabled.disabled="false"
+                labels="[1970, 2010]"
+                showDataTip="{hostComponent.timeStops != null}"
+                showTrackHighlight="{!(hostComponent.thumbCount == 1 &amp;&amp; hostComponent.singleThumbAsTimeInstant)}"
+                tickInterval="1"/>
+
+    <!--<s:Button id="previousButton"
+         enabled.disabled="false"
+         skinClass="com.esri.ags.skins.TimeSliderPreviousButtonSkin"/>
+
+         <s:Button id="nextButton"
+         enabled.disabled="false"
+         skinClass="com.esri.ags.skins.TimeSliderNextButtonSkin"/>-->
+
+</s:SparkSkin>

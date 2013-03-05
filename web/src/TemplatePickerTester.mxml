@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               backgroundColor="0xEEEEEE"
+               initialize="application1_initializeHandler(event)"
+               pageTitle="Template Picker Testing FeatureService Layer">
+    <!--
+    Description:
+    This sample demonstrates how to create features in an editing workflow
+    using the TemplatePicker, FeatureLayer, and a feature service that supports
+    adding features.  It also shows how to change the skin or visual appearance
+    of the TemplatePicker.  Select a feature template from the list on the left
+    and click on the map to create a new feature, to change the skin of the
+    template picker click the "No Label" button below the template picker, to
+    load a different service paste the url including the layer id into the text
+    area and click the load button.
+
+    Note:
+    All the source code for the skins can be found in the ArcGIS API for Flex
+    download.  Once you unzip the api you can find the skins under the following
+    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins',
+    'ArcGIS_Flex/skins/src/com/esri/ags/skins/supportClasses'
+    and the skin assets in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    TemplatePickerSimpleSkin.mxml
+    TemplatePickerSkin.mxml
+    TemplatePickerListItemRenderer.mxml
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/TemplatePickerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/IdentityManager.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureLayerDetails.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureTemplate.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/TemplatePickerSkin.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/FillSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/LineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/MarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ProjectParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/supportClasses/SkinnableComponent.html
+    About Spark skins
+    http://help.adobe.com/en_US/flex/using/WSC8DB0C28-F7A6-48ff-9899-7957415A0A49.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/featureserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/fslayer.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_feature_service/0154000002w8000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/Using_feature_services_in_a_client_application/0154000005sq000000/
+
+    This sample also uses the following files:
+    com/esri/ags/samples/skins/MyTemplatePickerSkin.mxml
+    com/esri/ags/samples/skins/MyTemplatePickerListItemRenderer.mxml
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.events.TemplatePickerEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.layers.supportClasses.FeatureTemplate;
+            import com.esri.ags.samples.skins.MyTemplatePickerSkin;
+            import com.esri.ags.skins.TemplatePickerSkin;
+            import com.esri.ags.tasks.supportClasses.ProjectParameters;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            private static const WEB_MERCATOR_IDS:Array = [ 102100, 3857, 102113 ];
+
+            protected function myFeatureLayer_loadHandler(event:LayerEvent):void
+            {
+                // templatepicker expects layerDetails to be available (i.e. layer loaded)
+                myTemplatePicker.featureLayers = [ myFeatureLayer ];
+                if (myFeatureLayer.url != 'http://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/FeatureServer/0')
+                {
+                    zoomToLayer();
+                }
+            }
+
+            protected function myTemplatePicker_selectedTemplateChangeHandler(event:TemplatePickerEvent):void
+            {
+                if (event.selectedTemplate)
+                {
+                    switch (event.selectedTemplate.featureLayer.layerDetails.geometryType)
+                    {
+                        case Geometry.MAPPOINT:
+                        {
+                            if (event.selectedTemplate.featureLayer.renderer != null)
+                            {
+                                drawTool.markerSymbol = event.selectedTemplate.featureLayer.renderer.getSymbol(event.selectedTemplate.featureTemplate.prototype);
+                            }
+                            else if (event.selectedTemplate.featureLayer.symbol)
+                            {
+                                drawTool.markerSymbol = event.selectedTemplate.featureLayer.symbol;
+                            }
+
+                            drawTool.activate(DrawTool.MAPPOINT);
+                            break;
+                        }
+                        case Geometry.POLYLINE:
+                        {
+                            if (event.selectedTemplate.featureLayer.renderer != null)
+                            {
+                                drawTool.lineSymbol = event.selectedTemplate.featureLayer.renderer.getSymbol(event.selectedTemplate.featureTemplate.prototype);
+                            }
+                            else if (event.selectedTemplate.featureLayer.symbol)
+                            {
+                                drawTool.lineSymbol = event.selectedTemplate.featureLayer.symbol;
+                            }
+
+                            // use the drawingTool information that comes with Template
+                            if (event.selectedTemplate.featureTemplate.drawingTool)
+                            {
+                                switch (event.selectedTemplate.featureTemplate.drawingTool)
+                                {
+                                    case FeatureTemplate.TOOL_LINE:
+                                    {
+                                        drawTool.activate(DrawTool.POLYLINE);
+                                        break;
+                                    }
+                                    case FeatureTemplate.TOOL_FREEHAND:
+                                    {
+                                        drawTool.activate(DrawTool.FREEHAND_POLYLINE);
+                                        break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                drawTool.activate(DrawTool.POLYLINE);
+                            }
+                            break;
+                        }
+                        case Geometry.POLYGON:
+                        {
+                            if (event.selectedTemplate.featureLayer.renderer != null)
+                            {
+                                drawTool.fillSymbol = event.selectedTemplate.featureLayer.renderer.getSymbol(event.selectedTemplate.featureTemplate.prototype);
+                            }
+                            else if (event.selectedTemplate.featureLayer.symbol)
+                            {
+                                drawTool.fillSymbol = event.selectedTemplate.featureLayer.symbol;
+                            }
+
+                            // use the drawingTool information that comes with Template
+                            if (event.selectedTemplate.featureTemplate.drawingTool)
+                            {
+                                switch (event.selectedTemplate.featureTemplate.drawingTool)
+                                {
+                                    case FeatureTemplate.TOOL_FREEHAND:
+                                    {
+                                        drawTool.activate(DrawTool.FREEHAND_POLYGON);
+                                        break;
+                                    }
+                                    case FeatureTemplate.TOOL_POLYGON:
+                                    {
+                                        drawTool.activate(DrawTool.POLYGON);
+                                        break;
+                                    }
+                                    case FeatureTemplate.TOOL_RECTANGLE:
+                                    {
+                                        drawTool.activate(DrawTool.EXTENT);
+                                        break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                drawTool.activate(DrawTool.POLYGON);
+                            }
+                            break;
+                        }
+                    }
+
+                }
+                else // user de-selected the template
+                {
+                    drawTool.deactivate();
+                }
+            }
+
+            protected function draw_drawEndHandler(event:DrawEvent):void
+            {
+                // add features to the respective feature layers
+
+                //need this to preserve the template symbol, otherwise the line below adds the feature with the default symbol
+                //myTemplatePicker.selectedTemplate.featureLayer.applyEdits([event.graphic], null, null);
+                if (myTemplatePicker.selectedTemplate.featureTemplate)
+                {
+                    var newAtttrs:* = myTemplatePicker.selectedTemplate.featureTemplate.prototype.attributes;
+                    var newGraphic:Graphic = new Graphic(event.graphic.geometry, null, newAtttrs);
+                    myTemplatePicker.selectedTemplate.featureLayer.applyEdits([ newGraphic ], null, null);
+                }
+                else
+                {
+                    myTemplatePicker.selectedTemplate.featureLayer.applyEdits([ event.graphic ], null, null);
+                }
+            }
+
+            protected function changeFeatureLayer():void
+            {
+                myFeatureLayer.url = fURL.text;
+            }
+
+            protected function zoomToLayer():void
+            {
+                // depending on featurelayer wkid, projection might be needed
+                var layerExtent:Extent = myFeatureLayer.initialExtent;
+                if (myMap.extent.spatialReference.wkid != layerExtent.spatialReference.wkid)
+                {
+                    // convert client side.
+                    if (WEB_MERCATOR_IDS.indexOf(myMap.extent.spatialReference.wkid) != -1 && layerExtent.spatialReference.wkid == 4326)
+                    {
+                        // clip the layer extent, so it's not going to Infinity; otherwise gives an error
+                        layerExtent.xmin = Math.max(layerExtent.xmin, -180);
+                        layerExtent.xmax = Math.min(layerExtent.xmax, 180);
+                        layerExtent.ymin = Math.max(layerExtent.ymin, -89.99);
+                        layerExtent.ymax = Math.min(layerExtent.ymax, 89.99);
+                        layerExtent = WebMercatorUtil.geographicToWebMercator(layerExtent) as Extent;
+                        updateMapExtent(layerExtent);
+                    }
+                    else if (WEB_MERCATOR_IDS.indexOf(layerExtent.spatialReference.wkid) != -1 && myMap.extent.spatialReference.wkid == 4326)
+                    {
+                        layerExtent = WebMercatorUtil.webMercatorToGeographic(layerExtent) as Extent;
+                        updateMapExtent(layerExtent);
+                    }
+                    else
+                    {
+                        const projectParameters:ProjectParameters = new ProjectParameters;
+                        projectParameters.geometries = [ layerExtent ];
+                        projectParameters.outSpatialReference = myMap.extent.spatialReference
+                        geometryService.project(projectParameters);
+                    }
+                }
+                else
+                {
+                    updateMapExtent(layerExtent);
+                }
+            }
+
+            private function geometryService_projectCompleteHandler(event:GeometryServiceEvent):void
+            {
+                updateMapExtent((event.result as Array)[0] as Extent);
+            }
+
+            private function updateMapExtent(layerExtent:Extent):void
+            {
+                myMap.extent = layerExtent;
+            }
+
+            protected function myFeatureLayer_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "FeatureLayer Fault " + event.fault.faultCode);
+            }
+
+            protected function myFeatureLayer_loadErrorHandler(event:LayerEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "FeatureLayer Load Error " + event.fault.faultCode);
+            }
+
+            protected function tbb_changeHandler(event:IndexChangeEvent):void
+            {
+                myTemplatePicker.clearSelection();
+                switch (tbb.selectedItem)
+                {
+                    case "No Label":
+                    {
+                        myTemplatePicker.setStyle("skinClass", MyTemplatePickerSkin);
+                        break;
+                    }
+                    default:
+                    {
+                        myTemplatePicker.setStyle("skinClass", TemplatePickerSkin);
+                        break;
+                    }
+                }
+            }
+
+            protected function application1_initializeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:DrawTool id="drawTool"
+                       drawEnd="draw_drawEndHandler(event)"
+                       map="{myMap}"/>
+        <esri:GeometryService id="geometryService"
+                              projectComplete="geometryService_projectCompleteHandler(event)"
+                              showBusyCursor="true"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create features in an editing workflow
+            using the TemplatePicker, FeatureLayer, and a feature service that supports
+            adding features.  It also shows how to change the skin or visual appearance
+            of the TemplatePicker.  Select a feature template from the list on the left
+            and click on the map to create a new feature, to change the skin of the
+            template picker click the "No Label" button below the template picker, to
+            load a different service paste the url including the layer id into the text
+            area and click the load button.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label text="Layer in a FeatureService:"/>
+            <s:TextInput id="fURL"
+                         width="100%"
+                         enter="changeFeatureLayer()"
+                         prompt="http://myserver/arcgis/rest/services/myservice/FeatureServer/0"/>
+            <s:Button click="changeFeatureLayer()" label="Load"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:HGroup width="100%" height="100%"
+              gap="0">
+        <!-- Template picker -->
+        <s:VGroup width="195" height="100%"
+                  paddingBottom="7"
+                  paddingLeft="10"
+                  paddingTop="7">
+            <esri:TemplatePicker id="myTemplatePicker"
+                                 width="100%" height="90%"
+                                 selectedTemplateChange="myTemplatePicker_selectedTemplateChangeHandler(event)"/>
+            <s:ButtonBar id="tbb"
+                         change="tbb_changeHandler(event)"
+                         creationComplete="tbb.selectedIndex = 0">
+                <s:ArrayList>
+                    <fx:String>Default</fx:String>
+                    <fx:String>No Label</fx:String>
+                </s:ArrayList>
+            </s:ButtonBar>
+        </s:VGroup>
+        <!-- Map -->
+        <esri:Map id="myMap" height="100%">
+            <esri:extent>
+                <esri:Extent xmin="-13027042" ymin="4038608" xmax="-13001435" ymax="4052023">
+                    <esri:SpatialReference wkid="102100"/>
+                </esri:Extent>
+            </esri:extent>
+            <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+            <esri:FeatureLayer id="myFeatureLayer"
+                               fault="myFeatureLayer_faultHandler(event)"
+                               load="myFeatureLayer_loadHandler(event)"
+                               loadError="myFeatureLayer_loadErrorHandler(event)"
+                               mode="onDemand"
+                               url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/FeatureServer/0"/>
+        </esri:Map>
+    </s:HGroup>
+</s:Application>

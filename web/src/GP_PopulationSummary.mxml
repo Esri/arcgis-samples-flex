@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Population for any area">
+    <!--
+    Description:
+    This sample demonstrates how you can use a geoprocessing service to
+    expose a model that calculates the population within the area specified
+    by a user defined polygon.  The model uses the user defined polygon and then
+    uses the "Zonal Statistics" with a population grid datasource to produce the
+    Statistics Summary.  The Zonal Statistics tool is in the Zonal toolset under
+    the Spatial Analyst toolbox.  Follow the link below the "Zonal Statistics as Table"
+    reference in the documenation section of this sample for more information.
+
+    In this sample, the user defined polygon can also be generated from a point or line
+    which is accomplished by buffering the geometry before the query.
+
+    This sample also shows how to change the scale bar to only show
+    km and meters (no feet and miles) by setting the skin-class of the
+    scale bar to one of the provided alternate skins.  FYI: The source for the skin classes
+    are included in the api download under the "skins" folder.
+
+    Note:
+    One of the most important things to notice when publishing your geoprocessing service is to notice
+    the "Execution mode" in the parameters setting.  The execution mode will be either
+    "Synchronous" or "Asynchronous".  When a service is set to synchronous, the client waits for the task
+    to finish.  An asynchronous task typically takes longer to execute, and the client must periodically
+    ask the server if the task has finished and, if it has finished, get the result.  In the ArcGIS API for Flex,
+    if your service is "Synchronous" you will call the "gp.execute()" method or "gp.submitJob()" method
+    if your service is "Asynchronous".  Another important item to observe is the parameter names and types, you
+    can find out the name, case-sensitivity, and data type through exploring the service in the ArcGIS REST
+    Services Directory.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ScaleBar.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarMetricSkin.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarSkin.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/BufferParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    http://sampleserver1.arcgisonline.com/arcgisoutput/Demographics_ESRI_Population_World/PopulationSummary.htm
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/gpserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/gptask.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpexecute.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpsubmit.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpjob.html
+
+    ArcGIS for Server documentation:
+    What is a geoprocessing service?
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_geoprocessing_service/0154000004v5000000/
+    A quick tour of authoring and sharing geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/A_quick_tour_of_authoring_and_sharing_geoprocessing_services/01540000054n000000/
+    Essential vocabulary for geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/Essential_vocabulary_for_geoprocessing_services/0154000004v2000000/
+    Geoprocessing service settings: Parameters
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Parameters/01540000054v000000/
+
+    ArcGIS for Desktop documentation:
+    A quick tour of creating custom tools
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//001500000001000000
+    A quick tour of creating tools with ModelBuilder
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_ModelBuilder/00150000001t000000/
+    A quick tour of creating tools with Python
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_Python/00150000002q000000/
+    Zonal Statistics as Table
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//009z000000w8000000
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|ScaleBar
+        {
+            skin-class: ClassReference("com.esri.ags.skins.ScaleBarMetricSkin");
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.events.GeoprocessorEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.Polygon;
+            import com.esri.ags.layers.GraphicsLayer;
+            import com.esri.ags.tasks.supportClasses.BufferParameters;
+            import com.esri.ags.tools.DrawTool;
+            import com.esri.ags.utils.GeometryUtil;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.AsyncToken;
+            import mx.rpc.Fault;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            protected function indexChangeHandler(event:IndexChangeEvent):void
+            {
+                var selectedItem:Object = ButtonBar(event.currentTarget).selectedItem;
+                var selectedIndex:int = ButtonBar(event.currentTarget).selectedIndex;
+                switch (event.newIndex)
+                {
+                    case 0:
+                    {
+                        drawTool.activate(DrawTool.MAPPOINT);
+                        break;
+                    }
+                    case 1:
+                    {
+                        drawTool.activate(DrawTool.POLYLINE);
+                        break;
+                    }
+                    case 2:
+                    {
+                        drawTool.activate(DrawTool.FREEHAND_POLYLINE);
+                        break;
+                    }
+                    case 3:
+                    {
+                        drawTool.activate(DrawTool.POLYGON);
+                        break;
+                    }
+                    case 4:
+                    {
+                        drawTool.activate(DrawTool.FREEHAND_POLYGON);
+                        break;
+                    }
+                }
+            }
+
+            /* Required with a DrawEnd event.*/
+            private function onDrawEnd(event:DrawEvent):void
+            {
+                var graphic:Graphic = event.graphic;
+
+                // adding graphic to the graphics layer
+                myGraphicsLayer.add(graphic);
+
+                switch (graphic.geometry.type)
+                {
+                    case Geometry.MAPPOINT:
+                    {
+                        //bufferFeature();
+                        bufferGeometry(graphic.geometry);
+                        break;
+                    }
+                    case Geometry.POLYLINE:
+                    {
+                        //bufferFeature();
+                        GeometryUtil.normalizeCentralMeridian([ graphic.geometry ], myGeometryService, new AsyncResponder(getNormalizedGeometryFunction, faultHandler));
+                        function getNormalizedGeometryFunction(item:Object, token:Object = null):void
+                        {
+                            bufferGeometry((item as Array)[0] as Geometry);
+                        }
+                        function faultHandler(fault:Fault, asyncToken:AsyncToken):void
+                        {
+//                            for each (var responder:IResponder in asyncToken.responders)
+//                            {
+//                                responder.fault(fault);
+//                            }
+//                            dispatchEvent(new FaultEvent(FaultEvent.FAULT, false, false, fault));
+                        }
+//                        bufferGeometry(graphic.geometry);
+                        break;
+                    }
+                    case Geometry.POLYGON:
+                    {
+                        var geometryPolygon:Polygon = graphic.geometry as Polygon;
+                        myMap.centerAt(geometryPolygon.extent.center);
+                        doGP(geometryPolygon);
+                        break;
+                    }
+                }
+            }
+
+            private function bufferGeometry(geometry:Geometry):void
+            {
+                var bufferParameters:BufferParameters = new BufferParameters();
+                // Note: As of version 2.0, the GeometryService input is geometries (instead of graphics).
+                bufferParameters.geometries = [ geometry ];
+                bufferParameters.distances = [ Number(bufferDistance.text)];
+                // Note: As of version 2.0, the buffer constants have been moved to GeometryService.
+                bufferParameters.unit = GeometryService.UNIT_METER;
+                bufferParameters.outSpatialReference = myMap.spatialReference;
+
+                myGeometryService.addEventListener(GeometryServiceEvent.BUFFER_COMPLETE, bufferCompleteHandler1);
+                myGeometryService.buffer(bufferParameters);
+
+                function bufferCompleteHandler1(event:GeometryServiceEvent):void
+                {
+                    for each (var polygon:Polygon in event.result)
+                    {
+                        var graphic:Graphic = new Graphic(polygon);
+                        graphic.symbol = sfs;
+                        graphic.toolTip = "Buffered Stuff";
+                        myGraphicsLayer.add(graphic);
+                        doGP(graphic.geometry);
+                    }
+                    myGeometryService.removeEventListener(GeometryServiceEvent.BUFFER_COMPLETE, bufferCompleteHandler1);
+                }
+            }
+
+            private function doGP(thisGeometry:Geometry):void
+            {
+                this.cursorManager.setBusyCursor();
+                var inputPolyFS:FeatureSet = new FeatureSet();
+                inputPolyFS.features = [{ geometry: thisGeometry }];
+                var params:Object = { "inputPoly": inputPolyFS };
+                gp.execute(params);
+                // center on buffered feature
+                var geometryPolygon:Polygon = thisGeometry as Polygon;
+                myMap.centerAt(geometryPolygon.extent.center);
+            }
+
+            private function onGeomFault(fe:FaultEvent):void
+            {
+                this.cursorManager.removeBusyCursor();
+                if (fe.type == "fault" && fe.fault.name == "Error" && fe.fault.faultString == "Error Executing Task")
+                {
+                    Alert.show("Oops - no results.  Maybe try a smaller number.");
+                }
+                else
+                {
+                    Alert.show("Unexpected fault:\n" + fe.toString());
+                }
+            }
+
+            private function onGPFault(fe:FaultEvent):void
+            {
+                this.cursorManager.removeBusyCursor();
+                if (fe.type == "fault" && fe.fault.name == "Error" && fe.fault.faultString == "Error Executing Task")
+                {
+                    Alert.show("Oops - no results.  Maybe try a smaller number.");
+                }
+                else
+                {
+                    Alert.show("Unexpected fault:\n" + fe.toString());
+                }
+            }
+
+            private function gpResult(event:GeoprocessorEvent):void
+            {
+                this.cursorManager.removeBusyCursor();
+                // Note: As of version 2.0, the executeResult property name changed from 'parameterValues' to 'results'
+                var pop:Number = event.executeResult.results[0].value.features[0].attributes.SUM;
+                if (pop > 0)
+                {
+                    Alert.show("There are about " + myNumberFormatter.format(pop) + " people in this area.", "Population Summary");
+                }
+                else
+                {
+                    Alert.show("Nobody lives here...");
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html -->
+        <s:NumberFormatter id="myNumberFormatter"
+                           fractionalDigits="0"
+                           useGrouping="true"/>
+
+        <!-- Symbol for Polyline and FreeHand_Polyline -->
+        <esri:SimpleLineSymbol id="sls"
+                               width="1"
+                               alpha="1"
+                               color="0xFF0000"
+                               style="dash"/>
+
+        <!-- Symbol for Point -->
+        <esri:SimpleMarkerSymbol id="sms"
+                                 color="0xFF0000"
+                                 size="10"
+                                 style="square">
+            <esri:SimpleLineSymbol width="2" color="0x00FF00"/>
+        </esri:SimpleMarkerSymbol>
+
+        <!-- Symbol for Polygon -->
+        <esri:SimpleFillSymbol id="sfs" alpha="0.8">
+            <esri:SimpleLineSymbol width="4"
+                                   alpha="1"
+                                   color="#FF0000"
+                                   style="solid"/>
+        </esri:SimpleFillSymbol>
+
+        <esri:DrawTool id="drawTool"
+                       drawEnd="onDrawEnd(event)"
+                       fillSymbol="{sfs}"
+                       lineSymbol="{sls}"
+                       map="{myMap}"
+                       markerSymbol="{sms}"/>
+        <esri:GeometryService id="myGeometryService"
+                              fault="onGeomFault(event)"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+        <esri:Geoprocessor id="gp"
+                           executeComplete="gpResult(event)"
+                           fault="onGPFault(event)"
+                           outSpatialReference="{myMap.spatialReference}"
+                           processSpatialReference="{myMap.spatialReference}"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Population_World/GPServer/PopulationSummary"
+                           useAMF="false"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use a geoprocessing service to
+            expose a model that calculates the population within the area specified
+            by a user defined polygon.  The model uses the user defined polygon and then
+            uses the "Zonal Statistics" with a population grid datasource to produce the
+            Statistics Summary.  First select one of the sketch tools from the list below,
+            then click/draw on the map, wait for the population summary to be displayed.
+        </s:RichText>
+        <s:ButtonBar change="indexChangeHandler(event)">
+            <s:ArrayList>
+                <fx:Object icon="@Embed(source='/assets/measure-point.png')" label=""/>
+                <fx:Object icon="@Embed(source='/assets/measure-line.png')" label=""/>
+                <fx:Object icon="@Embed(source='/assets/measure-line.png')" label="FreeHand"/>
+                <fx:Object icon="@Embed(source='/assets/measure-poly.png')" label=""/>
+                <fx:Object icon="@Embed(source='/assets/measure-poly.png')" label="FreeHand"/>
+            </s:ArrayList>
+        </s:ButtonBar>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label text="Buffer distance when using (points and lines):"/>
+            <s:TextInput id="bufferDistance"
+                         width="45"
+                         maxChars="4"
+                         text="3000"
+                         textAlign="right"/>
+            <s:Label text=" meters."/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" wrapAround180="true">
+        <esri:lods>
+            <esri:LOD level="0"
+                      resolution="156543.033928"
+                      scale="591657527.591555"/>
+            <esri:LOD level="1"
+                      resolution="78271.5169639999"
+                      scale="295828763.795777"/>
+            <esri:LOD level="2"
+                      resolution="39135.7584820001"
+                      scale="147914381.897889"/>
+            <esri:LOD level="3"
+                      resolution="19567.8792409999"
+                      scale="73957190.948944"/>
+            <esri:LOD level="4"
+                      resolution="9783.93962049996"
+                      scale="36978595.474472"/>
+            <esri:LOD level="5"
+                      resolution="4891.96981024998"
+                      scale="18489297.737236"/>
+            <esri:LOD level="6"
+                      resolution="2445.98490512499"
+                      scale="9244648.868618"/>
+            <esri:LOD level="7"
+                      resolution="1222.99245256249"
+                      scale="4622324.434309"/>
+            <esri:LOD level="8"
+                      resolution="611.49622628138"
+                      scale="2311162.217155"/>
+            <esri:LOD level="9"
+                      resolution="305.748113140558"
+                      scale="1155581.108577"/>
+        </esri:lods>
+        <esri:extent>
+            <esri:WebMercatorExtent minlon="12.6" minlat="55.3" maxlon="13.1" maxlat="55.7"/>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+
+</s:Application>

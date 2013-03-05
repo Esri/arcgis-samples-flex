@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Example - Reading Map Parameters from the URL">
+    <!--
+    Description:
+    This sample demonstrates how to use URL parameters passed into an
+    application. The sample looks for the "ll" (latlong) and "scale
+    parameters; if any of those parameters are found, the map will
+    be adjusted accordingly.
+
+    For example, http://example/ReadURL.html?ll=37.063,-95.677&scale=500000
+
+    Since the base map is in WebMercator projection, the "ll" parameter
+    will be converted from latlong to WebMercator.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html#center
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/external/ExternalInterface.html
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import mx.controls.Alert;
+
+            private function createPermalink():void
+            {
+                var currentCenter:MapPoint = WebMercatorUtil.webMercatorToGeographic(myMap.extent.center) as MapPoint;
+                navigateToURL(new URLRequest(
+                              "ReadURL.swf?ll="
+                              + myDegreeFormatter.format(currentCenter.y)
+                              + ","
+                              + myDegreeFormatter.format(currentCenter.x)
+                              + "&scale="
+                              + Math.round(myMap.scale)), "_blank");
+            }
+
+            private function getURLParameters():Object
+            {
+                var result:URLVariables = new URLVariables();
+
+                try
+                {
+                    if (ExternalInterface.available)
+                    {
+                        // Use JavaScript to get the search string from the current browser location.
+                        // Use substring() to remove leading '?'.
+                        // See http://livedocs.adobe.com/flex/3/langref/flash/external/ExternalInterface.html
+                        var search:String = ExternalInterface.call("location.search.substring", 1);
+                        if (search && search.length > 0)
+                        {
+                            result.decode(search);
+                        }
+                    }
+                }
+                catch (error:Error)
+                {
+                    Alert.show(error.toString());
+                }
+
+                return result;
+            }
+
+            private function setMapLocation():void
+            {
+                var params:Object = getURLParameters();
+                if (params["ll"])
+                {
+                    var latlong:Array = String(params.ll).split(",");
+                    if (latlong.length == 2)
+                    {
+                        myMap.centerAt(WebMercatorUtil.geographicToWebMercator(new MapPoint(latlong[1], latlong[0])) as MapPoint);
+                    }
+                }
+                if (params["scale"])
+                {
+                    myMap.scale = params.scale;
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:NumberFormatter id="myDegreeFormatter"
+                           fractionalDigits="6"
+                           trailingZeros="true"
+                           useGrouping="true"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use URL parameters passed into an
+            application. The sample looks for the "ll" (latlong) and "scale
+            parameters; if any of those parameters are found, the map will
+            be adjusted accordingly.  Here we are passing along the current
+            map center and scale, in essence creating a permalink you can share
+            with others.  Navigate to a geographic location of your choice,
+            then click the button below to create a permalink (launches
+            a new window).
+        </s:RichText>
+        <s:Button click="createPermalink()"
+                  fontWeight="bold"
+                  label="Create permalink"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              load="setMapLocation()"
+              wrapAround180="true">
+        <esri:extent>
+            <esri:Extent xmin="-25623917" ymin="-13626628" xmax="26817999" ymax="16429635">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>

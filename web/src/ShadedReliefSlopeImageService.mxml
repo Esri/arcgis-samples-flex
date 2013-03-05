@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Raster functions with ArcGISImageServiceLayer">
+    <!--
+    Description:
+    This sample demonstrates how to add an ArcGISImageServiceLayer and apply a rendering rule
+    to dynamically modify the display of the raster dataset. Rendering rules are created
+    using a pre-defined set of raster functions contained in the ArcGIS REST API.
+    This specific sample shows how to work with the ShadedRelief and Slope raster functions.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISImageServiceLayer.html#renderingRule
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html#arguments
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html#functionName
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?imageserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?israsterfunctions.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Key_concepts_for_image_services/0154000003v2000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Image_service_parameters/015400000524000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Server_side_processing_with_raster_functions/0154000003w6000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.MapEvent;
+
+            [Bindable]
+            private var rasterArgs:Object;
+
+            private function map_loadHandler(event:MapEvent):void
+            {
+                // Start with tiledLayer as the base layer to set the map's units and lods,
+                // but we actually want the imageLayer on the bottom,
+                // so we re-order once map is loaded :)
+                map.reorderLayer(imageLayer.id, 0);
+            }
+
+            private function apply_clickHandler(event:MouseEvent):void
+            {
+                rasterArgs = {};
+                if (rasterType.selectedValue == "ShadedRelief")
+                {
+                    rasterArgs["Azimuth"] = azimuth.text ? Number(azimuth.text) : 0;
+                    rasterArgs["Altitude"] = altitude.text ? Number(altitude.text) : 0;
+
+                    if (colorMap.selected)
+                    {
+                        rasterArgs["Colormap"] = createColorMap();
+                    }
+                    else
+                    {
+                        rasterFunction.functionName = "Hillshade";
+                    }
+                }
+                rasterArgs["ZFactor"] = zFactor.text ? Number(zFactor.text) : 0;
+
+                imageLayer.renderingRule = rasterFunction;
+            }
+
+            private function createColorMap():Array
+            {
+                var result:Array;
+
+                result = new Array(
+                    [ 0, 175, 240, 233 ],
+                    [ 3, 175, 240, 222 ],
+                    [ 7, 177, 242, 212 ],
+                    [ 11, 177, 242, 198 ],
+                    [ 15, 176, 245, 183 ],
+                    [ 19, 185, 247, 178 ],
+                    [ 23, 200, 247, 178 ],
+                    [ 27, 216, 250, 177 ],
+                    [ 31, 232, 252, 179 ],
+                    [ 35, 248, 252, 179 ],
+                    [ 39, 238, 245, 162 ],
+                    [ 43, 208, 232, 135 ],
+                    [ 47, 172, 217, 111 ],
+                    [ 51, 136, 204, 88 ],
+                    [ 55, 97, 189, 66 ],
+                    [ 59, 58, 176, 48 ],
+                    [ 63, 32, 161, 43 ],
+                    [ 67, 18, 148, 50 ],
+                    [ 71, 5, 133, 58 ],
+                    [ 75, 30, 130, 62 ],
+                    [ 79, 62, 138, 59 ],
+                    [ 83, 88, 145, 55 ],
+                    [ 87, 112, 153, 50 ],
+                    [ 91, 136, 158, 46 ],
+                    [ 95, 162, 166, 41 ],
+                    [ 99, 186, 171, 34 ],
+                    [ 103, 212, 178, 25 ],
+                    [ 107, 237, 181, 14 ],
+                    [ 111, 247, 174, 2 ],
+                    [ 115, 232, 144, 2 ],
+                    [ 119, 219, 118, 2 ],
+                    [ 123, 204, 93, 2 ],
+                    [ 127, 191, 71, 2 ],
+                    [ 131, 176, 51, 2 ],
+                    [ 135, 163, 34, 2 ],
+                    [ 139, 148, 21, 1 ],
+                    [ 143, 135, 8, 1 ],
+                    [ 147, 120, 5, 1 ],
+                    [ 151, 117, 14, 2 ],
+                    [ 155, 117, 22, 5 ],
+                    [ 159, 115, 26, 6 ],
+                    [ 163, 112, 31, 7 ],
+                    [ 167, 112, 36, 8 ],
+                    [ 171, 110, 37, 9 ],
+                    [ 175, 107, 41, 11 ],
+                    [ 179, 107, 45, 12 ],
+                    [ 183, 105, 48, 14 ],
+                    [ 187, 115, 61, 28 ],
+                    [ 191, 122, 72, 40 ],
+                    [ 195, 133, 86, 57 ],
+                    [ 199, 140, 99, 73 ],
+                    [ 203, 148, 111, 90 ],
+                    [ 207, 153, 125, 109 ],
+                    [ 213, 163, 148, 139 ],
+                    [ 217, 168, 163, 160 ],
+                    [ 223, 179, 179, 179 ],
+                    [ 227, 189, 189, 189 ],
+                    [ 231, 196, 196, 196 ],
+                    [ 235, 207, 204, 207 ],
+                    [ 239, 217, 215, 217 ],
+                    [ 243, 224, 222, 224 ],
+                    [ 247, 235, 232, 235 ],
+                    [ 251, 245, 242, 245 ],
+                    [ 255, 255, 252, 255 ]);
+
+                return result;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:RadioButtonGroup id="rasterType"/>
+        <esri:RasterFunction id="rasterFunction"
+                             arguments="{rasterArgs}"
+                             functionName="{rasterType.selectedValue}"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add an ArcGISImageServiceLayer and apply a rendering rule
+            to dynamically modify the display of the raster dataset. Rendering rules are created
+            using a pre-defined set of raster functions contained in the ArcGIS REST API.
+            This specific sample shows how to work with the ShadedRelief and Slope raster functions.
+            Choose the shaded relief or slope raster function, define the input properties, and
+            click apply to display the changes.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map" load="map_loadHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13252697" ymin="4334986" xmax="-13035597" ymax="4441723">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer"/>
+        <esri:ArcGISImageServiceLayer id="imageLayer"
+                                      imageFormat="jpgpng"
+                                      url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/CaliforniaDEM/ImageServer"/>
+    </esri:Map>
+
+    <s:Panel width="240"
+             right="20" top="20"
+             backgroundColor="0xEEEEEE"
+             title="Shaded Relief / Slope Properties">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+        <s:HGroup gap="15">
+            <s:RadioButton groupName="rasterType"
+                           label="Shaded Relief"
+                           selected="true"
+                           value="ShadedRelief"/>
+            <s:RadioButton groupName="rasterType"
+                           label="Slope"
+                           value="Slope"/>
+        </s:HGroup>
+        <s:HGroup width="100%"
+                  enabled="{rasterType.selectedValue == 'ShadedRelief'}"
+                  paddingTop="5"
+                  verticalAlign="middle">
+            <s:Label text="Azimuth :"/>
+            <s:TextInput id="azimuth"
+                         width="50"
+                         text="215.0"/>
+        </s:HGroup>
+        <s:HGroup width="100%"
+                  enabled="{rasterType.selectedValue == 'ShadedRelief'}"
+                  verticalAlign="middle">
+            <s:Label text="Altitude :"/>
+            <s:TextInput id="altitude"
+                         width="40"
+                         text="60.0"/>
+        </s:HGroup>
+        <s:HGroup width="100%" verticalAlign="middle">
+            <s:Label text="ZFactor :"/>
+            <s:TextInput id="zFactor"
+                         width="40"
+                         text="3.2"/>
+        </s:HGroup>
+        <s:CheckBox id="colorMap"
+                    enabled="{rasterType.selectedValue == 'ShadedRelief'}"
+                    label="Use Color Map"
+                    selected="{rasterType.selectedValue == 'ShadedRelief'}"/>
+        <s:Button id="apply"
+                  width="100%"
+                  click="apply_clickHandler(event)"
+                  label="Apply"/>
+    </s:Panel>
+</s:Application>

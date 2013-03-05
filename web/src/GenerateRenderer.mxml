@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Example - Generate Renderer">
+    <!--
+    Description:
+    This sample demonstrates functionality available at ArcGIS 10.1 which allows you to ask the server to generate a renderer
+    that can then be used to dynamically alter a map service (Service must report "Supports Dynamic Layers: true").
+    At ArcGIS 10.1 we can ask the server to generate rendering information,
+    and we can also dynamically change the map service at runtime by overwriting the default symbology of a service.
+
+    We get the details of the map service by using the DetailsTask, at which point we look for the layer 'states', and create our
+    ClassBreaksDefinition.  Next ask the server to generate the renderer using the specified GenerateRendererParameters.  Finally, upon
+    success we apply the renderer to the dynamic map service's layerDrawingOptions property.
+    Benefits: You don't have to generate the renderer client side, you can change the service on the fly.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GenerateRendererEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DetailsEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/DynamicLayerInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDetails.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerMapSource.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GenerateRendererTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ClassBreaksDefinition.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/GenerateRendererParameters.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html
+    http://resources.arcgis.com/en/help/rest/apiref/ms_dyn_generaterenderer.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_dynamic_layers/0154000004zv000000/
+
+    This sample also uses the following files:
+    com/esri/ags/samples/skins/GRLegendSkin
+    com/esri/ags/samples/skins/supportClasses/GRLegendGroupItemRenderer
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.DetailsEvent;
+            import com.esri.ags.events.GenerateRendererEvent;
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.supportClasses.AllDetails;
+            import com.esri.ags.layers.supportClasses.DynamicLayerInfo;
+            import com.esri.ags.layers.supportClasses.LayerDetails;
+            import com.esri.ags.layers.supportClasses.LayerDrawingOptions;
+            import com.esri.ags.layers.supportClasses.LayerMapSource;
+            import com.esri.ags.renderers.ClassBreaksRenderer;
+            import com.esri.ags.tasks.supportClasses.ClassBreaksDefinition;
+            import com.esri.ags.tasks.supportClasses.GenerateRendererParameters;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            private var dynamicLayerInfosArr:Array;
+            private var layerMapSource:LayerMapSource;
+            private var generateRendererParams:GenerateRendererParameters = new GenerateRendererParameters();
+            private var classBreaksDefinition:ClassBreaksDefinition = new ClassBreaksDefinition();
+
+            private var layerDetailsArr:Array = [];
+            private var _breakCount:Number = 9;
+            private var _classificationMethod:String = ClassBreaksDefinition.CLASSIFY_QUANTILE;
+            private var _classificationField:String = "POP07_SQMI";
+
+            protected function demographicsLayer_loadHandler(event:LayerEvent):void
+            {
+                dynamicLayerInfosArr = demographicsLayer.createDynamicLayerInfosFromLayerInfos();
+                detailsTask.getAllDetails();
+            }
+
+            protected function detailsTask_getAllDetailsCompleteHandler(event:DetailsEvent):void
+            {
+                var details:AllDetails = event.allDetails;
+                layerDetailsArr = details.layersDetails;
+                var layerDetails:LayerDetails;
+
+                for (var i:int = 0; i < layerDetailsArr.length; i++)
+                {
+                    layerDetails = layerDetailsArr[i];
+                    if (layerDetails.name.toLowerCase() == "states" && dynamicLayerInfosArr)
+                    {
+                        layerMapSource = DynamicLayerInfo(dynamicLayerInfosArr[i]).source as LayerMapSource;
+                        generateRendererTask.source = layerMapSource;
+                        classBreaksDefinition.breakCount = _breakCount;
+                        classBreaksDefinition.classificationField = _classificationField;
+                        classBreaksDefinition.classificationMethod = _classificationMethod;
+                        classBreaksDefinition.colorRamp = colorRamp;
+                        generateRendererParams.classificationDefinition = classBreaksDefinition;
+                        generateRendererTask.execute(generateRendererParams);
+                    }
+                }
+            }
+
+            protected function esriService_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+            }
+
+            protected function generateRendererTask_executeCompleteHandler(event:GenerateRendererEvent):void
+            {
+                var renderer:ClassBreaksRenderer = event.renderer as ClassBreaksRenderer;
+                var layerDrawingOptions:LayerDrawingOptions = new LayerDrawingOptions();
+                layerDrawingOptions.layerId = layerMapSource.mapLayerId; //states layer id in the service
+                layerDrawingOptions.renderer = renderer;
+                demographicsLayer.alpha = 0.7;
+                var layerDrawingOptionsArr:Array = [ layerDrawingOptions ];
+                demographicsLayer.layerDrawingOptions = layerDrawingOptionsArr;
+                legend.refresh(); // refresh the legend component to keep in-sync
+            }
+
+            protected function classification_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedItem:Object = DropDownList(event.currentTarget).selectedItem;
+                _classificationMethod = selectedItem.data;
+                generateRenderer();
+            }
+
+            protected function numberOfClassBreaks_changeHandler(event:Event):void
+            {
+                _breakCount = NumericStepper(event.currentTarget).value;
+                generateRenderer();
+            }
+
+            protected function generateRenderer():void
+            {
+                classBreaksDefinition.breakCount = _breakCount;
+                classBreaksDefinition.classificationMethod = _classificationMethod;
+                generateRendererParams.classificationDefinition = classBreaksDefinition;
+                classBreaksDefinition.colorRamp = colorRamp;
+                generateRendererTask.execute(generateRendererParams);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:DetailsTask id="detailsTask"
+                          fault="esriService_faultHandler(event)"
+                          getAllDetailsComplete="detailsTask_getAllDetailsCompleteHandler(event)"
+                          url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer"/>
+        <esri:GenerateRendererTask id="generateRendererTask"
+                                   executeComplete="generateRendererTask_executeCompleteHandler(event)"
+                                   fault="esriService_faultHandler(event)"
+                                   url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/3"/>
+        <esri:AlgorithmicColorRamp id="colorRamp"
+                                   algorithm="esriHSVAlgorithm"
+                                   fromColor="0x16A718"
+                                   toColor="0xCC0000"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates functionality available at ArcGIS 10.1 which allows you to ask the server to generate a renderer
+            that can then be used to dynamically alter a map service (Service must report "Supports Dynamic Layers: true").
+            At ArcGIS 10.1 we can ask the server to generate rendering information,
+            and we can also dynamically change the map service at runtime by overwriting the default symbology of a service.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="demographicsLayer" name="Population 2007"
+                                           load="demographicsLayer_loadHandler(event)"
+                                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayList>
+                    <fx:Number>3</fx:Number>
+                    <!-- Only show the states layer -->
+                </s:ArrayList>
+            </esri:visibleLayers>
+        </esri:ArcGISDynamicMapServiceLayer>
+        <esri:extent>
+            <esri:Extent xmin="-16971000" ymin="615000" xmax="-4448000" ymax="8110000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+    </esri:Map>
+    <s:Group width="210" height="300"
+             right="5" top="20">
+        <s:RectangularDropShadow left="0" right="0" top="0" bottom="0"
+                                 alpha="1"
+                                 angle="90"
+                                 blRadius="5"
+                                 blurX="6"
+                                 blurY="6"
+                                 brRadius="5"
+                                 color="#000000"
+                                 distance="1"
+                                 tlRadius="5"
+                                 trRadius="5"/>
+        <s:Rect left="0" right="0" top="0" bottom="0"
+                radiusX="5"
+                radiusY="5">
+            <s:fill>
+                <s:SolidColor alpha="0.7" color="0xC5C5C9"/>
+            </s:fill>
+        </s:Rect>
+        <s:VGroup width="100%"
+                  left="5" top="5"
+                  gap="10"
+                  paddingBottom="5"
+                  paddingLeft="5"
+                  paddingRight="5"
+                  paddingTop="10">
+            <s:HGroup width="100%"
+                      gap="5"
+                      verticalAlign="middle">
+                <s:Label color="0x4B4947" text="Classification"/>
+                <s:DropDownList width="100%"
+                                change="classification_changeHandler(event)"
+                                requireSelection="true"
+                                selectedIndex="1">
+                    <s:dataProvider>
+                        <s:ArrayList>
+                            <fx:Object data="{ClassBreaksDefinition.CLASSIFY_NATURAL_BREAKS}" label="Natural Breaks"/>
+                            <fx:Object data="{ClassBreaksDefinition.CLASSIFY_QUANTILE}" label="Quantile"/>
+                        </s:ArrayList>
+                    </s:dataProvider>
+                </s:DropDownList>
+            </s:HGroup>
+            <s:HGroup gap="5" verticalAlign="middle">
+                <s:Label color="0x4B4947" text="Class Breaks"/>
+                <s:NumericStepper id="numberOfClassBreaks"
+                                  change="numberOfClassBreaks_changeHandler(event)"
+                                  maximum="11"
+                                  minimum="5"
+                                  value="9"/>
+            </s:HGroup>
+            <s:Scroller width="100%" height="200">
+                <s:VGroup>
+                    <esri:Legend id="legend"
+                                 left="5" right="5" top="5" bottom="5"
+                                 layers="{[demographicsLayer]}"
+                                 map="{map}"
+                                 skinClass="com.esri.ags.samples.skins.GRLegendSkin"
+                                 visible="{demographicsLayer.loaded}"/>
+                </s:VGroup>
+            </s:Scroller>
+        </s:VGroup>
+    </s:Group>
+</s:Application>

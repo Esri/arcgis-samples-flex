@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:mx="library://ns.adobe.com/flex/mx"
+        initialize="this_initializeHandler(event)">
+
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.components.TemplatePicker")]
+    </fx:Metadata>
+
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="loading"/>
+        <s:State name="disabled"/>
+    </s:states>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.components.supportClasses.Template;
+
+            import mx.binding.utils.ChangeWatcher;
+            import mx.collections.ArrayCollection;
+            import mx.controls.Label;
+            import mx.events.FlexEvent;
+
+            import spark.components.List;
+            import spark.events.IndexChangeEvent;
+            import spark.layouts.TileLayout;
+
+            private var _changeWatcher:ChangeWatcher;
+            private var _templateCollectionChanged:Boolean;
+            private var _selectedTemplateChanged:Boolean;
+            private var _skinSelectedTemplate:Template;
+            private var _currentList:List;
+
+            private var _selectedTemplateChangeWatcher:ChangeWatcher;
+            private var _myTemplatePickerListItemRenderer:ClassFactory = new ClassFactory(MyTemplatePickerListItemRenderer);
+            private var _itemRenderer:MyTemplatePickerListItemRenderer = new MyTemplatePickerListItemRenderer;
+
+            private function this_initializeHandler(event:FlexEvent):void
+            {
+                _changeWatcher = ChangeWatcher.watch(hostComponent, "templateCollection", templateCollectionChangeHandler);
+                _selectedTemplateChangeWatcher = ChangeWatcher.watch(hostComponent, "selectedTemplate", selectTemplateChangeWatcher);
+            }
+
+            private function templateCollectionChangeHandler(event:Event = null):void
+            {
+                invalidateProperties();
+                _templateCollectionChanged = true;
+            }
+
+            private function selectTemplateChangeWatcher(event:Event = null):void
+            {
+                invalidateProperties();
+                _selectedTemplateChanged = true;
+            }
+
+            override protected function commitProperties():void
+            {
+                super.commitProperties();
+
+                if (_templateCollectionChanged)
+                {
+                    _templateCollectionChanged = false;
+
+                    //First remove everything from the group
+                    vGrp.removeAllElements();
+
+                    //create list and label for each featureLayer
+                    for (var i:Number = 0; i < hostComponent.templateCollection.length; i++)
+                    {
+                        var featureLayerLabel:Label = new Label;
+                        featureLayerLabel.text = hostComponent.templateCollection[i].featureLayer.layerDetails.name;
+
+                        // style
+                        featureLayerLabel.setStyle("textDecoration", "underline");
+                        featureLayerLabel.setStyle("fontWeight", "bold");
+                        featureLayerLabel.setStyle("fontSize", 14);
+
+                        vGrp.addElement(featureLayerLabel);
+
+                        var templateList:List = new List;
+
+                        templateList.addEventListener(IndexChangeEvent.CHANGE, listChangeHandler, false, -1, true);
+                        templateList.dataProvider = new ArrayCollection(hostComponent.templateCollection[i].selectedTemplates);
+                        templateList.itemRenderer = _myTemplatePickerListItemRenderer;
+
+                        // style and layout
+                        templateList.setStyle("borderVisible", false);
+                        //changes the background color of the list from white to gray
+                        templateList.setStyle("contentBackgroundColor", 0xEEEEEE);
+                        const tileLayout:TileLayout = new TileLayout();
+                        tileLayout.verticalGap = 0;
+                        tileLayout.horizontalGap = 0;
+                        templateList.layout = tileLayout;
+
+                        vGrp.addElement(templateList);
+
+                    }
+                    invalidateDisplayList();
+                    selectTemplatFromList();
+                }
+
+                if (_selectedTemplateChanged)
+                {
+                    _selectedTemplateChanged = false;
+                    selectTemplatFromList()
+                }
+            }
+
+            override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+            {
+                super.updateDisplayList(unscaledWidth, unscaledHeight);
+
+                var templatesPerList:int;
+
+                var templatesPerRow:int = Math.floor(hostComponent.width / _itemRenderer.width);
+                templatesPerRow = Math.floor(hostComponent.width / _itemRenderer.width) < templatesPerRow ? templatesPerRow - 1 : templatesPerRow;
+
+                for (var i:Number = 0; i < vGrp.numElements; i++)
+                {
+                    if (vGrp.getElementAt(i) is List)
+                    {
+                        List(vGrp.getElementAt(i)).percentWidth = 100;
+
+                        templatesPerList = List(vGrp.getElementAt(i)).dataProvider.length;
+
+                        if (templatesPerList <= templatesPerRow)
+                        {
+                            List(vGrp.getElementAt(i)).height = _itemRenderer.height;
+                        }
+                        else
+                        {
+                            List(vGrp.getElementAt(i)).height = Math.ceil(templatesPerList / templatesPerRow) * (_itemRenderer.height);
+                        }
+                    }
+                }
+                vGrp.invalidateSize();
+            }
+
+            private function selectTemplatFromList():void
+            {
+                if (!hostComponent.templateCollection)
+                {
+                    // Do nothing -  as there is no collection.
+                }
+                else if (hostComponent.selectedTemplate == _skinSelectedTemplate)
+                {
+                    // Do nothing -  as the template is already selected and is same as hostComponent.selectedTemplate.
+                }
+                else if (!hostComponent.selectedTemplate)
+                {
+                    // clear selection is called
+                    _skinSelectedTemplate = null;
+                    for (var i:Number = 0; i < vGrp.numElements; i++)
+                    {
+                        if (vGrp.getElementAt(i) is List)
+                        {
+                            if (List(vGrp.getElementAt(i)).selectedIndex != -1)
+                            {
+                                List(vGrp.getElementAt(i)).selectedIndex = -1;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (var k:Number = 0; k < vGrp.numElements; k++)
+                    {
+                        if (vGrp.getElementAt(k) is List)
+                        {
+                            for (var n:Number = 0; n < List(vGrp.getElementAt(k)).dataProvider.length; n++)
+                            {
+                                if ((List(vGrp.getElementAt(k)).dataProvider.getItemAt(n).featureLayer === hostComponent.selectedTemplate.featureLayer) &&
+                                    (List(vGrp.getElementAt(k)).dataProvider.getItemAt(n).featureType === hostComponent.selectedTemplate.featureType) &&
+                                    (List(vGrp.getElementAt(k)).dataProvider.getItemAt(n).featureTemplate === hostComponent.selectedTemplate.featureTemplate))
+                                {
+                                    List(vGrp.getElementAt(k)).selectedIndex = n;
+                                    _skinSelectedTemplate = hostComponent.selectedTemplate;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            private function listChangeHandler(event:IndexChangeEvent):void
+            {
+                vGrp.removeEventListener(MouseEvent.MOUSE_DOWN, vGrp_mouseDownHandler);
+                callLater(addListener);
+
+                if (event.newIndex != -1)
+                {
+                    _currentList = List(event.target);
+
+                    _skinSelectedTemplate = List(event.target).selectedItem;
+                    hostComponent.selectedTemplate = _skinSelectedTemplate;
+
+                    for (var i:Number = 0; i < vGrp.numElements; i++)
+                    {
+                        if (vGrp.getElementAt(i) is List)
+                        {
+                            if (List(vGrp.getElementAt(i)) !== _currentList)
+                            {
+                                List(vGrp.getElementAt(i)).selectedIndex = -1;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // no template selected
+                    if (hostComponent.selectedTemplate)
+                    {
+                        for (var j:Number = 0; j < vGrp.numElements; j++)
+                        {
+                            if (vGrp.getElementAt(j) is List)
+                            {
+                                // user deselected template on the list
+                                if (List(event.target) === _currentList)
+                                {
+                                    _skinSelectedTemplate = null;
+                                    hostComponent.selectedTemplate = null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            private function addListener():void
+            {
+                vGrp.addEventListener(MouseEvent.MOUSE_DOWN, vGrp_mouseDownHandler);
+            }
+
+            private function vGrp_mouseDownHandler(event:MouseEvent):void
+            {
+                if (event.target is MyTemplatePickerListItemRenderer)
+                {
+                    if (hostComponent.selectedTemplate && List(MyTemplatePickerListItemRenderer(event.target).owner).selectedItem == hostComponent.selectedTemplate) // shows a template already selected, hence clear selection
+                    {
+                        hostComponent.clearSelection();
+                    }
+                }
+                else
+                {
+                    hostComponent.clearSelection();
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <s:Rect width="100%" height="100%"
+            excludeFrom="loading">
+        <s:fill>
+            <s:SolidColor color="0xEEEEEE"/>
+        </s:fill>
+    </s:Rect>
+    <s:Rect width="40" height="40"
+            horizontalCenter="0"
+            includeIn="loading"
+            radiusX="5"
+            radiusY="5"
+            verticalCenter="0">
+        <s:fill>
+            <s:SolidColor color="gray"/>
+        </s:fill>
+    </s:Rect>
+    <mx:SWFLoader width="30" height="30"
+                  autoLoad="true"
+                  horizontalCenter="0"
+                  includeIn="loading"
+                  scaleContent="true"
+                  source="@Embed(source='/assets/loader.swf')"
+                  verticalCenter="0"/>
+
+    <s:Scroller width="100%" height="100%"
+                enabled.disabled="true"
+                enabled.normal="true"
+                excludeFrom="loading"
+                focusEnabled="false"
+                hasFocusableChildren="true"
+                horizontalScrollPolicy="auto"
+                verticalScrollPolicy="auto">
+        <s:VGroup id="vGrp"
+                  width="100%" height="100%"/>
+    </s:Scroller>
+
+</s:Skin>

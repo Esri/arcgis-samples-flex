@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="application_initializeHandler(event)"
+               pageTitle="Draw and Measure lines">
+    <!--
+    Description:
+    This sample demonstrates how to measure line distances correctly
+    using the geodesic measurement property of the GeometryService which
+    was added at ArcGIS 10 for Server.
+    Click and hold down on the map to draw a line that will be added to the map.
+    The application will then use the geometry service to calculate the length of the line.
+
+    ArcGIS Server 10 adds support for geodesic measurement.
+
+    With earlier versions of ArcGIS Server, the "geodesic" property cannot be used.
+    The "9.3" solution depends on which coordinate system is being using.
+    If the map uses a geographic coordinate system, the line needs to be projected
+    into the desired projected coordinate system for calculating the line length.
+    The geometry service can be used to do the projection.
+
+    With ArcGIS Server 10, the geodesic property can be used for easier measurements.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polyline.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#lengths()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#event:lengthsComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/CalculationType.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/LengthsParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/LengthsParameters.html#geodesic
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/DataRenderer.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/lengths.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_the_geometry_service/0154000004n5000000/
+
+    ArcGIS for Desktop documentation:
+    About geodetic features
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//01m70000003q000000
+    Measuring distances and areas
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//00s500000022000000
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.geometry.Polyline;
+            import com.esri.ags.tasks.supportClasses.CalculationType;
+            import com.esri.ags.tasks.supportClasses.LengthsParameters;
+
+            import mx.events.FlexEvent;
+
+            [Bindable]
+            private var latestEndpoint:MapPoint;
+
+            private function application_initializeHandler(event:FlexEvent):void
+            {
+                drawTool.activate(DrawTool.FREEHAND_POLYLINE);
+            }
+
+            private function drawEndHandler(event:DrawEvent):void
+            {
+                var drawnLine:Polyline = Polyline(event.graphic.geometry);
+
+                var lengthsParameters:LengthsParameters = new LengthsParameters();
+                /*
+                * Note:
+                * Starting ArcGIS 10.1 for Server, the geodesic property
+                * is deprecated, use the calculationType parameter instead.
+                */
+
+                //lengthsParameters.geodesic = true;
+
+                /*
+                * "planar": Planar measurements use 2D Cartesian mathematics to
+                * calculate length. This type should only be used if the length
+                * needs to be calculated in the given spatial reference
+                * otherwise use "preserveShape".
+                *
+                * "geodesic": Use this type if you want to calculate the length
+                * using only the vertices of the polyline and define the lines
+                * between the points as geodesic segements independent of the
+                * actual shape of the polyline. A geodesic segment is the
+                * shortest path between two points on an ellipsoid.
+
+                * "preserveShape": This type calculates the length of the geometry
+                * on the surface of the Earth ellipsoid, for geometry defined in
+                * projected or geographic coordinate system. This method preserves
+                * the shape of the geometry in its coordinate system. This means the
+                * true length will be calculated for the geometry you see in the map.
+                * (What you see is what you get.)
+                */
+                lengthsParameters.calculationType = CalculationType.GEODESIC;
+                lengthsParameters.polylines = [ drawnLine ];
+
+                latestEndpoint = drawnLine.paths[0][0] as MapPoint;
+
+                geometryService.lengths(lengthsParameters);
+            }
+
+            private function lengthsCompleteHandler(event:GeometryServiceEvent):void
+            {
+                // Report as meters if less than 3km, otherwise km
+                var dist:Number = (event.result as Array)[0];
+                var myAttributes:Object = {};
+                if (dist < 3000)
+                {
+                    myAttributes.distance = Math.round(dist) + " meters";
+                }
+                else
+                {
+                    myAttributes.distance = Number(dist / 1000).toFixed(1) + " km";
+                }
+                var g:Graphic = new Graphic(latestEndpoint, myInfoSymbol, myAttributes);
+                resultLayer.add(g);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|InfoSymbolWindow
+        {
+            backgroundColor: #EEEEEE;
+            border-color: #285BA5;
+            border-thickness: 3;
+            info-placement: bottom;
+        }
+    </fx:Style>
+
+    <fx:Declarations>
+        <esri:InfoSymbol id="myInfoSymbol">
+            <esri:infoRenderer>
+                <fx:Component>
+                    <s:DataRenderer>
+                        <s:Label fontSize="14"
+                                 fontWeight="bold"
+                                 paddingBottom="3"
+                                 paddingLeft="3"
+                                 paddingRight="3"
+                                 paddingTop="3"
+                                 text="The length of this line is {data.distance}"/>
+                    </s:DataRenderer>
+                </fx:Component>
+            </esri:infoRenderer>
+        </esri:InfoSymbol>
+
+        <esri:GeometryService id="geometryService"
+                              concurrency="last"
+                              lengthsComplete="lengthsCompleteHandler(event)"
+                              showBusyCursor="true"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+
+        <esri:SimpleLineSymbol id="lineSymbol"
+                               width="4"
+                               color="#285BA5"/>
+
+        <esri:DrawTool id="drawTool"
+                       drawEnd="drawEndHandler(event)"
+                       graphicsLayer="{lineLayer}"
+                       lineSymbol="{lineSymbol}"
+                       map="{map}"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to measure line distances correctly
+            using the geodesic measurement property of the GeometryService which
+            was added at ArcGIS 10 for Server.
+            Click and hold down on the map to draw a line that will be added to the map.
+            The application will then use the geometry service to calculate the length of the line.
+        </s:RichText>
+        <s:Button click="resultLayer.clear(),lineLayer.clear()" label="Clear measurements"/>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-13044000" ymin="4035000" xmax="-13039000" ymax="4039000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="lineLayer"/>
+        <esri:GraphicsLayer id="resultLayer"/>
+    </esri:Map>
+
+</s:Application>

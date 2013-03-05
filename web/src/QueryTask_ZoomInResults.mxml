@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="0xEEEEEE"
+               pageTitle="Query, then zoom to results">
+    <!--
+    Description:
+    This sample demonstrates how to use the QueryTask to search for features
+    in a specific layer in a map service based upon a string value.  If the
+    query returns a result, the GraphicUtil class is used to calculate the
+    extent of the returned features and the map's extent is then set to that
+    extent.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#executeLastResult
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GraphicUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/query.html
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.utils.GraphicUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+
+            private function doQuery():void
+            {
+                // clear the graphics layer
+                myGraphicsLayer.clear();
+
+                queryTask.execute(query, new AsyncResponder(onResult, onFault));
+                function onResult(featureSet:FeatureSet, token:Object = null):void
+                {
+
+                    if (featureSet.features.length == 0)
+                    {
+                        Alert.show("No States found. Please try again.");
+                    }
+                    else
+                    {
+                        var graphicsExtent:Extent = GraphicUtil.getGraphicsExtent(featureSet.features);
+                        if (graphicsExtent)
+                        {
+                            map.extent = graphicsExtent;
+                        }
+                    }
+                }
+                function onFault(info:Object, token:Object = null):void
+                {
+                    Alert.show(info.toString());
+                }
+            }
+
+            private function formatPopulation(item:Object, dgColumn:GridColumn):String
+            {
+                return numberFormatter.format(item[dgColumn.dataField]);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Symbol for Query Result as Polygon -->
+        <esri:SimpleFillSymbol id="sfs" alpha="0.7"/>
+
+        <!-- Layer with US States -->
+        <esri:QueryTask id="queryTask" url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/3"/>
+
+        <esri:Query id="query"
+                    outSpatialReference="{map.spatialReference}"
+                    returnGeometry="true"
+                    text="{fText.text}">
+            <esri:outFields>
+                <fx:String>STATE_NAME</fx:String>
+                <fx:String>MED_AGE</fx:String>
+                <fx:String>POP2007</fx:String>
+            </esri:outFields>
+        </esri:Query>
+        <s:NumberFormatter id="numberFormatter"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the QueryTask to search for features
+            in a specific layer in a map service based upon a string value.  If the
+            query returns a result, the GraphicUtil class is used to calculate the
+            extent of the returned features and the map's extent is then set to that
+            extent.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label text="Search for U.S. States:"/>
+            <s:TextInput id="fText"
+                         enter="doQuery()"
+                         text="Ca"/>
+            <s:Button click="doQuery()" label="Search"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-14000000" ymin="2800000" xmax="-7000000" ymax="6400000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer" visibleLayers="{new ArrayList([3])}"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"
+                            graphicProvider="{queryTask.executeLastResult.features}"
+                            symbol="{sfs}"/>
+    </esri:Map>
+    <s:DataGrid width="100%" height="40%"
+                dataProvider="{new ArrayCollection(queryTask.executeLastResult.attributes)}">
+        <s:columns>
+            <s:ArrayList>
+                <s:GridColumn dataField="STATE_NAME" headerText="State Name"/>
+                <s:GridColumn dataField="MED_AGE" headerText="Median Age"/>
+                <s:GridColumn dataField="POP2007"
+                              headerText="Population 2007"
+                              labelFunction="formatPopulation"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+</s:Application>

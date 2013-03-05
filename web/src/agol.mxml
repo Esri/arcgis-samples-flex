@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Browse ArcGIS Online services">
+    <!--
+    Description:
+    Sample application to display different map services from ArcGIS Online,
+    and to find out more about each service.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html#tileInfo
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LOD.html
+
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_ArcGIS_Online/01w100000045000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import mx.controls.Alert;
+
+            protected function infoImage_clickHandler(event:MouseEvent):void
+            {
+                Alert.show("Cached map service from ArcGIS Online with data at " + tiled.tileInfo.lods.length
+                           + " different levels of " + tiled.tileInfo.height + " x " + tiled.tileInfo.width
+                           + " " + tiled.tileInfo.format + " tiles.\n\n" + tiled.description
+                           + "\n\nSpatial Reference is " + myMap.spatialReference.wkid + ".");
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample displays different map services from ArcGIS Online,
+            click the info graphic to find out more about each service.
+        </s:RichText>
+        <s:Button bottom="4"
+                  click="navigateToURL(new URLRequest('http://resources.arcgis.com/en/help/main/10.1/#/What_is_ArcGIS_Online/01w100000045000000/'))"
+                  fontWeight="bold"
+                  horizontalCenter="0"
+                  label="Read more about ArcGIS Online"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer id="tiled"
+                                         load="myMap.lods = tiled.tileInfo.lods"
+                                         url="http://server.arcgisonline.com/ArcGIS/rest/services/{servicePicker.selectedItem.toString()}/MapServer"/>
+    </esri:Map>
+    <s:Panel height="75"
+             top="15"
+             fontWeight="bold"
+             horizontalCenter="0"
+             title="Select an ArcGIS Online Service">
+        <s:layout>
+            <s:HorizontalLayout horizontalAlign="center"
+                                paddingLeft="5"
+                                verticalAlign="middle"/>
+        </s:layout>
+        <s:DropDownList id="servicePicker"
+                        width="225"
+                        cornerRadius="0"
+                        requireSelection="true"
+                        selectedIndex="1">
+            <s:ArrayList>
+                <fx:String>Ocean_Basemap</fx:String>
+                <fx:String>NatGeo_World_Map</fx:String>
+                <fx:String>World_Imagery</fx:String>
+                <fx:String>World_Street_Map</fx:String>
+                <fx:String>World_Topo_Map</fx:String>
+                <fx:String>World_Shaded_Relief</fx:String>
+                <fx:String>Specialty/World_Navigation_Charts</fx:String>
+            </s:ArrayList>
+        </s:DropDownList>
+        <mx:Image id="infoImage"
+                  click="infoImage_clickHandler(event)"
+                  source="@Embed(source='assets/info_bubble.png')"/>
+    </s:Panel>
+
+</s:Application>

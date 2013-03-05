@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:flash="flash.text.*"
+               pageTitle="Using the textAttribute on the TextSymbol">
+    <!--
+    Description:
+    This sample demonstrates how to create client-side labels
+    from an existing attribute on your data.  This is
+    accomplished by using the textAttribute property of the TextSymbol.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#symbol
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/CompositeSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/TextSymbol.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html
+    -->
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create client-side labels
+            from an existing attribute on your data.  This is
+            accomplished by using the textAttribute property of the TextSymbol.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:Extent xmin="-13710000" ymin="5640000" xmax="-13610000" ymax="5760000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:FeatureLayer mode="onDemand"
+                           outFields="[CITY_NAME]"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/0"
+                           useAMF="false">
+            <esri:symbol>
+                <esri:CompositeSymbol>
+                    <esri:SimpleMarkerSymbol color="0x000000"
+                                             size="14"
+                                             style="circle"/>
+                    <esri:TextSymbol background="true"
+                                     backgroundColor="0xFFFFFF"
+                                     border="true"
+                                     borderColor="0x000000"
+                                     color="0x000000"
+                                     placement="start"
+                                     textAttribute="CITY_NAME"
+                                     yoffset="10">
+                        <flash:TextFormat bold="true" size="16"/>
+                    </esri:TextSymbol>
+                    <esri:SimpleMarkerSymbol color="0xFFFFFF"
+                                             size="10"
+                                             style="circle"/>
+                </esri:CompositeSymbol>
+            </esri:symbol>
+        </esri:FeatureLayer>
+
+    </esri:Map>
+
+</s:Application>

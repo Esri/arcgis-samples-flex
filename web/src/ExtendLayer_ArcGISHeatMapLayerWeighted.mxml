@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:layers="com.esri.ags.samples.layers.*"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Extending Layer: ArcGISHeatMapLayer sample"
+               preinitialize="application1_preinitializeHandler(event)">
+    <!--
+    Description:
+    This sample demonstrates some of the new functionality introduced in the latest
+    ArcGISHeatMapLayer class.  The new layer has some additional options such as cluster size,
+    density radius, custom theme color, and custom functions that can be used to affect
+    how the heatmap is generated.  To see an example of using the earthquake's magnitude
+    to render the heatmap, click the "Weighted Function" button below.
+
+    How it works
+    * The source url for the ArcGISHeatMapLayer can be either an ArcGIS MapService layer
+      or an ArcGIS FeatureService layer containing point data.
+    * The ArcGISHeatMapLayer contains internal tasks to get the details (metadata) of the
+      source ArcGIS service layer that will be used as input to generate the heatmap.
+    * The details (metadata) is used to determine if the service is time-aware, in which
+      case your heatmap can support time as well.
+    * The custom layer also uses an internal QueryTask to query the ArcGIS service layer
+      (points only), the FeatureSet is returned in the HeatMapEvent object.
+
+    Features of the sample:
+    * Toggle the weighted functions switcher to change how the heatmap is displayed.
+    * Click the button ("Filter is On") to turn on or off the TimeSlider.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/DetailsTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DetailsEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDetails.html
+
+    This sample also uses the following files:
+    com\esri\ags\samples\events\HeatMapEvent.as
+    com\esri\ags\samples\layers\ArcGISHeatMapLayer.as
+    com\esri\ags\samples\layers\supportClasses\HeatMapGradientDict.as
+    com\esri\ags\samples\utils\ColorMatrixUtil.as
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DetailsEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.supportClasses.TimeInfo;
+            import com.esri.ags.samples.events.HeatMapEvent;
+            import com.esri.ags.samples.layers.supportClasses.HeatMapGradientDict;
+            import com.esri.ags.samples.utils.ColorMatrixUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.events.FlexEvent;
+            import mx.utils.ObjectUtil;
+
+            import spark.events.GridEvent;
+            import spark.events.GridSortEvent;
+            import spark.events.IndexChangeEvent;
+
+            [Bindable]
+            private var timeInfo:TimeInfo;
+
+            protected function application1_preinitializeHandler(event:FlexEvent):void
+            {
+                var customColors:Array = [ 0xEBED95, 0xEDB019, 0xD24F0B, 0xD21813, 0xBA5B6D ];
+                HeatMapGradientDict.fillCustomPaletteMap(customColors);
+            }
+
+            protected function getDetailsCompleteHandler(event:DetailsEvent):void
+            {
+                timeInfo = event.layerDetails.timeInfo;
+                heatMapTimeSlider.createTimeStopsByTimeInterval(timeInfo.timeExtent, timeInfo.timeInterval, timeInfo.timeIntervalUnits);
+            }
+
+            protected function refreshStartHandler(event:HeatMapEvent):void
+            {
+                heatMapLayer.filters = [ ColorMatrixUtil.blackAndWhite ];
+                fadeEffectOut.play();
+            }
+
+            protected function refreshEndHandler(event:HeatMapEvent):void
+            {
+                fadeEffectIn.play();
+                heatMapLayer.filters = [];
+                lblLayerCount.text = event.featureSet.features.length + " earthquakes were used to generate this heatmap";
+            }
+
+            protected function timeToggleButtonChangeHandler(event:Event):void
+            {
+                graphicsLayer.clear();
+                if (timeInfo && heatMapLayer.loaded)
+                {
+                    if (timeToggleButton.selected)
+                    {
+                        heatMapTimeSlider.createTimeStopsByTimeInterval(timeInfo.timeExtent, timeInfo.timeInterval, timeInfo.timeIntervalUnits);
+                        map.timeSlider = heatMapTimeSlider;
+                    }
+                    else
+                    {
+                        heatMapTimeSlider.pause();
+                        map.timeExtent = null;
+                        map.timeSlider = null;
+                        heatMapLayer.timeExtent = timeInfo.timeExtent;
+                    }
+                }
+            }
+
+            protected function weightedFunctionsToggleButtonChangeHandler(event:Event):void
+            {
+                if (weightedFunctionsToggleButton.selected)
+                {
+                    heatMapLayer.featureIndexCalculator = indexCalculator;
+                    heatMapLayer.featureRadiusCalculator = radiusCalculator;
+                }
+                else
+                {
+                    heatMapLayer.featureIndexCalculator = null;
+                    heatMapLayer.featureRadiusCalculator = null;
+                }
+            }
+
+            protected function heatmapThemeDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                var theme:String = DropDownList(event.currentTarget).selectedItem.data as String;
+                heatMapLayer.theme = theme;
+            }
+
+            /*
+             * Custom function to calculate the color index value
+             * to be used in the heatmap color palette.
+            */
+            private function indexCalculator(feature:Graphic):int
+            {
+                // use the graphic's attribute magnitude
+                var mag:Number = feature.attributes.Magnitude;
+                /*
+                 * Take the magnitude and divide it by 10 to
+                 * approximate the percentage of the magnitude
+                 * between 0 and 10.  Then multiply that by 255
+                 * since the color palette map is an index of
+                 * colors between 0 and 255.  For lower magnitude
+                 * earthquakes the color values will be pulled
+                 * from the lower (cooler) end of the color palette,
+                 * and for greater magnitude earthquakes the color
+                 * values will be pulled from the higher (warmer) end
+                 * of the color palette.
+                */
+                var calcuatedIndex:int = int((mag / 10) * 255);
+                return calcuatedIndex;
+
+            }
+
+            /*
+            * Custom function to calculate the radius or density
+            * of the heatmap for a given graphic.  This function
+            * will give earthquakes with a greater magnitude a
+            * larger heatmap radius.
+            */
+            private function radiusCalculator(feature:Graphic, radius:Number):Number
+            {
+                var mag:Number = feature.attributes.Magnitude;
+
+                if (mag > 8)
+                {
+                    return 25;
+                }
+                else if (mag > 7)
+                {
+                    return 14;
+                }
+                else if (mag > 6)
+                {
+                    return 8;
+                }
+                else
+                {
+                    return 5;
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <s:Fade id="fadeEffectOut"
+                alphaFrom="1"
+                alphaTo="0.5"
+                repeatCount="1"
+                targets="{[heatMapLayer]}"/>
+        <s:Fade id="fadeEffectIn"
+                alphaFrom="0.5"
+                alphaTo="1"
+                repeatCount="1"
+                targets="{[heatMapLayer]}"/>
+        <!--
+        http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/DateTimeFormatter.html
+        http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
+        -->
+        <s:DateTimeFormatter id="dateFormatter" dateTimePattern="MMMM dd, yyyy"/>
+        <!-- http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html -->
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="2"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates some of the new functionality introduced in the latest
+            ArcGISHeatMapLayer class.  The new layer has some additional options such as cluster size,
+            density radius, custom theme color, and custom functions that can be used to affect
+            how the heatmap is generated.  To see an example of using the earthquake's magnitude
+            to render the heatmap, click the "Weighted Function" button below.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              level="2"
+              wrapAround180="true">
+        <esri:extent>
+            <esri:Extent xmin="-25500491" ymin="-693358" xmax="-11646432" ymax="8934039">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <layers:ArcGISHeatMapLayer id="heatMapLayer"
+                                   alpha="0.7"
+                                   densityRadius="18"
+                                   getDetailsComplete="getDetailsCompleteHandler(event)"
+                                   outFields="[Magnitude]"
+                                   refreshEnd="refreshEndHandler(event)"
+                                   refreshStart="refreshStartHandler(event)"
+                                   theme="{HeatMapGradientDict.CUSTOM_TYPE}"
+                                   url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/Since_1970/MapServer/0"
+                                   useAMF="true"/>
+        <esri:GraphicsLayer id="graphicsLayer"/>
+    </esri:Map>
+    <s:Panel height="200"
+             right="20" top="20"
+             cornerRadius="5"
+             title="Heatmap settings">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <s:HGroup width="100%" verticalAlign="baseline">
+
+            <s:Label text="Color:"/>
+            <s:DropDownList id="heatmapThemeDropDownList"
+                            width="50%"
+                            change="heatmapThemeDropDownList_changeHandler(event)"
+                            requireSelection="true">
+                <s:dataProvider>
+                    <s:ArrayList>
+                        <fx:Object data="{HeatMapGradientDict.CUSTOM_TYPE}" label="Ring of Fire"/>
+                        <fx:Object data="{HeatMapGradientDict.RAINBOW_TYPE}" label="Rainbow"/>
+                        <fx:Object data="{HeatMapGradientDict.THERMAL_TYPE}" label="Thermal"/>
+                        <fx:Object data="{HeatMapGradientDict.RED_WHITE_BLUE_TYPE}" label="Red, White, Blue"/>
+                        <fx:Object data="{HeatMapGradientDict.WEATHER_RADAR_TYPE}" label="Weather Radar"/>
+                    </s:ArrayList>
+                </s:dataProvider>
+            </s:DropDownList>
+        </s:HGroup>
+        <s:ToggleButton id="weightedFunctionsToggleButton"
+                        width="85%"
+                        change="weightedFunctionsToggleButtonChangeHandler(event)"
+                        chromeColor="{weightedFunctionsToggleButton.selected ? 0xBB2634 : 0x218300}"
+                        color="0xFEFFFE"
+                        cornerRadius="5"
+                        fontWeight="bold"
+                        label="{weightedFunctionsToggleButton.selected ? 'Disable weighted function' : 'Enable weighted function'}"
+                        selected="false"/>
+        <s:HGroup id="boxTime"
+                  width="100%"
+                  gap="10"
+                  horizontalAlign="center"
+                  includeInLayout="{timeInfo != null}"
+                  verticalAlign="middle"
+                  visible="{timeInfo != null}">
+            <s:ToggleButton id="timeToggleButton"
+                            width="85%"
+                            change="timeToggleButtonChangeHandler(event)"
+                            chromeColor="{timeToggleButton.selected ? 0xBB2634 : 0x218300}"
+                            color="0xFEFFFE"
+                            cornerRadius="5"
+                            fontWeight="bold"
+                            label="{timeToggleButton.selected ? 'Click to disable the time slider' : 'Click to enable time slider'}"
+                            selected="false"/>
+        </s:HGroup>
+        <s:VGroup width="100%"
+                  horizontalAlign="left"
+                  includeInLayout="{timeToggleButton.selected}"
+                  verticalAlign="middle"
+                  visible="{timeToggleButton.selected}">
+            <esri:TimeSlider id="heatMapTimeSlider"
+                             enabled="{heatMapLayer.loaded}"
+                             loop="true"
+                             thumbMovingRate="1200"/>
+            <s:Label fontSize="14"
+                     fontWeight="bold"
+                     text="{dateFormatter.format(heatMapTimeSlider.timeExtent.endTime)}"/>
+        </s:VGroup>
+        <s:Label id="lblLayerCount"/>
+    </s:Panel>
+
+</s:Application>

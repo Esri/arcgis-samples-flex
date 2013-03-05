@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="50" height="50"
+        alpha.disabled="0.5"
+        minHeight="30"
+        minWidth="30">
+
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.samples.components.RotationWheel")]
+    </fx:Metadata>
+
+    <fx:Declarations>
+        <s:Rotate id="rotateEffect"
+                  duration="100"
+                  target="{wheel}">
+        </s:Rotate>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+            override protected function createChildren():void
+            {
+                super.createChildren();
+
+                // Create the backgrounds of the wheel.
+                var bitmapFillSource:BitmapData = new BitmapData(2, 2, true, 0xFFEAEAEA);
+                bitmapFillSource.setPixel32(0, 0, 0x00000000);
+                bitmapFillSource.setPixel32(1, 1, 0x00000000);
+                bitmapFill.source = bitmapFillSource;
+
+                // Create the backgrounds of the wheel.
+                bitmapFillSource = new BitmapData(2, 2, true, 0xFFA3DEF3);
+                bitmapFillSource.setPixel32(0, 0, 0x00000000);
+                bitmapFillSource.setPixel32(1, 1, 0x00000000);
+                bitmapFillDown.source = bitmapFillSource;
+            }
+
+            override protected function commitProperties():void
+            {
+                super.commitProperties();
+
+                if (wheel.rotation != hostComponent.mapRotation)
+                {
+                    if (rotateEffect.isPlaying)
+                    {
+                        rotateEffect.stop();
+                    }
+                    var shortestAngle:Number = hostComponent.mapRotation - wheel.rotation;
+                    if (shortestAngle > 180)
+                    {
+                        shortestAngle -= 360;
+                    }
+                    if (shortestAngle < -180)
+                    {
+                        shortestAngle += 360;
+                    }
+                    rotateEffect.angleBy = shortestAngle;
+                    rotateEffect.play();
+                }
+            }
+
+            override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+            {
+                super.updateDisplayList(unscaledWidth, unscaledHeight);
+
+                //
+                // Update the ellipses sizes
+                //
+                const ellipseWeight:Number = Math.floor(Math.max(Math.min(4, unscaledHeight * 0.05), 2));
+                if (outerStroke.weight !== ellipseWeight)
+                {
+                    innerStroke.weight = outerStroke.weight = ellipseWeight;
+                    innerEllipse.left = innerEllipse.right = innerEllipse.top = innerEllipse.bottom = ellipseWeight;
+                }
+
+                wheel.setActualSize(unscaledWidth, unscaledHeight);
+                wheel.transformX = unscaledWidth * 0.5;
+                wheel.transformY = unscaledHeight * 0.5;
+            }
+        ]]>
+    </fx:Script>
+
+    <!-- states -->
+    <s:states>
+        <s:State name="up"/>
+        <s:State name="overNorth" stateGroups="over"/>
+        <s:State name="downNorth" stateGroups="down"/>
+        <s:State name="overWheel" stateGroups="over"/>
+        <s:State name="downWheel" stateGroups="down"/>
+        <s:State name="disabled"/>
+    </s:states>
+
+    <!-- layer 1: shadow -->
+    <s:Ellipse left="0" right="0" top="0" bottom="1">
+        <s:fill>
+            <s:SolidColor color="#000000"/>
+        </s:fill>
+        <s:filters>
+            <s:DropShadowFilter alpha="0.5"
+                                angle="90"
+                                blurX="4"
+                                blurY="4"
+                                knockout="true"/>
+        </s:filters>
+    </s:Ellipse>
+
+    <!-- layer 2: fills -->
+    <s:Ellipse left="0" right="0" top="0" bottom="0"
+               visible.down="false">
+        <s:fill>
+            <s:BitmapFill id="bitmapFill" fillMode="repeat"/>
+        </s:fill>
+    </s:Ellipse>
+
+    <s:Ellipse left="0" right="0" top="0" bottom="0"
+               visible="false"
+               visible.down="true">
+        <s:fill>
+            <s:BitmapFill id="bitmapFillDown" fillMode="repeat"/>
+        </s:fill>
+    </s:Ellipse>
+
+    <!-- layer 3: label -->
+    <!--<s:Label left="5" right="5" top="2" bottom="2"
+             color="0x0064A2"
+             fontWeight="bold"
+             horizontalCenter="0"
+             maxDisplayedLines="1"
+             text="{hostComponent.mapRotation.toFixed(0)}°"
+             textAlign="center"
+             verticalAlign="middle"
+             verticalCenter="1">
+    </s:Label>-->
+
+    <!-- layer 4: outer ellipse -->
+    <s:Ellipse id="outerEllipse"
+               left="0" right="0" top="0" bottom="0">
+        <s:stroke>
+            <s:LinearGradientStroke id="outerStroke" rotation="90">
+                <s:GradientEntry color="#FFFFFF" ratio="0"/>
+                <s:GradientEntry color="#CCCCCC" ratio="1"/>
+            </s:LinearGradientStroke>
+        </s:stroke>
+    </s:Ellipse>
+
+    <!-- layer 5: outer ellipse -->
+    <s:Ellipse id="innerEllipse"
+               left="2" right="2" top="2" bottom="2">
+        <s:stroke>
+            <s:LinearGradientStroke id="innerStroke" rotation="90">
+                <s:GradientEntry color="#CCCCCC" ratio="0"/>
+                <s:GradientEntry color="#FFFFFF" ratio="1"/>
+            </s:LinearGradientStroke>
+        </s:stroke>
+    </s:Ellipse>
+
+    <!-- layer 6: wheel -->
+    <s:Group id="wheel">
+
+        <s:Rect width="2" height="6"
+                left="6"
+                verticalCenter="0">
+            <s:fill>
+                <s:SolidColor color="#1F78B4"/>
+            </s:fill>
+        </s:Rect>
+
+        <s:Rect width="2" height="6"
+                right="6"
+                verticalCenter="0">
+            <s:fill>
+                <s:SolidColor color="#1F78B4"/>
+            </s:fill>
+        </s:Rect>
+
+        <s:Rect width="6" height="2"
+                bottom="6"
+                horizontalCenter="0">
+            <s:fill>
+                <s:SolidColor color="#1F78B4"/>
+            </s:fill>
+        </s:Rect>
+
+        <s:Group id="north"
+                 y="-5" width="10" height="15"
+                 horizontalCenter="0">
+            <s:Rect width="10" height="15"
+                    bottomLeftRadiusX="3"
+                    bottomLeftRadiusY="10"
+                    bottomRightRadiusX="3"
+                    bottomRightRadiusY="10"
+                    includeInLayout="false"
+                    topLeftRadiusX="2"
+                    topLeftRadiusY="2"
+                    topRightRadiusX="2"
+                    topRightRadiusY="2">
+                <s:fill>
+                    <s:LinearGradient>
+                        <s:GradientEntry color="#1F78B4" ratio="0.4"/>
+                        <s:GradientEntry color="#2692DA" ratio="0.6"/>
+                    </s:LinearGradient>
+                </s:fill>
+            </s:Rect>
+
+            <!-- Path for the N letter -->
+            <s:Path x="2" y="4"
+                    data="M 0 6 L 0 0 L 2 0 L 4 4 L 4 0 L 6 0 L 6 6 L 4 6 L 2 2 L 2 6 Z">
+                <s:fill>
+                    <s:SolidColor color="#FFFFFF" color.downNorth="#A3DEF3"/>
+                </s:fill>
+            </s:Path>
+
+            <s:filters>
+                <s:DropShadowFilter alpha="0.5"
+                                    angle="90"
+                                    blurX="4"
+                                    blurY="4"
+                                    distance="2"/>
+            </s:filters>
+        </s:Group>
+
+    </s:Group>
+
+</s:Skin>

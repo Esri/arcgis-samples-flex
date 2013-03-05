@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="initializeHandler(event)"
+               pageTitle="Perform geodesic buffering using the GeometryService">
+    <!--
+    Description:
+    This sample demonstrates new functionality at ArcGIS 10.1 for performing geodesic buffering using the GeometryService.
+    Note: This sample requires access to a ArcGIS 10.1 Geometry Service.
+    This example just draws the buffers,
+    but the buffers could also be used to perform a task such as returning a list of addresses of
+    people who live within the buffered area.
+
+    The geometry service offers some new options for calculating buffers, areas, and lengths.
+
+    Geodesic buffers are now available when using the buffer method. These account for the earth's actual shape during the calculation of the buffers.
+    For a geodesic calculation, each line segment is interpreted as the shortest path on the surface of the earth between each pair of vertices in a polygon or polyline.
+    If the unit for the area or length is not defined, the result is returned in meters. Use this calculation type if you want to know the geodesic length or area for a geometry.
+    If you want to calculate the length or area for the geometry drawn on the map, use PreserveShape.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#buffer()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/BufferParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#constantSummary
+
+    ArcGIS REST API - buffer operation
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?buffer.html
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        s|Panel
+        {
+            backgroundColor: #93AED7;
+            chromeColor: #6784BE;
+            color: #FFFFFF;
+        }
+            s|Button
+        {
+            chromeColor: #000000;
+            color: #EDEDE6;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.geometry.Polygon;
+            import com.esri.ags.tasks.supportClasses.BufferParameters;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.AsyncToken;
+            import mx.rpc.Fault;
+
+            import spark.events.IndexChangeEvent;
+
+            private var distance:Number = 750;
+            private var unit:Number = GeometryService.UNIT_KILOMETER;
+
+            private var euclideanBuffer:BufferParameters = new BufferParameters();
+            private var geodesicBuffer:BufferParameters = new BufferParameters();
+
+            protected function initializeHandler(event:FlexEvent):void
+            {
+                var one:Graphic = new Graphic(northernPolyline);
+                var two:Graphic = new Graphic(centralPolyline);
+                var three:Graphic = new Graphic(southernPolyline);
+                graphicsLayer.add(one);
+                graphicsLayer.add(two);
+                graphicsLayer.add(three);
+                // Note: As of version 2.0, the GeometryService input is geometries (instead of graphics).
+                euclideanBuffer.geometries = [ northernPolyline, centralPolyline, southernPolyline ];
+                euclideanBuffer.distances = [ distance ];
+                // Note: As of version 2.0, the buffer constants have been moved to GeometryService.
+                euclideanBuffer.unit = unit;
+                euclideanBuffer.outSpatialReference = map.spatialReference;
+
+                geodesicBuffer.geometries = [ northernPolyline, centralPolyline, southernPolyline ];
+                geodesicBuffer.distances = [ distance ];
+                geodesicBuffer.unit = unit;
+                geodesicBuffer.outSpatialReference = map.spatialReference;
+                geodesicBuffer.geodesic = true;
+
+                geometryService.buffer(euclideanBuffer, new AsyncResponder(euclideanBufferCompleteHandler, esriService_faultHandler, null));
+                geometryService.buffer(geodesicBuffer, new AsyncResponder(geodesicBufferCompleteHandler, esriService_faultHandler, null));
+            }
+
+            private function euclideanBufferCompleteHandler(item:Object, token:Object = null):void
+            {
+                // Note: As of version 2.0, GeometryService returns geometries (instead of graphics)
+                var euclideanBufferResultsArray:Array = item as Array; //array of geometries
+                if (token && token.userBufferType)
+                {
+                    for (var j:int = 0; j < euclideanBufferResultsArray.length; j++)
+                    {
+                        var euclideanUserGraphic:Graphic = new Graphic(euclideanBufferResultsArray[i] as Polygon, euclideanSymbol);
+                        userResultsGraphicsLayer.add(euclideanUserGraphic);
+                    }
+
+                }
+                else
+                {
+                    for (var i:int = 0; i < euclideanBufferResultsArray.length; i++)
+                    {
+                        euclideanGraphicsLayer.add(new Graphic(euclideanBufferResultsArray[i] as Polygon, null, null));
+                    }
+                }
+            }
+
+            private function geodesicBufferCompleteHandler(item:Object, token:Object = null):void
+            {
+                var geodesicBufferResultsArray:Array = item as Array; //array of geometries
+                if (token && token.userBufferType)
+                {
+                    for (var j:int = 0; j < geodesicBufferResultsArray.length; j++)
+                    {
+                        var geodesicUserGraphic:Graphic = new Graphic(geodesicBufferResultsArray[i] as Polygon, geodesicSymbol);
+                        userResultsGraphicsLayer.add(geodesicUserGraphic);
+                    }
+                }
+                else
+                {
+                    for (var i:int = 0; i < geodesicBufferResultsArray.length; i++)
+                    {
+                        geodesicGraphicsLayer.add(new Graphic(geodesicBufferResultsArray[i] as Polygon, null, null));
+                    }
+                }
+            }
+
+            protected function esriService_faultHandler(fault:Fault, asyncToken:AsyncToken):void
+            {
+                Alert.show("Error: " + fault.faultString, "Error code: " + fault.faultCode);
+            }
+
+
+            protected function drawTool_drawEndHandler(event:DrawEvent):void
+            {
+                var userInputPolyline:Polyline = event.graphic.geometry as Polyline;
+                drawTool.deactivate();
+
+                euclideanBuffer.geometries = [ userInputPolyline ];
+                euclideanBuffer.distances = [ distance ];
+                euclideanBuffer.unit = unit;
+                euclideanBuffer.bufferSpatialReference = map.spatialReference;
+                euclideanBuffer.outSpatialReference = map.spatialReference;
+                euclideanBuffer.unionResults = true;
+
+                geodesicBuffer.geometries = [ userInputPolyline ];
+                geodesicBuffer.distances = [ distance ];
+                geodesicBuffer.unit = unit;
+                geodesicBuffer.outSpatialReference = map.spatialReference;
+                geodesicBuffer.geodesic = true;
+                geodesicBuffer.unionResults = true;
+
+                geometryService.buffer(euclideanBuffer, new AsyncResponder(euclideanBufferCompleteHandler, esriService_faultHandler, { userBufferType: 'euclidean' }));
+                geometryService.buffer(geodesicBuffer, new AsyncResponder(geodesicBufferCompleteHandler, esriService_faultHandler, { userBufferType: 'geodesic' }));
+            }
+
+            protected function userBufferButton_clickHandler(event:MouseEvent):void
+            {
+                drawTool.activate(DrawTool.FREEHAND_POLYLINE);
+                drawGraphicsLayer.clear();
+                userResultsGraphicsLayer.clear();
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:GeometryService id="geometryService"
+                              showBusyCursor="true"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+        <esri:DrawTool id="drawTool"
+                       drawEnd="drawTool_drawEndHandler(event)"
+                       graphicsLayer="{drawGraphicsLayer}"
+                       lineSymbol="{lineSymbol}"
+                       map="{map}"/>
+        <esri:SpatialReference id="sr" wkid="102100"/>
+        <esri:Extent id="initialExtent"
+                     xmin="-22437625" ymin="-12705101" xmax="25581950" ymax="15472645"
+                     spatialReference="{sr}"/>
+
+        <esri:Polyline id="northernPolyline" spatialReference="{sr}">
+            <esri:paths>
+                <fx:Array>
+                    <fx:Array>
+                        <esri:MapPoint x="-7932935" y="12116754"
+                                       spatialReference="{sr}"/>
+                        <esri:MapPoint x="-8343860" y="14298572"
+                                       spatialReference="{sr}"/>
+
+                    </fx:Array>
+                </fx:Array>
+            </esri:paths>
+        </esri:Polyline>
+        <esri:Polyline id="centralPolyline" spatialReference="{sr}">
+            <esri:paths>
+                <fx:Array>
+                    <fx:Array>
+                        <esri:MapPoint x="-4239322" y="-273137"
+                                       spatialReference="{sr}"/>
+                        <esri:MapPoint x="-2771731" y="1634731"
+                                       spatialReference="{sr}"/>
+
+                    </fx:Array>
+                </fx:Array>
+            </esri:paths>
+        </esri:Polyline>
+        <esri:Polyline id="southernPolyline" spatialReference="{sr}">
+            <esri:paths>
+                <fx:Array>
+                    <fx:Array>
+                        <esri:MapPoint x="-6543440" y="-14322875"
+                                       spatialReference="{sr}"/>
+                        <esri:MapPoint x="-4860602" y="-11994297"
+                                       spatialReference="{sr}"/>
+
+                    </fx:Array>
+                </fx:Array>
+            </esri:paths>
+        </esri:Polyline>
+        <!-- Symbol for line to be buffered -->
+        <esri:SimpleLineSymbol id="lineSymbol"
+                               width="4"
+                               color="0xC7B878"/>
+        <!-- Symbol for regular buffer operation -->
+        <esri:SimpleFillSymbol id="euclideanSymbol" style="null">
+            <esri:SimpleLineSymbol width="3" color="0xDB2B2B"/>
+        </esri:SimpleFillSymbol>
+        <!-- Symbol for geodesic buffer operation -->
+        <esri:SimpleFillSymbol id="geodesicSymbol" style="null">
+            <esri:SimpleLineSymbol width="3" color="0x287D09"/>
+        </esri:SimpleFillSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates new functionality at ArcGIS 10.1 for performing geodesic buffering using the GeometryService.
+            Note: This sample requires access to a ArcGIS 10.1 Geometry Service.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              extent="{initialExtent}"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:GraphicsLayer id="geodesicGraphicsLayer" name="Geodesic Buffer"
+                            symbol="{geodesicSymbol}"/>
+        <esri:GraphicsLayer id="euclideanGraphicsLayer" name="Euclidean Buffer"
+                            symbol="{euclideanSymbol}"/>
+        <esri:GraphicsLayer id="graphicsLayer" name="Input features (lines being buffered)"
+                            symbol="{lineSymbol}"/>
+        <esri:GraphicsLayer id="userResultsGraphicsLayer"/>
+        <esri:GraphicsLayer id="drawGraphicsLayer"/>
+    </esri:Map>
+    <s:Panel width="300"
+             right="20" top="20"
+             title="Geodesic Buffer using the Geometry Service">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <s:HGroup>
+            <s:Button id="extentButton"
+                      click="map.extent = initialExtent"
+                      label="Reset Map"/>
+            <s:Button id="userBufferButton"
+                      click="userBufferButton_clickHandler(event)"
+                      label="Click to calculate your own buffer"/>
+        </s:HGroup>
+        <s:Line width="100%">
+            <s:stroke>
+                <s:SolidColorStroke color="0xFFFFFF" weight="1"/>
+            </s:stroke>
+        </s:Line>
+        <esri:Legend layers="{[graphicsLayer, euclideanGraphicsLayer, geodesicGraphicsLayer]}" map="{map}"/>
+    </s:Panel>
+</s:Application>

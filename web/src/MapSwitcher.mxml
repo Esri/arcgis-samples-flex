@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Toggle between Map Services">
+    <!--
+    Description:
+    This sample demonstrates how to allow users to change
+    between different basemaps.  There are different ways
+    to visually accomplish this behavior, this is just one example.
+
+    It also ensures that the levels of detail (LOD) are updated based on which basemap is selected.
+    If all base maps have the same LODs, you wouldn't need the layerShowHandler function.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html#tileInfo
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TileInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LOD.html
+
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Types_of_layers/017p00000027000000/
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/tile.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_map_service/0154000002m7000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_map_caching/01540000048q000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.TiledMapServiceLayer;
+
+            import mx.events.FlexEvent;
+
+            private function layerShowHandler(event:FlexEvent):void
+            {
+                // update the LODs/zoomslider to use/show the levels for the selected base map
+                var tiledLayer:TiledMapServiceLayer = event.target as TiledMapServiceLayer;
+                myMap.lods = tiledLayer.tileInfo.lods;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to allow users to change
+            between different basemaps.  There are different ways
+            to visually accomplish this behavior, this is just one example.
+            Click the different buttons on the bar below to switch basemaps.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              level="4"
+              load="myMap.centerAt(new MapPoint(-11713000, 4822000))">
+        <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                         url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"
+                                         visible="{bb.selectedIndex == 0}"/>
+        <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                         url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"
+                                         visible="{bb.selectedIndex == 1}"/>
+        <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                         url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+                                         visible="{bb.selectedIndex == 2}"/>
+        <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                         url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"
+                                         visible="{bb.selectedIndex == 3}"/>
+        <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                         url="http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"
+                                         visible="{bb.selectedIndex == 4}"/>
+    </esri:Map>
+    <s:ButtonBar id="bb"
+                 right="5" top="5"
+                 requireSelection="true">
+        <s:dataProvider>
+            <s:ArrayList>
+                <fx:String>Streets</fx:String>
+                <fx:String>Topographic</fx:String>
+                <fx:String>Imagery</fx:String>
+                <fx:String>Oceans</fx:String>
+                <fx:String>National Geographic</fx:String>
+            </s:ArrayList>
+        </s:dataProvider>
+    </s:ButtonBar>
+</s:Application>

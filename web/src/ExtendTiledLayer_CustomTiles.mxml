@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:samples="com.esri.ags.samples.*"
+               pageTitle="Extending TiledMapServiceLayer in Flex API">
+    <!--
+    This sample demonstrates the programming patterns to extend the TiledMapServiceLayer class and
+    create your own custom layer.  The TiledMapServiceLayer class can be extended to support other layer types,
+    such as a custom tiled layer from a virtual directory that contains map tiles.  This sample shows how tiles can
+    be used without the standard REST endpoint.
+
+    The ArcGIS API for Flex allows for extending the API
+    to access layer types not included as part of the API.
+    In this example, tiled layers (TiledMapServiceLayer) is extended
+    to access tiles created in 9.2 or above and made accessible
+    in the standard virtual directory.
+
+    Steps involved:
+    1. Creating new ActionScript class that extends TiledMapServiceLayer.
+    2. Hardcoding some of the configuration settings:
+    fullExtent, initialExtent, spatialReference, tileInfo, and units.
+    3. Overriding the protected function getTileURL() to obtain the appropriate
+    tiles and place them accurately on the map.
+    4. Using the extended class with MXML or ActionScript :)
+
+    This sample also uses the following file:
+    com/esri/ags/samples/PortlandTiledMapServiceLayer.as
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            protected function getCount(value:Array):int
+            {
+                return value.length;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates the programming patterns to extend the TiledMapServiceLayer class and
+            create your own custom layer.  The TiledMapServiceLayer class can be extended to support other layer types,
+            such as a custom tiled layer from a virtual directory that contains map tiles.  This sample shows how tiles can
+            be used without the standard REST endpoint.
+            This specific service is using the spatial reference wkid (well-known id) {virtualTiles.spatialReference.wkid}
+            and has {getCount(virtualTiles.tileInfo.lods)} scale levels.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap">
+        <samples:PortlandTiledMapServiceLayer id="virtualTiles" fadeInFrameCount="12"/>
+    </esri:Map>
+
+</s:Application>

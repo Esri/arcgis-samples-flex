@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx"
+          clipAndEnableScrolling="true"
+          creationComplete="creationCompleteHandler()"
+          implements="mx.core.IDataRenderer">
+    <!--
+         This is used by the InfoSymbolWithStates sample.
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            private var _data:Object;
+
+            [Bindable]
+            // implement IDataRenderer
+            public function get data():Object
+            {
+                return _data;
+            }
+
+            public function set data(value:Object):void
+            {
+                _data = value;
+            }
+
+            private function creationCompleteHandler():void
+            {
+                addEventListener(MouseEvent.ROLL_OVER, rollOverHandler);
+                addEventListener(MouseEvent.ROLL_OUT, rollOutHandler);
+            }
+
+            private function rollOverHandler(event:MouseEvent):void
+            {
+                if (currentState == "normal")
+                {
+                    currentState = "titleState";
+                }
+            }
+
+            private function rollOutHandler(event:MouseEvent):void
+            {
+                if (currentState == "titleState")
+                {
+                    currentState = "normal";
+                }
+            }
+
+            private function expandButton_clickHandler():void
+            {
+                currentState = "detailState";
+            }
+
+            private function closeButton_clickHandler():void
+            {
+                currentState = "normal";
+            }
+
+            private function effectStartHandler():void
+            {
+                removeEventListener(MouseEvent.ROLL_OVER, rollOverHandler);
+            }
+
+            private function effectEndHandler():void
+            {
+                addEventListener(MouseEvent.ROLL_OVER, rollOverHandler);
+            }
+        ]]>
+    </fx:Script>
+
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="titleState"/>
+        <s:State name="detailState"/>
+    </s:states>
+
+    <s:transitions>
+        <s:Transition fromState="*" toState="*">
+            <s:Resize duration="250"
+                      effectEnd="effectEndHandler()"
+                      effectStart="effectStartHandler()"
+                      target="{this}"/>
+        </s:Transition>
+    </s:transitions>
+
+    <s:HGroup id="titleBar"
+              width="100%"
+              verticalAlign="middle">
+        <s:Image width="18" height="18"
+                 source="@Embed(source='/assets/skins.swf', symbol='Icon_airport')"/>
+        <s:Label id="titleLabel"
+                 fontWeight="bold"
+                 includeIn="titleState,detailState"
+                 rollOut="{Label(event.currentTarget).setStyle('textDecoration', 'none');}"
+                 rollOver="{Label(event.currentTarget).setStyle('textDecoration', 'underline');}"
+                 text="{data.theName}"/>
+
+        <s:Button id="expandButton"
+                  width="18" height="18"
+                  click="expandButton_clickHandler()"
+                  includeIn="titleState"
+                  skinClass="com.esri.ags.samples.skins.InfoExpandButtonSkin"/>
+        <s:Button id="closeButton"
+                  width="18" height="18"
+                  click="closeButton_clickHandler()"
+                  includeIn="detailState"
+                  skinClass="com.esri.ags.samples.skins.InfoCloseButtonSkin"/>
+    </s:HGroup>
+    <s:Label id="line1Label"
+             includeIn="detailState"
+             text="{data.thePlaceName}"/>
+</s:VGroup>

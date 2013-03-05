@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Custom ScaleBar Skin">
+    <!--
+    Description:
+    This sample demonstrates how to use a custom scale bar
+    skin for the Scalebar component, skinning the component
+    will make it appear visually different from the standard scalebar.
+
+    Note:
+    All the source code for the skins can be found in the ArcGIS API for Flex
+    download.  Once you unzip the api you can find the skins under the following
+    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins' and the skin assets
+    in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    ScaleBarMetricSkin.mxml
+    ScaleBarSkin.mxml
+    ScaleBarUSSkin.mxml
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarMetricSkin.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarSkin.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarUSSkin.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/supportClasses/SkinnableComponent.html
+    About Spark skins
+    http://help.adobe.com/en_US/flex/using/WSC8DB0C28-F7A6-48ff-9899-7957415A0A49.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/skins/ScaleBarSkin.mxml
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+        esri|ScaleBar
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.ScaleBarSkin");
+        }
+    </fx:Style>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use a custom scale bar
+            skin for the Scalebar component, skinning the component
+            will make it appear visually different from the standard scalebar.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:Extent xmin="-124.71513" ymin="-45.37207" xmax="110.83175" ymax="63.99244">
+                <esri:SpatialReference wkid="4326"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Population_World/MapServer"/>
+    </esri:Map>
+</s:Application>

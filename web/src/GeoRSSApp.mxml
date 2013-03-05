@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:samples="com.esri.ags.samples.*"
+               pageTitle="Displaying GeoRSS feeds on a map">
+    <!--
+    Description:
+    This sample demonstrates through sample code how to add a
+    GeoRSS data feed from a service as a graphics layer on the map.
+
+    The steps involved are
+    - requesting the GeoRSS feeds (GeoRSSProvider.as),
+    - parsing the different GeoRSS feed formats and,
+    - displaying them as MapPoints on the map (GeoRSSUtil.as).
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/Symbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/GeoRSSProvider.as
+    com/esri/ags/samples/GeoRSSUtil.as
+    com/esri/ags/samples/Namespaces.as
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.samples.GeoRSSUtil;
+            import com.esri.ags.samples.Namespaces;
+            import com.esri.ags.symbols.Symbol;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.controls.Image;
+            import mx.controls.TextArea;
+
+            private const image:Image = new Image();
+
+            private static const ATOM:Namespace = Namespaces.ATOM_NS;
+
+            private static const RE:RegExp = /M[ ](?P<mag>[^,]+),\.*/;
+
+            private var flickrTag:String = "ESRI";
+
+            [Bindable]
+            private var arr:ArrayList = new ArrayList(
+                [
+                {
+                    url: "http://earthquake.usgs.gov/eqcenter/catalogs/7day-M5.xml",
+                    label: "Earthquake",
+                    georssFunction: usgs
+                },
+                {
+                    url: "http://www.gdacs.org/XML/RSS.xml",
+                    label: "Image",
+                    georssFunction: gdacs
+                },
+                {
+                    url: "http://ws.geonames.org/rssToGeoRSS?feedUrl=http://feeds.reuters.com/reuters/topNews?format=xml",
+                    label: "News",
+                    georssFunction: reuters
+                },
+                {
+                    url: "http://api.flickr.com/services/feeds/geo?tags=" + flickrTag,
+                    label: "flickr image tagged with: " + flickrTag,
+                    georssFunction: flickr
+                }
+                ]);
+
+            private function flickr(arrcol:ArrayCollection, x:XML):void
+            {
+                var geometry:Geometry = GeoRSSUtil.toGeometry(x);
+                geometry = WebMercatorUtil.geographicToWebMercator(geometry);
+                var htmlText:String = x.ATOM::content;
+                htmlText = htmlText.replace(/\<div[^\>]*\>|\<\/div\>/g, "");
+                const graphic:Graphic = new Graphic(geometry, flickrSymbol, { htmlText: htmlText });
+                graphic.toolTip = x.ATOM::title;
+                graphic.addEventListener(MouseEvent.CLICK, graphic_clickHandlerFlickrHTML);
+                arrcol.addItem(graphic);
+            }
+
+            private function reuters(arrcol:ArrayCollection, x:XML):void
+            {
+                var geometry:Geometry = GeoRSSUtil.toGeometry(x);
+                geometry = WebMercatorUtil.geographicToWebMercator(geometry);
+                var htmlText:String = x.description;
+                htmlText = htmlText.replace(/\<div[^\>]*\>|\<\/div\>/g, "");
+                const graphic:Graphic = new Graphic(geometry, sms1, { htmlText: htmlText });
+                graphic.addEventListener(MouseEvent.CLICK, graphic_clickHandlerFlickrHTML);
+                arrcol.addItem(graphic);
+            }
+
+            private function graphic_clickHandlerFlickrHTML(event:MouseEvent):void
+            {
+                if (event.currentTarget is Graphic)
+                {
+                    const graphic:Graphic = Graphic(event.currentTarget);
+                    const htmlText:String = graphic.attributes.htmlText;
+                    const textArea:TextArea = new TextArea();
+                    textArea.width = 300;
+                    textArea.height = 260;
+                    textArea.htmlText = htmlText;
+                    map.infoWindow.content = textArea;
+                    map.infoWindow.show(MapPoint(graphic.geometry));
+                }
+            }
+
+            private function gdacs(arrcol:ArrayCollection, x:XML):void
+            {
+                var geometry:Geometry = GeoRSSUtil.toGeometry(x);
+                geometry = WebMercatorUtil.geographicToWebMercator(geometry);
+                const graphic:Graphic = new Graphic(geometry, sms1, { image: x.image });
+                graphic.toolTip = x.description;
+                graphic.addEventListener(MouseEvent.CLICK, graphic_clickHandlerGdacsImage);
+                arrcol.addItem(graphic);
+            }
+
+            private function graphic_clickHandlerGdacsImage(event:MouseEvent):void
+            {
+                if (event.currentTarget is Graphic)
+                {
+                    const graphic:Graphic = Graphic(event.currentTarget);
+                    image.source = graphic.attributes.image;
+                    map.infoWindow.content = image;
+                    map.infoWindow.show(MapPoint(graphic.geometry));
+                }
+            }
+
+            private function usgs(arrcol:ArrayCollection, x:XML):void
+            {
+                var geometry:Geometry = GeoRSSUtil.toGeometry(x);
+                geometry = WebMercatorUtil.geographicToWebMercator(geometry);
+                const attributes:Object = {};
+                const title:String = x.ATOM::title;
+
+                const arr:Array = RE.exec(title);
+                const mag:Number = Number(arr.mag);
+                var symbol:Symbol;
+                if (mag < 5.5)
+                {
+                    symbol = sms1;
+                }
+                else if (mag < 6.0)
+                {
+                    symbol = sms2;
+                }
+                else
+                {
+                    symbol = sms3;
+                }
+                const graphic:Graphic = new Graphic(geometry, symbol, attributes);
+                graphic.toolTip = title;
+                arrcol.addItem(graphic);
+            }
+
+            private function load_clickHandler():void
+            {
+                georss.url = dl.selectedItem.url;
+                georss.georssFunction = dl.selectedItem.georssFunction;
+                map.infoWindow.hide();
+                map.infoWindow.label = dl.selectedItem.label;
+            }
+
+            private function errorHandler(event:ErrorEvent):void
+            {
+                Alert.show(event.text, "GeoRSSProvider Error");
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <samples:GeoRSSProvider id="georss" error="errorHandler(event)"/>
+        <esri:SimpleMarkerSymbol id="sms1"
+                                 alpha="0.5"
+                                 color="0xFF0000"
+                                 size="10"/>
+        <esri:SimpleMarkerSymbol id="sms2"
+                                 alpha="0.5"
+                                 color="0xFF0000"
+                                 size="15"/>
+        <esri:SimpleMarkerSymbol id="sms3"
+                                 alpha="0.5"
+                                 color="0xFF0000"
+                                 size="20"/>
+        <esri:CompositeSymbol id="flickrSymbol">
+            <esri:SimpleMarkerSymbol color="0xFFFF00" style="cross">
+                <esri:SimpleLineSymbol width="3"/>
+            </esri:SimpleMarkerSymbol>
+            <esri:SimpleMarkerSymbol color="0xFFFF00"
+                                     size="11"
+                                     style="x">
+                <esri:SimpleLineSymbol width="3"/>
+            </esri:SimpleMarkerSymbol>
+        </esri:CompositeSymbol>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates through sample code how to add a
+            GeoRSS data feed from a service as a graphics layer on the map.
+        </s:RichText>
+        <s:HGroup width="100%" gap="10">
+            <s:DropDownList id="dl"
+                            width="90%"
+                            dataProvider="{arr}"
+                            labelField="url"
+                            requireSelection="true"/>
+            <s:Button click="load_clickHandler()" label="Load"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map" wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:GraphicsLayer graphicProvider="{georss.result}"/>
+    </esri:Map>
+
+</s:Application>

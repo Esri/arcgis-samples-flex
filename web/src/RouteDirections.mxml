@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Driving Directions">
+    <!--
+    Description:
+    This sample demonstrates how to use the RouteTask to calculate a route with
+    distance and time traveled, it also displays a list of directions you can
+    click on that will take you to the individual travel segment.  To begin: click
+    the "Get Directions" button, once the route is displayed, click on individual
+    route description segments to view that portion of the route.  Click on the
+    route summmary to zoom to the full extent of the route.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/RouteEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/RouteTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/RouteTask.html#solve()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/DirectionsFeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RouteParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RouteResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RouteSolveResult.html
+
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Routing_tasks/017p00000012000000/
+
+    For more details on the World Geocoding Service follow the link below.
+    http://geocode.arcgis.com/arcgis/index.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/naserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/nalayer.html
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?nasolve.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Network_analysis_services/015400000276000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/What_is_the_ArcGIS_Network_Analyst_extension/004700000001000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_the_ArcGIS_Network_Analyst_extension_tutorial/00470000005r000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Route_analysis/004700000045000000/
+
+    NOTE: In order to support this workflow (author and publish the services) in your own environment,
+    you will need a streets network dataset such as StreetMap Premium for ArcGIS,
+    ArcGIS Network Analyst for Desktop, and ArcGIS Network Analyst for Server.
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        .linkStyle
+        {
+            color: blue;
+            text-decoration: underline;
+        }
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.RouteEvent;
+            import com.esri.ags.tasks.supportClasses.AddressCandidate;
+            import com.esri.ags.tasks.supportClasses.AddressToLocationsParameters;
+            import com.esri.ags.tasks.supportClasses.DirectionsFeatureSet;
+            import com.esri.ags.tasks.supportClasses.RouteResult;
+
+            import mx.controls.Alert;
+            import mx.core.UIComponent;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.Fault;
+            import mx.rpc.events.FaultEvent;
+
+            private const NL:String = "\n";
+
+            [Bindable]
+            private var stopsFS:FeatureSet = new FeatureSet();
+
+            [Bindable]
+            private var directionsFS:DirectionsFeatureSet;
+
+            private var segmentGraphic:Graphic;
+
+            private function getDirections():void
+            {
+                stopsFS.features = [];
+                directionsFS = null;
+                theDirections.removeAllElements();
+                theDirections.toolTip = null;
+                theRouteName.toolTip = null;
+                theSummary.toolTip = null;
+                segmentGraphic = null;
+                map.defaultGraphicsLayer.clear();
+
+                var fromParameters:AddressToLocationsParameters = new AddressToLocationsParameters();
+                fromParameters.address = { SingleLine: fromTx.text, CountryCode: 'US' };
+                fromParameters.outFields = [ "Loc_name" ];
+                locator.addressToLocations(fromParameters, new AsyncResponder(
+                                           myResultFunction, myFaultFunction, "From"));
+
+                var toParameters:AddressToLocationsParameters = new AddressToLocationsParameters();
+                toParameters.address = { SingleLine: toTx.text, CountryCode: 'US' };
+                toParameters.outFields = [ "Loc_name" ];
+                locator.addressToLocations(toParameters, new AsyncResponder(
+                                           myResultFunction, myFaultFunction, "To"));
+
+                function myResultFunction(result:Array, token:String = null):void
+                {
+                    solveRoute(result, token);
+                }
+                function myFaultFunction(error:Fault, token:Object = null):void
+                {
+                    Alert.show(error.faultString, "Locator Error");
+                }
+            }
+
+            private function solveRoute(addressCandidates:Array, type:String):void
+            {
+                if (addressCandidates.length == 0)
+                {
+                    Alert.show(type + " address not found.", "Missing Result");
+                    return;
+                }
+
+                var stop:AddressCandidate = addressCandidates[0];
+
+                if (type == "From")
+                {
+                    var fromGraphic:Graphic = new Graphic(stop.location, fromSymbol, { address: stop.address, score: stop.score });
+                    map.defaultGraphicsLayer.add(fromGraphic);
+                    stopsFS.features[0] = fromGraphic;
+                }
+                else if (type == "To")
+                {
+                    var toGraphic:Graphic = new Graphic(stop.location, toSymbol, { address: stop.address, score: stop.score });
+                    map.defaultGraphicsLayer.add(toGraphic);
+                    stopsFS.features[1] = toGraphic;
+                }
+
+                if (stopsFS.features[0] && stopsFS.features[1])
+                {
+                    routeTask.solve(routeParams);
+                }
+            }
+
+            private function solveCompleteHandler(event:RouteEvent):void
+            {
+                var routeResult:RouteResult = event.routeSolveResult.routeResults[0];
+                directionsFS = routeResult.directions;
+
+                map.defaultGraphicsLayer.add(new Graphic(directionsFS.mergedGeometry, routeSymbol));
+
+                var i:int = 1;
+                var textCntl:Label;
+                for each (var feature:Graphic in directionsFS.features)
+                {
+                    textCntl = new Label();
+                    textCntl.addEventListener(MouseEvent.ROLL_OVER, textCntl_rollOverHandler, false, 0, true);
+                    textCntl.addEventListener(MouseEvent.ROLL_OUT, textCntl_rollOutHandler, false, 0, true);
+                    textCntl.percentWidth = 100;
+                    textCntl.styleName = "linkStyle";
+                    textCntl.text = i + ". " + feature.attributes.text;
+                    if (i > 1 && i < directionsFS.features.length)
+                    {
+                        textCntl.text += " (" + formatDistance(feature.attributes.length, "miles");
+                        var time:String = formatTime(feature.attributes.time);
+                        if (time != "")
+                        {
+                            textCntl.text += ", " + time;
+                        }
+                        textCntl.text += ")";
+                    }
+                    textCntl.addEventListener(MouseEvent.CLICK, directionsSegmentClickHandler, false, 0, true);
+                    theDirections.addElement(textCntl);
+                    i++;
+                }
+                theDirections.toolTip = "Click individual segment to zoom to that segment.";
+                theSummary.toolTip = "Click to zoom to full route";
+                theRouteName.toolTip = "Click to zoom to full route";
+
+                zoomToFullRoute();
+            }
+
+            private function faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "Routing Error " + event.fault.faultCode);
+            }
+
+            private function zoomToFullRoute():void
+            {
+                if (segmentGraphic)
+                {
+                    map.defaultGraphicsLayer.remove(segmentGraphic);
+                    segmentGraphic = null;
+                }
+                map.extent = directionsFS.extent;
+                if (!map.extent.contains(directionsFS.extent))
+                {
+                    map.level--; // make sure the whole extent is visible
+                }
+            }
+
+            private function formatDistance(dist:Number, units:String):String
+            {
+                var result:String = "";
+
+                var d:Number = Math.round(dist * 100) / 100;
+
+                if (d != 0)
+                {
+                    result = d + " " + units;
+                }
+
+                return result;
+            }
+
+            private function formatTime(time:Number):String
+            {
+                var result:String;
+
+                var hr:Number = Math.floor(time / 60);
+                var min:Number = Math.round(time % 60);
+
+                if (hr < 1 && min < 1)
+                {
+                    result = "";
+                }
+                else if (hr < 1 && min < 2)
+                {
+                    result = min + " minute";
+                }
+                else if (hr < 1)
+                {
+                    result = min + " minutes";
+                }
+                else
+                {
+                    result = hr + " hour(s) " + min + " minute(s)";
+                }
+
+                return result;
+            }
+
+            private function directionsSegmentClickHandler(event:MouseEvent):void
+            {
+                var textCntl:Label = event.currentTarget as Label;
+                var segment:Graphic = directionsFS.features[parseInt(textCntl.text) - 1];
+                map.extent = segment.geometry.extent;
+                if (!map.extent.contains(segment.geometry.extent))
+                {
+                    map.level--; // make sure the whole extent is visible
+                }
+
+                if (!segmentGraphic)
+                {
+                    segmentGraphic = new Graphic(segment.geometry, segmentSymbol);
+                    map.defaultGraphicsLayer.add(segmentGraphic);
+                }
+                else
+                {
+                    segmentGraphic.geometry = segment.geometry;
+                }
+            }
+
+            private function textCntl_rollOverHandler(event:MouseEvent):void
+            {
+                var uic:UIComponent = event.currentTarget as UIComponent;
+                uic.setStyle("color", 0xFF0000);
+            }
+
+            private function textCntl_rollOutHandler(event:MouseEvent):void
+            {
+                var uic:UIComponent = event.currentTarget as UIComponent;
+                uic.setStyle("color", 0x0000FF);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Locator id="locator"
+                      outSpatialReference="{map.spatialReference}"
+                      showBusyCursor="true"
+                      url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"/>
+
+        <esri:RouteTask id="routeTask"
+                        concurrency="last"
+                        fault="faultHandler(event)"
+                        requestTimeout="30"
+                        showBusyCursor="true"
+                        solveComplete="solveCompleteHandler(event)"
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route"/>
+
+        <esri:RouteParameters id="routeParams"
+                              directionsLengthUnits="esriMiles"
+                              outSpatialReference="{map.spatialReference}"
+                              returnDirections="true"
+                              returnRoutes="false"
+                              stops="{stopsFS}"/>
+
+        <esri:SimpleMarkerSymbol id="fromSymbol" color="0x00FF00"/>
+        <esri:SimpleMarkerSymbol id="toSymbol" color="0xFF0000"/>
+
+        <esri:SimpleLineSymbol id="routeSymbol"
+                               width="4"
+                               alpha="0.5"
+                               color="0x0000FF"/>
+        <esri:SimpleLineSymbol id="segmentSymbol"
+                               width="8"
+                               alpha="0.5"
+                               color="0xFF0000"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the RouteTask to calculate a route with
+            distance and time traveled, it also displays a list of directions you can
+            click on that will take you to the individual travel segment.  To begin: click
+            the "Get Directions" button, once the route is displayed, click on individual
+            route description segments to view that portion of the route.  Click on the
+            route summmary to zoom to the full extent of the route.
+        </s:RichText>
+        <s:HGroup width="100%">
+            <s:TextInput id="fromTx"
+                         width="40%"
+                         text="SAN"
+                         toolTip="Enter a U.S. address as 'Street, City, State, Zip'"/>
+            <s:TextInput id="toTx"
+                         width="40%"
+                         text="333 West Harbor Drive, San Diego, CA 92101"
+                         toolTip="Enter a U.S. address as 'Street, City, State, Zip'"/>
+            <s:Button click="getDirections()" label="Get Directions"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:HGroup width="100%" height="100%"
+              gap="0">
+        <esri:Map id="map">
+            <esri:extent>
+                <esri:Extent xmin="-13050868" ymin="3855075" xmax="-13038065" ymax="3861782">
+                    <esri:SpatialReference wkid="102100"/>
+                </esri:Extent>
+            </esri:extent>
+            <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        </esri:Map>
+        <s:BorderContainer width="50%" height="100%"
+                           backgroundColor="0xEEEEEE"
+                           borderVisible="false">
+            <s:layout>
+                <s:VerticalLayout paddingBottom="7"
+                                  paddingLeft="10"
+                                  paddingRight="10"
+                                  paddingTop="7"/>
+            </s:layout>
+            <s:Label id="theRouteName"
+                     width="100%"
+                     buttonMode="true"
+                     click="zoomToFullRoute()"
+                     fontWeight="bold"
+                     text="{directionsFS.routeName}"
+                     toolTip="Click to zoom to full route"/>
+            <s:Label id="theSummary"
+                     width="100%"
+                     buttonMode="true"
+                     click="zoomToFullRoute()"
+                     text="Total Distance: {formatDistance(directionsFS.totalLength, 'miles')}{NL}Total Time: {formatTime(directionsFS.totalTime)}"/>
+            <s:Line width="100%">
+                <s:stroke>
+                    <s:SolidColorStroke color="0xCECECE" weight="2"/>
+                </s:stroke>
+            </s:Line>
+            <s:Scroller width="100%" height="100%">
+                <s:VGroup id="theDirections"
+                          width="100%" height="100%"
+                          minHeight="0">
+                    <s:Label width="100%" text="Click 'Get Directions' above to display driving directions here..."/>
+                </s:VGroup>
+            </s:Scroller>
+        </s:BorderContainer>
+    </s:HGroup>
+
+</s:Application>

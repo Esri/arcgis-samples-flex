@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               backgroundColor="0xD3D1D1"
+               pageTitle="Earthquakes 1970-2009">
+    <!--
+    Description:
+    This sample demonstrates how to display time aware data using
+    the TimeSlider and FeatureLayer.  The earthquakes service used in
+    this example is time-aware, the FeatureLayer is used to display the
+    earthquake points client-side using a TimeExtent filter, and the
+    TimeSlider provides the user interface for manipulating the service
+    TimeExtent.  This sample displays major earthquakes 1970-2009.
+
+    This map has one time-aware layer: a feature layer showing earthquakes,
+    which on the client are rendered as triangles of different sizes based
+    on the 'magnitude' of the feature.
+
+    Note:
+    In ArcGIS Server 10 built-in support was added for Time-Aware layers.
+    On the server you can specify a certain field as a special Time field.
+    This time field can be used to set time extent and only ask for data
+    covering certain times.
+
+    Using a FeatureLayer we get the full time extent metadata from the server
+    (as opposed to using a Query to "manually" set the TimeExtent and
+    populate the GraphicsLayer).
+
+    We're also setting an initial time extent using the time slider on the map
+    and requesting that data during map load event.  When user changes the chosen time extent
+    to display, a new query is sent for the new time range.
+
+    To display the data with symbol markers of different sizes, a ClassBreaksRenderer
+    is used to pick symbol by looking at the "Magnitude" attribute value.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html#createTimeStopsByTimeInterval()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#renderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Serving_time_aware_layers/00sq00000090000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_enabling_time_on_data/005z0000000p000000/
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.supportClasses.TimeInfo;
+
+            protected function fLayer_loadHandler(event:LayerEvent):void
+            {
+                var timeInfo:TimeInfo = fLayer.layerDetails.timeInfo;
+                myTimeSlider.createTimeStopsByTimeInterval(timeInfo.timeExtent, timeInfo.timeInterval, timeInfo.timeIntervalUnits);
+                myTimeSlider.play(); // start playing automatically
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:DateTimeFormatter id="myDateFormatter" dateTimePattern="MMMM yyyy"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to display time aware data using
+            the TimeSlider and FeatureLayer.  The earthquakes service used in
+            this example is time-aware, the FeatureLayer is used to display the
+            earthquake points client-side using a TimeExtent filter, and the
+            TimeSlider provides the user interface for manipulating the service
+            TimeExtent.  This sample displays major earthquakes 1970-2009.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map timeSlider="{myTimeSlider}">
+        <esri:lods>
+            <esri:LOD resolution="39135.7584820001" scale="147914381.897889"/>
+            <esri:LOD resolution="19567.8792409999" scale="73957190.948944"/>
+            <esri:LOD resolution="9783.93962049996" scale="36978595.474472"/>
+            <esri:LOD resolution="4891.96981024998" scale="18489297.737236"/>
+            <esri:LOD resolution="2445.98490512499" scale="9244648.868618"/>
+            <esri:LOD resolution="1222.99245256249" scale="4622324.434309"/>
+            <esri:LOD resolution="611.49622628138" scale="2311162.217155"/>
+        </esri:lods>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer id="fLayer"
+                           load="fLayer_loadHandler(event)"
+                           mode="snapshot"
+                           outFields="[Magnitude]"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Earthquakes/Since_1970/MapServer/0">
+            <esri:renderer>
+                <esri:ClassBreaksRenderer field="Magnitude">
+                    <esri:ClassBreakInfo maxValue="5">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol alpha="0.8"
+                                                     color="0xFF0000"
+                                                     size="8"
+                                                     style="triangle">
+                                <esri:SimpleLineSymbol color="0xAA0000"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                    <esri:ClassBreakInfo maxValue="7" minValue="5">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol alpha="0.8"
+                                                     color="0xFF0000"
+                                                     size="12"
+                                                     style="triangle">
+                                <esri:SimpleLineSymbol color="0xAA0000"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                    <esri:ClassBreakInfo minValue="7">
+                        <esri:symbol>
+                            <esri:SimpleMarkerSymbol alpha="0.8"
+                                                     color="0xFF0000"
+                                                     size="25"
+                                                     style="triangle">
+                                <esri:SimpleLineSymbol color="0xAA0000"/>
+                            </esri:SimpleMarkerSymbol>
+                        </esri:symbol>
+                    </esri:ClassBreakInfo>
+                </esri:ClassBreaksRenderer>
+            </esri:renderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+
+    <s:Line width="100%">
+        <s:stroke>
+            <s:SolidColorStroke color="0x000000" weight="1"/>
+        </s:stroke>
+    </s:Line>
+
+    <s:VGroup width="100%"
+              gap="10"
+              horizontalAlign="center"
+              paddingBottom="7"
+              paddingLeft="10"
+              paddingRight="10"
+              paddingTop="7">
+        <s:Label fontSize="14"
+                 fontWeight="bold"
+                 text="{myDateFormatter.format(myTimeSlider.timeExtent.endTime)}"/>
+        <esri:TimeSlider id="myTimeSlider" enabled="{fLayer.loaded}"/>
+        <s:Label fontSize="13"
+                 text="In total {fLayer.numGraphics} earthquakes."
+                 visible="{fLayer.numGraphics > 0}"/>
+    </s:VGroup>
+</s:Application>

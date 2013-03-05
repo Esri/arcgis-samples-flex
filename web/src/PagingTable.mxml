@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="0xEEEEEE"
+               creationComplete="doExecuteForIdsQuery()"
+               pageTitle="Features in a datagrid">
+    <!--
+    Description:
+    This sample demonstrates how to use the QueryTask on a specific
+    layer (cities) in a service to create a table
+    of records shown in a DataGrid that supports paging.
+
+    Note:
+    ###################################################################
+    This sample uses a new feature available at ArcGIS 10.1 which is an
+    orderByFields property on the Query class that is sent to perform
+    the query on the service.
+    If your datasource for your service is NOT an enteprise geodbatase
+    and your server is not at version 10.1 or higher set the
+    useOrderByFieldsArray variable to false.
+    ###################################################################
+
+    Steps involved:
+    1) Use executeForIds() method to get ids for all records.
+    The executeForIds() method will return an array of object id's.
+    2) Use execute() with WHERE clause to get the attibutes for a subset of features.
+    This will return a FeatureSet to show within the DataGrid.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#executeLastResult
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#executeForIds()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html#orderByFields
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/query.html
+    -->
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center" paddingTop="20"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.QueryEvent;
+
+            import mx.collections.ArrayCollection;
+
+            import spark.events.IndexChangeEvent;
+
+            //Number of records per page
+            private const recordsPerPage:int = 10;
+
+            //Number of pages beween Previous and Next
+            private const defaultNumberOfPagesBetweenPrevNext:int = 10;
+
+            private var currentNumberOfPagesBetweenPrevNext:int = defaultNumberOfPagesBetweenPrevNext;
+
+            //Array of all ObjectIds for given service populated using executeForIDs call
+            private var objectIdsArray:Array = [];
+
+            //Contains page numbers. This array is used as datasource for repeater to display page Number.
+            private var pagesArray:Array = [];
+
+            //Array Index of the firstPage
+            private var currentPageListStartIndex:int = 0;
+
+            private var currentPage:int = 0; //Current Page 0 = not selected.
+            [Bindable]
+            private var numberOfPages:int; //calculated using objectIdsArray and recordsPerPage
+
+            /*
+            * ************************************************
+            * ************************************************
+            * SET THE VARIABLE BELOW TO FALSE TO TURN OFF
+            * THE ORDER BY CLAUSE.
+            * NOTE: REQUIRES ARCGIS 10.1 AND YOUR DATA MUST
+            * BE IN AN ENTERPRISE GEODATABASE SUCH AS SQLSERVER
+            * ************************************************
+            * ************************************************
+            */
+            [Bindable]
+            private var useOrderByFieldsArray:Boolean = true;
+
+            private var orderByFieldsArray:Array = [ 'areaname' ];
+
+            private function redoFiltering():void
+            {
+                currentNumberOfPagesBetweenPrevNext = defaultNumberOfPagesBetweenPrevNext;
+                objectIdsArray = []; //Array of all ObjectIds for given service populated using executeForIDs call
+                pagesArray = []; //Contains page numbers. This array is used as datasource for repeater to display page number.
+                numberOfPages = 0;
+                currentPage = 0; //Current Page 0 = not selected.
+                currentPageListStartIndex = 0; //Array Index of the firstPage
+                dg_queryResult.dataProvider = null;
+                query.objectIds = []; //remove all the old objectIds
+                doExecuteForIdsQuery();
+            }
+
+            private function doExecuteForIdsQuery():void
+            {
+                //Get all objectIds
+                query.where = txt_ObjectIdWhere.text;
+                if (useOrderByFieldsArray)
+                {
+                    query.orderByFields = orderByFieldsArray;
+                }
+                queryTask.executeForIds(query);
+            }
+
+            private function onExecuteForIdsComplete(event:QueryEvent):void
+            {
+                objectIdsArray = event.objectIds;
+                lbl_RecordsCount.text = objectIdsArray.length.toString();
+                //calculate number of pages
+                var n:Number = objectIdsArray.length / recordsPerPage
+                numberOfPages = Math.floor(n);
+
+                if (n - Math.floor(n) > 0)
+                {
+                    numberOfPages++;
+                }
+
+                if (numberOfPages < currentNumberOfPagesBetweenPrevNext)
+                {
+                    currentNumberOfPagesBetweenPrevNext = numberOfPages;
+                }
+
+                //populate array with pagenumbers...
+                for (var i:int = 1; i <= numberOfPages; i++)
+                {
+                    pagesArray.push(i);
+                }
+
+                var lastpageIndex:int = currentNumberOfPagesBetweenPrevNext;
+                tbb_pageNumbers.dataProvider = new ArrayCollection(pagesArray.slice(0, lastpageIndex));
+
+                //get first page records
+                if (numberOfPages > 0)
+                {
+                    currentPage = 1;
+                    doQuery(currentPage);
+                    if (numberOfPages > 1) // do bit show pagesnumbers if there is only one page.
+                    {
+                        tbb_pageNumbers.selectedIndex = 0;
+                    }
+                }
+                setPreviousNextVisibility();
+            }
+
+            private function doPageQuery(event:IndexChangeEvent):void
+            {
+                //set selected page as currentPage and performQuery
+                currentPage = int(tbb_pageNumbers.selectedItem);
+                doQuery(currentPage);
+                setPreviousNextVisibility();
+            }
+
+            private function doQuery(startPageId:int):void
+            {
+                var startIndexObjectIDArrayInPage:int = (startPageId - 1) * recordsPerPage;
+                var endIndexObjectIDArrayInPage:int = startIndexObjectIDArrayInPage + recordsPerPage;
+                if (endIndexObjectIDArrayInPage > objectIdsArray.length)
+                {
+                    endIndexObjectIDArrayInPage = objectIdsArray.length;
+                }
+                query.where = txt_ObjectIdWhere.text;
+                query.orderByFields = orderByFieldsArray;
+                query.objectIds = objectIdsArray.slice(startIndexObjectIDArrayInPage, endIndexObjectIDArrayInPage);
+
+                //perform Query
+                queryTask.execute(query);
+            }
+
+            private function next():void
+            {
+                currentPage++;
+                setPreviousNextVisibility()
+
+                //shift pages array if the requested page number is not currently displayed.
+                if (currentPage > tbb_pageNumbers.dataProvider[tbb_pageNumbers.dataProvider.length - 1])
+                {
+                    currentPageListStartIndex += 1;
+                    var lastpageIndex:int;
+                    lastpageIndex = currentPageListStartIndex + currentNumberOfPagesBetweenPrevNext
+                    tbb_pageNumbers.dataProvider = new ArrayCollection(pagesArray.slice(currentPageListStartIndex, lastpageIndex));
+                    tbb_pageNumbers.selectedIndex = tbb_pageNumbers.dataProvider.length - 1;
+                }
+                else
+                {
+                    tbb_pageNumbers.selectedIndex += 1;
+                }
+
+                doQuery(currentPage);
+            }
+
+            private function previous():void
+            {
+                currentPage--;
+                setPreviousNextVisibility();
+
+                //shift pages array if the requested page number is not currently displayed.
+                if (currentPage < tbb_pageNumbers.dataProvider[0])
+                {
+                    //btn_Next.visible = true;
+                    currentPageListStartIndex -= 1;
+                    var lastPageIndex:int;
+                    lastPageIndex = currentPageListStartIndex + currentNumberOfPagesBetweenPrevNext
+                    if (lastPageIndex > pagesArray.length - 1)
+                    {
+                        lastPageIndex = pagesArray.length - 1
+                    }
+
+                    tbb_pageNumbers.dataProvider = new ArrayCollection(pagesArray.slice(currentPageListStartIndex, lastPageIndex));
+                    tbb_pageNumbers.selectedIndex = 0;
+                }
+                else
+                {
+                    tbb_pageNumbers.selectedIndex -= 1;
+                }
+                doQuery(currentPage);
+            }
+
+            private function setPreviousNextVisibility():void
+            {
+                //hide previous, next and page numbers container if no records are found or if there is only one page.
+                if (numberOfPages <= 1)
+                {
+                    hb_pagenumberContainer.visible = false;
+                    return;
+                }
+                else
+                {
+                    hb_pagenumberContainer.visible = true;
+                    btn_Next.visible = true;
+                }
+
+                if (currentPage > 1 && currentPage < numberOfPages)
+                {
+                    btn_Next.visible = true;
+                    btn_Previous.visible = true;
+                    return;
+                }
+
+                if (currentPage == numberOfPages)
+                {
+                    btn_Next.visible = false;
+                }
+
+                if (currentPage <= 1)
+                {
+                    btn_Previous.visible = false;
+                }
+                else
+                {
+                    btn_Previous.visible = true
+                }
+            }
+
+            private function formatPopulation(item:Object, dgColumn:GridColumn):String
+            {
+                return numberFormatter.format(item[dgColumn.dataField]);
+            }
+
+            protected function ddl_OrderByField_changeHandler(event:IndexChangeEvent):void
+            {
+                var orderByField:String = DropDownList(event.currentTarget).selectedItem.data;
+                orderByFieldsArray = [];
+                orderByFieldsArray.push(orderByField);
+                redoFiltering();
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:QueryTask id="queryTask"
+                        executeForIdsComplete="onExecuteForIdsComplete(event)"
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0"
+                        useAMF="true"/>
+
+        <esri:Query id="query">
+            <esri:outFields>
+                <fx:String>OBJECTID</fx:String>
+                <fx:String>areaname</fx:String>
+                <fx:String>pop2000</fx:String>
+                <fx:String>class</fx:String>
+                <fx:String>st</fx:String>
+                <fx:String>capital</fx:String>
+            </esri:outFields>
+        </esri:Query>
+        <s:NumberFormatter id="numberFormatter"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the QueryTask on a specific
+            layer (cities) in a service to create a table
+            of records shown in a DataGrid that supports paging.  
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="middle">
+            <s:Label text="Search filter:"/>
+            <s:TextInput id="txt_ObjectIdWhere"
+                         width="150"
+                         enter="redoFiltering();"
+                         text="pop2000 &gt; 152000"/>
+            <s:Button click="redoFiltering();" label="Search"/>
+            <s:Spacer width="100%" includeInLayout="{useOrderByFieldsArray}"/>
+            <s:Label includeInLayout="{useOrderByFieldsArray}" text="Order by:"/>
+            <s:DropDownList id="ddl_OrderByField"
+                            width="150"
+                            change="ddl_OrderByField_changeHandler(event)"
+                            includeInLayout="{useOrderByFieldsArray}"
+                            requireSelection="true"
+                            visible="{useOrderByFieldsArray}">
+                <s:ArrayList>
+                    <fx:Object data="areaname" label="Name"/>
+                    <fx:Object data="st" label="State"/>
+                    <fx:Object data="class" label="Type"/>
+                    <fx:Object data="capital" label="Capital"/>
+                    <fx:Object data="pop2000" label="Population"/>
+                </s:ArrayList>
+            </s:DropDownList>
+        </s:HGroup>
+
+        <s:HGroup>
+            <s:Label text="Records Found:"/>
+            <s:Label id="lbl_RecordsCount"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:DataGrid id="dg_queryResult"
+                width="90%"
+                dataProvider="{new ArrayCollection(queryTask.executeLastResult.attributes)}"
+                requestedRowCount="{recordsPerPage}"
+                visible="true">
+        <s:columns>
+            <s:ArrayList>
+                <s:GridColumn dataField="areaname" headerText="Name"/>
+                <s:GridColumn dataField="st" headerText="State"/>
+                <s:GridColumn dataField="class" headerText="Type"/>
+                <s:GridColumn dataField="capital" headerText="Capital"/>
+                <s:GridColumn dataField="pop2000"
+                              headerText="Population"
+                              labelFunction="formatPopulation"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+    <s:HGroup id="hb_pagenumberContainer" visible="false">
+        <s:Button id="btn_Previous"
+                  click="previous()"
+                  label="Previous"/>
+        <s:ButtonBar id="tbb_pageNumbers"
+                     width="100%"
+                     change="doPageQuery(event)"
+                     color="0x0050AA"
+                     fontWeight="bold">
+            <s:layout>
+                <s:HorizontalLayout columnWidth="42"
+                                    gap="0"
+                                    variableColumnWidth="false"/>
+            </s:layout>
+        </s:ButtonBar>
+        <s:Button id="btn_Next"
+                  click="next()"
+                  label="Next"/>
+    </s:HGroup>
+    <s:HGroup>
+        <s:Label text="# Pages:"/>
+        <s:Label text="{numberOfPages}"/>
+    </s:HGroup>
+
+</s:Application>

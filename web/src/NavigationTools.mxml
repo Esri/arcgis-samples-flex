@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using the navigation tools">
+    <!--
+    Description:
+    This sample demonstrates how to use the NavigationTool in the
+    ArcGIS API for Flex.  This tool provides a way to activate
+    navigation methods though user interface components such as
+    buttons labeled with the appropriate navigation text.  The
+    NavigationTool also provides convenience methods for traversing
+    through locations previously visited in the map.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html#deactivate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html#zoomToNextExtent()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html#zoomToPrevExtent()
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.tools.NavigationTool;
+
+            import mx.logging.LogEventLevel;
+
+            import spark.events.IndexChangeEvent;
+
+            private function tbb_changeHandler(event:IndexChangeEvent):void
+            {
+                switch (tbb.selectedItem)
+                {
+                    case "Zoom In":
+                    {
+                        navTool.activate(NavigationTool.ZOOM_IN);
+                        break;
+                    }
+                    case "Zoom Out":
+                    {
+                        navTool.activate(NavigationTool.ZOOM_OUT);
+                        break;
+                    }
+                    case "Pan":
+                    {
+                        navTool.activate(NavigationTool.PAN);
+                        break;
+                    }
+                    default:
+                    {
+                        navTool.deactivate();
+                        break;
+                    }
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:NavigationTool id="navTool" map="{myMap}"/>
+
+        <!-- The output from TraceTarget is available when debugging this sample in Flash Builder -->
+        <!--<mx:TraceTarget includeCategory="true"
+                        includeLevel="true"
+                        includeTime="true"
+                        level="{LogEventLevel.DEBUG}"/>-->
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the NavigationTool in the
+            ArcGIS API for Flex.  This tool provides a way to activate
+            navigation methods though user interface components such as
+            buttons labeled with the appropriate navigation text.  The
+            NavigationTool also provides convenience methods for traversing
+            through locations previously visited in the map.
+            Click on of the buttons below to activate the NavigationTool.
+        </s:RichText>
+        <s:HGroup width="100%" horizontalAlign="center">
+            <s:ButtonBar id="tbb" change="tbb_changeHandler(event)">
+                <s:ArrayList>
+                    <fx:String>Zoom In</fx:String>
+                    <fx:String>Zoom Out</fx:String>
+                    <fx:String>Pan</fx:String>
+                </s:ArrayList>
+            </s:ButtonBar>
+            <s:HGroup gap="0">
+                <s:Button click="navTool.zoomToPrevExtent()"
+                          enabled="{!navTool.isFirstExtent}"
+                          label="Previous Extent"/>
+                <s:Button click="navTool.zoomToNextExtent()"
+                          enabled="{!navTool.isLastExtent}"
+                          label="Next Extent"/>
+            </s:HGroup>
+            <s:Button click="myMap.zoomToInitialExtent()" label="Initial Extent"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap">
+        <esri:extent>
+            <esri:Extent xmin="10404880" ymin="-2003758" xmax="16960120" ymax="1430405">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>

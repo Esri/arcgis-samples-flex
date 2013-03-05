@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Styling InfoSymbols using CSS">
+    <!--
+    Description:
+    This sample demonstrates how to style infosymbols using
+    container styles (containerStyleName).  In this sample,
+    two African cities are using a different container style
+    ('africaStyle') than the South American cities container
+    style ('southamericaStyle').
+
+    The two styles are declared as css class selectors in the Style section,
+    then in the InfoSymbol the containerStyleName is set to match the style declaration.
+    For example:
+    The first graphic has a symbol which is an InfoSymbol, the info symbol's
+    containerStyleName is set to 'africaStyle' which has a style declaration of
+    .africaStyle in the Style declaration section.
+    Each infosymbol contains different contents, e.g. a button (Cairo) versus a label.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html#containerStyleName
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html#infoRenderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoSymbolWindow.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoSymbolWindow.html#style:backgroundColor
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoSymbolWindow.html#style:infoPlacement
+    -->
+
+    <fx:Style>
+        .africaStyle
+        {
+            borderThickness: 1;
+            infoPlacement: upperRight;
+            borderColor: #FFFFFF;
+            backgroundColor: #FF0000;
+            paddingLeft: 5;
+            paddingRight: 5;
+            paddingTop: 5;
+            paddingBottom: 5;
+        }
+        .southamericaStyle
+        {
+            infoPlacement: upperLeft;
+            borderThickness: 3;
+            borderColor: #FFFFFF;
+            backgroundColor: #00FF00;
+            paddingLeft: 2;
+            paddingRight: 2;
+            paddingTop: 2;
+            paddingBottom: 2;
+        }
+    </fx:Style>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to style infosymbols using
+            container styles (containerStyleName).  In this sample,
+            two African cities are using a different container style
+            ('africaStyle') than the South American cities container
+            style ('southamericaStyle').
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:Extent xmin="-14526410" ymin="-6369184" xmax="14003557" ymax="13433510">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="3476384" y="3511014"/>
+                </esri:geometry>
+                <esri:symbol>
+                    <esri:InfoSymbol containerStyleName="africaStyle">
+                        <esri:infoRenderer>
+                            <fx:Component>
+                                <s:Button label="Cairo"/>
+                            </fx:Component>
+                        </esri:infoRenderer>
+                    </esri:InfoSymbol>
+                </esri:symbol>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="2050937" y="-4018773"/>
+                </esri:geometry>
+                <esri:symbol>
+                    <esri:InfoSymbol containerStyleName="africaStyle">
+                        <esri:infoRenderer>
+                            <fx:Component>
+                                <s:Label fontWeight="bold" text="Cape Town"/>
+                            </fx:Component>
+                        </esri:infoRenderer>
+                    </esri:InfoSymbol>
+                </esri:symbol>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="-4808600" y="-2620936"/>
+                </esri:geometry>
+                <esri:symbol>
+                    <esri:InfoSymbol containerStyleName="southamericaStyle">
+                        <esri:infoRenderer>
+                            <fx:Component>
+                                <s:Label text="Rio de Janeiro"/>
+                            </fx:Component>
+                        </esri:infoRenderer>
+                    </esri:InfoSymbol>
+                </esri:symbol>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="-7449129" y="1175452"/>
+                </esri:geometry>
+                <esri:symbol>
+                    <esri:InfoSymbol containerStyleName="southamericaStyle">
+                        <esri:infoRenderer>
+                            <fx:Component>
+                                <s:Label text="Caracas"/>
+                            </fx:Component>
+                        </esri:infoRenderer>
+                    </esri:InfoSymbol>
+                </esri:symbol>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+</s:Application>

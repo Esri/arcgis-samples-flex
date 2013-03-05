@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="application_initializeHandler(event)"
+               pageTitle="Hurricane tracks using a temporal renderer">
+    <!--
+    Description:
+    This sample demonstrates how to display time aware data using
+    the TimeSlider and FeatureLayer.  The hurricanes service used in
+    this example is time-aware, the FeatureLayer is used to display the
+    hurricane points client-side using a TemporalRenderer, and the
+    TimeSlider provides the user interface for manipulating the service
+    TimeExtent.  This sample also uses a date formatter to display the
+    current time extent in a readable manner as well as a composite symbol
+    for better symbolization of the latest observation.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html#createTimeStopsByTimeInterval()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#mode
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#MODE_SNAPSHOT
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#renderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#trackIdField
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:load
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#trackRenderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#latestObservationRenderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#observationRenderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#observationAger
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/AlphaRange.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/TimeRampAger.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/TimeRampAger.html#alphaRange
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/CompositeSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/TextSymbol.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Serving_time_aware_layers/00sq00000090000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_enabling_time_on_data/005z0000000p000000/
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.supportClasses.TimeInfo;
+
+            import mx.events.FlexEvent;
+
+            [Bindable]
+            protected var textFormat:TextFormat = new TextFormat();
+
+            protected function application_initializeHandler(event:FlexEvent):void
+            {
+                textFormat.bold = true;
+                textFormat.size = 16;
+            }
+
+            protected function hurricaneFeatureLayer_loadHandler(event:LayerEvent):void
+            {
+                var timeInfo:TimeInfo = hurricaneFeatureLayer.layerDetails.timeInfo;
+                timeSlider.createTimeStopsByTimeInterval(timeInfo.timeExtent, timeInfo.timeInterval, timeInfo.timeIntervalUnits);
+            }
+
+            protected function myTextFunction(point:MapPoint, attributes:Object):String
+            {
+                return attributes.WINDSPEED + "mph";
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:DateTimeFormatter id="myDateFormatter" dateTimePattern="MMMM dd"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to display time aware data using
+            the TimeSlider and FeatureLayer.  The hurricanes service used in
+            this example is time-aware, the FeatureLayer is used to display the
+            hurricane points client-side using a TemporalRenderer, and the
+            TimeSlider provides the user interface for manipulating the service
+            TimeExtent.  This sample also uses a date formatter to display the
+            current time extent in a readable manner as well as a composite symbol
+            for better symbolization of the latest observation.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" timeSlider="{timeSlider}">
+        <esri:extent>
+            <esri:Extent xmin="-15141796" ymin="113237" xmax="5976634" ymax="8887494">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:FeatureLayer id="hurricaneFeatureLayer"
+                           load="hurricaneFeatureLayer_loadHandler(event)"
+                           mode="snapshot"
+                           outFields="[EVENTID,WINDSPEED]"
+                           trackIdField="EVENTID"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Hurricanes/MapServer/0">
+            <esri:renderer>
+                <esri:TemporalRenderer>
+                    <esri:trackRenderer>
+                        <esri:SimpleRenderer>
+                            <esri:SimpleLineSymbol style="dash"/>
+                        </esri:SimpleRenderer>
+                    </esri:trackRenderer>
+                    <esri:latestObservationRenderer>
+                        <esri:ClassBreaksRenderer field="WINDSPEED">
+                            <esri:ClassBreakInfo maxValue="20">
+                                <esri:CompositeSymbol>
+                                    <esri:SimpleMarkerSymbol alpha="0.7"
+                                                             color="red"
+                                                             size="5">
+                                        <esri:SimpleLineSymbol width="2" color="0x7C1A1F"/>
+                                    </esri:SimpleMarkerSymbol>
+                                    <esri:TextSymbol textAttribute="EVENTID"
+                                                     textFormat="{textFormat}"
+                                                     yoffset="8"/>
+                                    <esri:TextSymbol textFunction="myTextFunction" yoffset="-8"/>
+                                </esri:CompositeSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo maxValue="40" minValue="20">
+                                <esri:CompositeSymbol>
+                                    <esri:SimpleMarkerSymbol alpha="0.7"
+                                                             color="red"
+                                                             size="15">
+                                        <esri:SimpleLineSymbol width="2" color="0x7C1A1F"/>
+                                    </esri:SimpleMarkerSymbol>
+                                    <esri:TextSymbol textAttribute="EVENTID"
+                                                     textFormat="{textFormat}"
+                                                     yoffset="13"/>
+                                    <esri:TextSymbol textFunction="myTextFunction" yoffset="-13"/>
+                                </esri:CompositeSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo maxValue="60" minValue="40">
+                                <esri:CompositeSymbol>
+                                    <esri:SimpleMarkerSymbol alpha="0.7"
+                                                             color="red"
+                                                             size="25">
+                                        <esri:SimpleLineSymbol width="2" color="0x7C1A1F"/>
+                                    </esri:SimpleMarkerSymbol>
+                                    <esri:TextSymbol textAttribute="EVENTID"
+                                                     textFormat="{textFormat}"
+                                                     yoffset="18"/>
+                                    <esri:TextSymbol textFunction="myTextFunction" yoffset="-18"/>
+                                </esri:CompositeSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo maxValue="80" minValue="60">
+                                <esri:CompositeSymbol>
+                                    <esri:SimpleMarkerSymbol alpha="0.7"
+                                                             color="red"
+                                                             size="35">
+                                        <esri:SimpleLineSymbol width="2" color="0x7C1A1F"/>
+                                    </esri:SimpleMarkerSymbol>
+                                    <esri:TextSymbol textAttribute="EVENTID"
+                                                     textFormat="{textFormat}"
+                                                     yoffset="23"/>
+                                    <esri:TextSymbol textFunction="myTextFunction" yoffset="-23"/>
+                                </esri:CompositeSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo maxValue="100" minValue="80">
+                                <esri:CompositeSymbol>
+                                    <esri:SimpleMarkerSymbol alpha="0.7"
+                                                             color="red"
+                                                             size="45">
+                                        <esri:SimpleLineSymbol width="2" color="0x7C1A1F"/>
+                                    </esri:SimpleMarkerSymbol>
+                                    <esri:TextSymbol textAttribute="EVENTID"
+                                                     textFormat="{textFormat}"
+                                                     yoffset="28"/>
+                                    <esri:TextSymbol textFunction="myTextFunction" yoffset="-28"/>
+                                </esri:CompositeSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo minValue="100">
+                                <esri:CompositeSymbol>
+                                    <esri:SimpleMarkerSymbol alpha="0.7"
+                                                             color="red"
+                                                             size="55">
+                                        <esri:SimpleLineSymbol width="2" color="0x7C1A1F"/>
+                                    </esri:SimpleMarkerSymbol>
+                                    <esri:TextSymbol textAttribute="EVENTID"
+                                                     textFormat="{textFormat}"
+                                                     yoffset="33"/>
+                                    <esri:TextSymbol textFunction="myTextFunction" yoffset="-33"/>
+                                </esri:CompositeSymbol>
+                            </esri:ClassBreakInfo>
+                        </esri:ClassBreaksRenderer>
+                    </esri:latestObservationRenderer>
+                    <esri:observationRenderer>
+                        <esri:ClassBreaksRenderer field="WINDSPEED">
+                            <esri:ClassBreakInfo maxValue="20">
+                                <esri:SimpleMarkerSymbol alpha="0"
+                                                         color="white"
+                                                         size="5">
+                                    <esri:SimpleLineSymbol color="white"/>
+                                </esri:SimpleMarkerSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo maxValue="40" minValue="20">
+                                <esri:SimpleMarkerSymbol alpha="0"
+                                                         color="white"
+                                                         size="15">
+                                    <esri:SimpleLineSymbol color="white"/>
+                                </esri:SimpleMarkerSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo maxValue="60" minValue="40">
+                                <esri:SimpleMarkerSymbol alpha="0"
+                                                         color="white"
+                                                         size="25">
+                                    <esri:SimpleLineSymbol color="white"/>
+                                </esri:SimpleMarkerSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo maxValue="80" minValue="60">
+                                <esri:SimpleMarkerSymbol alpha="0"
+                                                         color="white"
+                                                         size="35">
+                                    <esri:SimpleLineSymbol color="white"/>
+                                </esri:SimpleMarkerSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo maxValue="100" minValue="80">
+                                <esri:SimpleMarkerSymbol alpha="0"
+                                                         color="white"
+                                                         size="45">
+                                    <esri:SimpleLineSymbol color="white"/>
+                                </esri:SimpleMarkerSymbol>
+                            </esri:ClassBreakInfo>
+                            <esri:ClassBreakInfo minValue="100">
+                                <esri:SimpleMarkerSymbol alpha="0"
+                                                         color="white"
+                                                         size="55">
+                                    <esri:SimpleLineSymbol color="white"/>
+                                </esri:SimpleMarkerSymbol>
+                            </esri:ClassBreakInfo>
+                        </esri:ClassBreaksRenderer>
+                    </esri:observationRenderer>
+                    <esri:observationAger>
+                        <esri:TimeRampAger>
+                            <esri:alphaRange>
+                                <esri:AlphaRange fromAlpha="0.1" toAlpha="0.4"/>
+                            </esri:alphaRange>
+                        </esri:TimeRampAger>
+                    </esri:observationAger>
+                </esri:TemporalRenderer>
+            </esri:renderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+
+    <s:BorderContainer height="80"
+                       bottom="10"
+                       backgroundColor="0xEEEEEE"
+                       borderWeight="2"
+                       cornerRadius="5"
+                       dropShadowVisible="true"
+                       horizontalCenter="0">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"
+                              verticalAlign="middle"/>
+        </s:layout>
+        <s:Label fontSize="16" text="Hurricanes 2000 ({myDateFormatter.format(myMap.timeExtent.startTime)} - {myDateFormatter.format(myMap.timeExtent.endTime)})"/>
+        <esri:TimeSlider id="timeSlider"
+                         width="500"
+                         loop="true"
+                         thumbCount="2"
+                         thumbIndexes="{[0,6]}"
+                         thumbMovingRate="500"/>
+    </s:BorderContainer>
+
+</s:Application>

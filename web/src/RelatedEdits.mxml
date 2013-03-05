@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Incident Tracker: query and edit a related table">
+    <!--
+    Description:
+    This sample demonstrates how to edit a related table.
+    In this example, the "311Incidents" service has a layer named "Incidents" and a business table named "Incident Priority".
+    The author of this service used ArcGIS for Desktop to setup what is called a "Relate" on the layer "Incidents",
+    where the "objectid" field in the "Incidents" layer is related to the "sf_311_serviceoid" field in the "Incident Priority" table.
+    Once the map document or "resource" from ArcGIS for Desktop has been shared as a service, we can go to the Services Directory,
+    see http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer to explore the service.
+    Selecting either Feature Layer: Incidents (ID: 0) or Table: Incident Priority (ID: 1) you can browse the metadata to see that
+    they both support "Relationships" and supported operations "Query Related Records".
+
+    Reading records from a related table:
+    When you select a graphic or "incident" in the sample, the "relationShipQuery" properties "relationshipId", "outFields",
+    and "objectIds" are set before we call "queryRelatedFeatures".  If you notice, the selected feature's "objectid" is used
+    to search the related records.  In the "queryRelatedFeatures" event handler, we get the "relatedRecords" from the "FeatureLayerEvent"
+    by telling it the "objectid" from the selected graphic.  Finally we report "how many people think this is important" by updating the "count"
+    variable using the number of features or "length" of the FeatureSet from the event and set the "peopleCount".
+
+    Writing records to a related table:
+    When you select a graphic or "incident" in the sample, the "objectid" of the selected feature is held temporarily.
+    Then the info window is displayed, and you can click on the "voteImage" to record your vote.
+    When you "click to vote", the "voteRecordAttributes" are populated; specifically the "sf_311_serviceoid" attribute
+    is set to the "objectid" of the selected feature.  These attributes are then included in the "voteRecord" graphic that
+    is then saved through the feature layer "incidentVoteTable" using the apply edits method.  Each time you vote a new record is
+    added to the "Incident Priority" table.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FeatureLayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#event:editsComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#queryRelatedFeatures()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#event:queryRelatedFeaturesComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RelationshipQuery.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/queryrelatedrecords.html
+
+    ArcGIS for Desktop documentation:
+    About relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_joining_and_relating_tables/005s0000002n000000/
+    Essentials of relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Essentials_of_relating_tables/005s0000002t000000/
+    Relating the attributes in one table to another
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Relating_the_attributes_in_one_table_to_another/005s0000002v000000/
+    -->
+
+    <fx:Style>
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|InfoWindow
+        {
+            content-background-alpha : 0;
+            background-color : #CCCCCC;
+            border-thickness : 2;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.FeatureLayerEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.utils.TextFlowUtil;
+
+            [Bindable]
+            private var selectedObjectID:Number;
+            [Bindable]
+            private var selectedType:String;
+            // variables
+            public var count:Number;
+            public var mapClickPoint:MapPoint;
+            public var selectedGraphic:Graphic;
+
+            protected function myMap_mapClickHandler(event:MapMouseEvent):void
+            {
+                // reset the count
+                count = 0;
+
+                mapClickPoint = event.mapPoint;
+                if (event.originalTarget is Graphic || event.originalTarget.parent is Graphic) // for PictureMarkerSymbol target is not graphic(graphic contains a child object)
+                {
+                    if (event.originalTarget is Graphic)
+                    {
+                        selectedGraphic = Graphic(event.originalTarget);
+                    }
+                    else if (event.originalTarget.parent is Graphic) //check for PictureMarkerSymbol
+                    {
+                        selectedGraphic = Graphic(event.originalTarget.parent);
+                    }
+
+                    selectedObjectID = selectedGraphic.attributes.objectid;
+                    selectedType = selectedGraphic.attributes.req_type;
+
+                    relationShipQuery.outFields = [ "agree_with_incident" ];
+                    relationShipQuery.relationshipId = 1;
+                    relationShipQuery.objectIds = [ selectedGraphic.attributes.objectid ];
+                    incidentLayer.queryRelatedFeatures(relationShipQuery);
+                }
+                else
+                {
+                    myMap.infoWindow.hide();
+                }
+            }
+
+            private function incidentLayer_queryRelatedFeaturesCompleteHandler(event:FeatureLayerEvent):void
+            {
+                const featureSet:FeatureSet = event.relatedRecords[selectedGraphic.attributes.objectid];
+                if (featureSet && featureSet.features.length > 0)
+                {
+                    count = featureSet.features.length;
+                }
+                peopleCount.text = count + " people think this is important";
+
+                myMap.infoWindow.label = selectedGraphic.attributes.req_type;
+                myTextArea.textFlow = TextFlowUtil.importFromString("<span fontWeight='bold'>Date Reported: </span>" + selectedGraphic.attributes.req_date + "<br/>"
+                                                                    + "<span fontWeight='bold'>Address: </span>" + selectedGraphic.attributes.address + "<br/>"
+                                                                    + "<span fontWeight='bold'>District: </span>" + selectedGraphic.attributes.district);
+
+                myMap.infoWindow.show(mapClickPoint);
+            }
+
+            private function voteImage_clickHandler(event:MouseEvent):void
+            {
+                const voteRecordAttributes:Object = {
+                        sf_311_serviceoid: selectedGraphic.attributes.objectid,
+                        datetime: new Date().time,
+                        agree_with_incident: 1,
+                        notes: "I think this is very important!"
+                    };
+                const voteRecord:Graphic = new Graphic(null, null, voteRecordAttributes);
+
+                incidentVoteTableFeatureLayerTask.applyEdits([ voteRecord ], null, null, "objectid");
+            }
+
+            private function incidentVoteTableFeatureLayerTask_editsCompleteHandler(event:FeatureLayerEvent):void
+            {
+                count++;
+                peopleCount.text = count + " people think this is important";
+            }
+
+            protected function showRelatedRecordsForObjectID(event:MouseEvent):void
+            {
+                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer/0/queryRelatedRecords?objectIds=' + selectedObjectID + '&relationshipId=1&definitionExpression=&returnGeometry=true&outSR=&outFields=*&f=html'
+                navigateToURL(new URLRequest(url), "_blank");
+            }
+
+            protected function featureLayerTask_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:FeatureLayerTask id="incidentVoteTableFeatureLayerTask"
+                               editsComplete="incidentVoteTableFeatureLayerTask_editsCompleteHandler(event)"
+                               fault="featureLayerTask_faultHandler(event)"
+                               showBusyCursor="true"
+                               url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer/1"/>
+
+        <esri:RelationshipQuery id="relationShipQuery"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to read and edit a related table through ArcGIS for Server.  When a graphic or "incident" is selected,
+            we query the related table to find related records where the selected graphic's "objectid" field matches the
+            "Incident Priority" table "sf_311_serviceoid" field and display that as a count of the "number of people that think this is important".
+            When you select a graphic "incident" and click on the "image" to vote, you are adding records to the "Incident Priority" business table.  Each time you vote,
+            a new record is being added to the "Incident Priority" table where the "sf_311_serviceoid" field will be set to the "objectid" of the selected graphic.
+        </s:RichText>
+        <s:Button click="showRelatedRecordsForObjectID(event)"
+                  includeInLayout="{!isNaN(selectedObjectID)}"
+                  label="Show Related Records for {selectedType}: {selectedObjectID}"
+                  visible="{!isNaN(selectedObjectID)}"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" mapClick="myMap_mapClickHandler(event)">
+        <esri:infoWindowContent>
+            <s:VGroup width="250" height="180">
+                <s:Line width="100%">
+                    <s:stroke>
+                        <s:SolidColorStroke weight="1"/>
+                    </s:stroke>
+                </s:Line>
+                <s:TextArea id="myTextArea"
+                            width="100%" height="70"
+                            borderVisible="false"/>
+                <s:Line width="100%">
+                    <s:stroke>
+                        <s:SolidColorStroke weight="1"/>
+                    </s:stroke>
+                </s:Line>
+                <s:Label id="peopleCount"/>
+                <s:Button id="voteImage"
+                          buttonMode="true"
+                          chromeColor="0xfcffff"
+                          click="voteImage_clickHandler(event)"
+                          cornerRadius="5"
+                          focusColor="0xfcffff"
+                          icon="@Embed(source='assets/thumbsup.jpg')"
+                          label="Vote !"
+                          useHandCursor="true"/>
+            </s:VGroup>
+        </esri:infoWindowContent>
+        <esri:extent>
+            <esri:Extent xmin="-13626000" ymin="4549000" xmax="-13625000" ymax="4551000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer id="incidentLayer"
+                           disableClientCaching="true"
+                           mode="onDemand"
+                           outFields="*"
+                           queryRelatedFeaturesComplete="incidentLayer_queryRelatedFeaturesCompleteHandler(event)"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/MapServer/0"/>
+    </esri:Map>
+
+</s:Application>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by WMS_TOC.mxml -->
+<s:DataGrid xmlns:fx="http://ns.adobe.com/mxml/2009"
+            xmlns:s="library://ns.adobe.com/flex/spark"
+            width="100%" height="100%"
+            resizableColumns="false"
+            sortableColumns="false">
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.WMSLayer;
+            import com.esri.ags.layers.supportClasses.WMSLayerInfo;
+
+            import mx.collections.ArrayList;
+
+            private var layerVisibilities:Array = [];
+
+            private var _wmsLayer:WMSLayer;
+            private var _wmsLayerChanged:Boolean;
+
+            public function get wmsLayer():WMSLayer
+            {
+                return _wmsLayer;
+            }
+
+            public function set wmsLayer(value:WMSLayer):void
+            {
+                _wmsLayer = value;
+                _wmsLayerChanged = true;
+                invalidateProperties();
+            }
+
+            override protected function commitProperties():void
+            {
+                if (_wmsLayerChanged)
+                {
+                    _wmsLayerChanged = false;
+                    if (wmsLayer)
+                    {
+                        wmsLayer.addEventListener(LayerEvent.UPDATE_END, removeBusyCursor, false, 0, true);
+                        if (wmsLayer.loaded)
+                        {
+                            setDataProvider();
+                        }
+                        else
+                        {
+                            wmsLayer.addEventListener(LayerEvent.LOAD, layerLoadHandler, false, 0, true);
+                        }
+                    }
+                }
+
+                // calling this last fixes an issue when the wmsLayer is set late via AS
+                super.commitProperties();
+            }
+
+            private function setDataProvider():void
+            {
+                if (!wmsLayer.visibleLayers)
+                {
+                    wmsLayer.visibleLayers = new ArrayList();
+                }
+
+                // create layerVisibilities
+                for (var i:int = wmsLayer.layerInfos.length - 1; i >= 0; i--) // start from end to show in logical order
+                {
+                    var layerInfo:WMSLayerInfo = wmsLayer.layerInfos[i];
+                    var layerVisibility:WMSLayerVisibility = new WMSLayerVisibility();
+                    layerVisibility.name = layerInfo.name;
+                    layerVisibility.title = layerInfo.title;
+                    if (wmsLayer.visibleLayers.getItemIndex(layerVisibility.name) != -1)
+                    {
+                        layerVisibility.visible = true; // already visible
+                    }
+                    layerVisibilities.push(layerVisibility);
+                }
+
+                dataProvider = new ArrayList(layerVisibilities);
+            }
+
+            private function layerLoadHandler(event:LayerEvent):void
+            {
+                setDataProvider();
+            }
+
+            public function updateVisibleLayers():void
+            {
+                wmsLayer.visibleLayers.removeAll();
+                // add back the visible layers in reverse order to match the orginal order from wmsLayer.layerInfos
+                for (var i:int = layerVisibilities.length - 1; i >= 0; i--)
+                {
+                    var layerVisibility:WMSLayerVisibility = layerVisibilities[i];
+                    if (layerVisibility.visible)
+                    {
+                        wmsLayer.visibleLayers.addItem(layerVisibility.name);
+                    }
+                }
+                cursorManager.setBusyCursor();
+            }
+
+            private function removeBusyCursor(event:Event):void
+            {
+                cursorManager.removeBusyCursor();
+            }
+        ]]>
+    </fx:Script>
+
+    <s:columns>
+        <s:ArrayList>
+            <s:GridColumn width="70"
+                          headerText="Visibility"
+                          itemRenderer="com.esri.ags.samples.WMSLayerVizRenderer"/>
+            <s:GridColumn dataField="title" headerText="Layer Name"/>
+        </s:ArrayList>
+    </s:columns>
+
+</s:DataGrid>

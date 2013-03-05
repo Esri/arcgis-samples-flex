@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Selecting parcels by drawing">
+    <!--
+    Description:
+    This sample demonstrates how to apply a spatial relationship
+    operation while performing a query.  Select a method to draw
+    on the map (line, polygon/area), experiment with the options
+    in the drop down list to change the spatial operation applied
+    during the query process.  This sample also uses the geometry
+    service (simply) to correct user defined selections that intersect
+    themselves (self intersecting polygon/area).
+
+    The GeometryService has many useful methods.
+    This sample takes a closer look at the simplify method.
+
+    A potential use case could be selecting parcels with a user-drawn area.
+    For this spatial relationship query to work, the user-drawn input
+    needs to be "simplified".
+    (The same problem applies to editing, where the FeatureService will
+    only accept topologically correct features.
+
+    To "clean" a polygon or make it topologically correct, the simplify()
+    method of the geometryservice can be used.
+
+    Steps involved:
+    - Step 1. Drawing something
+    - Step 2. Making sure the input polygon is topologically correct
+    - Step 3. Querying using the cleaned polygon
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polygon.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html#SPATIAL_REL_CONTAINS
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html#polygonSelfIntersecting()
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/query.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.Polygon;
+            import com.esri.ags.symbols.SimpleLineSymbol;
+            import com.esri.ags.tasks.GeometryService;
+            import com.esri.ags.tasks.QueryTask;
+            import com.esri.ags.tasks.supportClasses.Query;
+            import com.esri.ags.utils.GeometryUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            [Bindable]
+            public var spatialRelationshipOptions_linear:ArrayCollection = new ArrayCollection(
+                [
+                { data: Query.SPATIAL_REL_CROSSES, label: "whose borders crosses my line [SPATIAL_REL_CROSSES]" },
+                { data: Query.SPATIAL_REL_INTERSECTS, label: "that my line intersects [SPATIAL_REL_INTERSECTS]" },
+                { data: Query.SPATIAL_REL_WITHIN, label: "that contain my complete line [SPATIAL_REL_WITHIN]" }
+                ]);
+
+            [Bindable]
+            public var spatialRelationshipOptions_area:ArrayCollection = new ArrayCollection(
+                [
+                { data: Query.SPATIAL_REL_CONTAINS, label: "that are inside my area [SPATIAL_REL_CONTAINS]" },
+                { data: Query.SPATIAL_REL_INTERSECTS, label: "that are partially or completely within my area [SPATIAL_REL_INTERSECTS]" },
+                { data: Query.SPATIAL_REL_OVERLAPS, label: "that are partially (but not fully) inside my area [SPATIAL_REL_OVERLAPS]" },
+                { data: Query.SPATIAL_REL_WITHIN, label: "that my area is (fully) inside [SPATIAL_REL_WITHIN]" }
+                ]);
+
+            // Step 1. Draw something
+            protected function tbb_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedItem:Object = ButtonBar(event.currentTarget).selectedItem;
+                if (tbb.selectedIndex < 0)
+                {
+                    // when toggling a tool off, deactivate it
+                    myDrawTool.deactivate();
+                }
+                else
+                {
+                    switch (selectedItem.label)
+                    {
+                        case "POLYLINE":
+                        {
+                            myDrawTool.activate(DrawTool.POLYLINE);
+                            spatialRel.dataProvider = spatialRelationshipOptions_linear;
+                            break;
+                        }
+                        case "FREEHAND_POLYLINE":
+                        {
+                            myDrawTool.activate(DrawTool.FREEHAND_POLYLINE);
+                            spatialRel.dataProvider = spatialRelationshipOptions_linear;
+                            break;
+                        }
+                        case "POLYGON":
+                        {
+                            myDrawTool.activate(DrawTool.POLYGON);
+                            spatialRel.dataProvider = spatialRelationshipOptions_area;
+                            break;
+                        }
+                        case "FREEHAND_POLYGON":
+                        {
+                            myDrawTool.activate(DrawTool.FREEHAND_POLYGON);
+                            spatialRel.dataProvider = spatialRelationshipOptions_area;
+                            break;
+                        }
+                        case "EXTENT":
+                        {
+                            myDrawTool.activate(DrawTool.EXTENT);
+                            spatialRel.dataProvider = spatialRelationshipOptions_area;
+                            break;
+                        }
+                        case "CIRCLE":
+                        {
+                            myDrawTool.activate(DrawTool.CIRCLE);
+                            spatialRel.dataProvider = spatialRelationshipOptions_area;
+                            break;
+                        }
+                        case "ELLIPSE":
+                        {
+                            myDrawTool.activate(DrawTool.ELLIPSE);
+                            spatialRel.dataProvider = spatialRelationshipOptions_area;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Step 2. Make sure input polygon is topologically correct
+            protected function myDrawTool_drawEndHandler(event:DrawEvent):void
+            {
+                // reset after finished drawing a feature
+                myDrawTool.deactivate();
+                tbb.selectedIndex = -1;
+                var geometry:Geometry = event.graphic.geometry;
+                if (geometry is Polygon && GeometryUtil.polygonSelfIntersecting(geometry as Polygon))
+                {
+                    // Note: As of version 2.0, GeometryService returns geometries (instead of graphics).
+                    myGeometryService.simplify([ geometry ]);
+                }
+                else
+                {
+                    doQuery(geometry);
+                }
+            }
+
+            // Step 3 (only for polygons that are self intersecting).
+            private function myGeometryService_simplifyCompleteHandler(event:GeometryServiceEvent):void
+            {
+                // Note: As of version 2.0, GeometryService returns geometries (instead of graphics)
+                doQuery(event.result[0] as Geometry);
+            }
+
+            // Step 4. query using drawn graphic
+            private function doQuery(geom:Geometry):void
+            {
+                try
+                {
+                    var query:Query = new Query();
+                    query.spatialRelationship = spatialRel.selectedItem.data;
+                    query.geometry = geom;
+                    query.returnGeometry = true;
+                    queryTask.execute(query, new AsyncResponder(onResult, onFault));
+
+                    function onResult(featureSet:FeatureSet, token:Object = null):void
+                    {
+                        if (featureSet.features.length > 0)
+                        {
+                            for each (var myGraphic:Graphic in featureSet.features)
+                            {
+                                myGraphicsLayer.add(myGraphic);
+                            }
+                        }
+                        else
+                        {
+                            Alert.show("No parcels were found", "Try something else");
+                        }
+                    }
+                    function onFault(info:Object, token:Object = null):void
+                    {
+                        Alert.show(info.faultString + "\n\n" + info.faultDetail, "queryTask fault " + info.faultCode);
+                    }
+                }
+                catch (error:Error)
+                {
+                    Alert.show(error.toString(), "myGeometryService_simplifyCompleteHandler error");
+                }
+            }
+
+            protected function queryTask_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "QueryTask Fault " + event.fault.faultCode);
+            }
+
+            protected function myGeometryService_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "GeometryService Fault " + event.fault.faultCode);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:DrawTool id="myDrawTool"
+                       drawEnd="myDrawTool_drawEndHandler(event)"
+                       graphicsLayer="{myGraphicsLayer}"
+                       map="{map}">
+            <esri:fillSymbol>
+                <esri:SimpleFillSymbol id="yellowParcels"
+                                       color="0xFFFF00"
+                                       style="solid">
+                    <esri:SimpleLineSymbol width="1"/>
+                </esri:SimpleFillSymbol>
+            </esri:fillSymbol>
+        </esri:DrawTool>
+
+        <esri:GeometryService id="myGeometryService"
+                              fault="myGeometryService_faultHandler(event)"
+                              showBusyCursor="true"
+                              simplifyComplete="myGeometryService_simplifyCompleteHandler(event)"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+
+        <esri:QueryTask id="queryTask"
+                        fault="queryTask_faultHandler(event)"
+                        showBusyCursor="true"
+                        url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/BloomfieldHillsMichigan/Parcels/MapServer/2"
+                        useAMF="false"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          horizontalAlign="center"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to apply a spatial relationship
+            operation while performing a query.  Select a method to draw
+            on the map (line, polygon/area), experiment with the options
+            in the drop down list to change the spatial operation applied
+            during the query process.  This sample also uses the geometry
+            service (simply) to correct user defined selections that intersect
+            themselves (self intersecting polygon/area).
+        </s:RichText>
+        <s:ButtonBar id="tbb"
+                     change="tbb_changeHandler(event)"
+                     labelField=""
+                     selectedIndex="-1">
+            <s:ArrayList>
+                <fx:Object icon="@Embed(source='assets/i_draw_line.png')" label="POLYLINE"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_freeline.png')" label="FREEHAND_POLYLINE"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_poly.png')" label="POLYGON"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_freepoly.png')" label="FREEHAND_POLYGON"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_rect.png')" label="EXTENT"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_circle.png')" label="CIRCLE"/>
+                <fx:Object icon="@Embed(source='assets/i_draw_ellipse.png')" label="ELLIPSE"/>
+            </s:ArrayList>
+        </s:ButtonBar>
+
+        <s:HGroup width="100%"
+                  horizontalAlign="center"
+                  verticalAlign="baseline">
+            <s:Label text="Search for parcels"/>
+            <s:ComboBox id="spatialRel"
+                        width="80%"
+                        dataProvider="{spatialRelationshipOptions_area}"
+                        requireSelection="true"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map">
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/BloomfieldHillsMichigan/Parcels/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+</s:Application>

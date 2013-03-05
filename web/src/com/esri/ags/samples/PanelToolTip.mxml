@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by MapTips.mxml -->
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         height="75"
+         alpha="0.8"
+         backgroundColor="0xEEEEEE"
+         borderAlpha="0.5"
+         borderColor="0x000000"
+         cornerRadius="10"
+         implements="mx.core.IToolTip"
+         mouseChildren="false"
+         mouseEnabled="false">
+
+    <fx:Script>
+        <![CDATA[
+            // required by IToolTip
+            public function get text():String
+            {
+                return null;
+            }
+
+            public function set text(value:String):void
+            {
+            }
+
+            [Bindable]
+            public var population:Number;
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <s:NumberFormatter id="numberFormatter"/>
+    </fx:Declarations>
+
+    <s:Group left="10" right="10" top="10" bottom="10">
+        <s:Label fontSize="14"
+                 horizontalCenter="0"
+                 text="Population: {numberFormatter.format(population)}"
+                 verticalCenter="0"/>
+    </s:Group>
+
+</s:Panel>

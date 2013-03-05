@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               creationComplete="onApplicationCreationComplete()"
+               pageTitle="Event handling">
+    <!--
+    Description:
+    This sample demonstrates how different events (both Flex built-ins and events
+    specific to the ArcGIS API for Flex) work together.
+    You can listen to many different events, both our Map Navigation specific events,
+    as well as general Flex events.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ExtentEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/PanEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ZoomEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    -->
+
+    <s:layout>
+        <s:HorizontalLayout/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.ExtentEvent;
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.events.MapEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.events.PanEvent;
+            import com.esri.ags.events.ZoomEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.Layer;
+
+            import mx.events.FlexEvent;
+
+            [Bindable]
+            private var mapCoordX:Number = 0;
+            [Bindable]
+            private var mapCoordY:Number = 0;
+            [Bindable]
+            private var pixelCoordX:Number = 0;
+            [Bindable]
+            private var pixelCoordY:Number = 0;
+
+            public function onApplicationCreationComplete():void
+            {
+                // myMap.addEventListener(MouseEvent.CLICK, logMouseEvent);  // You probably want to use MapMouseEvent.MAP_CLICK instead
+                myMap.addEventListener(MouseEvent.DOUBLE_CLICK, logEvent);
+                log.text = "* Application creationComplete!!\n" + log.text;
+            }
+
+            public function onMapCreationComplete(event:Event):void
+            {
+                log.text = "* Map creationComplete!!\n" + log.text;
+                myMap.infoWindow.addEventListener(Event.CLOSE, logEvent);
+                myMap.infoWindow.label = "Clicking the 'x' will \nthrow generic 'close' event";
+            }
+
+            public function logEvent(event:Event):void
+            {
+                //trace(">> " + event.type + " - " + event.target.id + "/" + event.target.name + " -- " + event.target);
+                if (event is ExtentEvent) // extentChange
+                {
+                    log.text = "* ExtentEvent: " + event.type + "\n" + log.text;
+                }
+                else if (event is LayerEvent) // load
+                {
+                    log.text = "* LayerEvent (" + LayerEvent(event).layer.id + "): " + event.type + "\n" + log.text;
+                }
+                else if (event is MapEvent) // load
+                {
+                    log.text = "* MapEvent: " + event.type + "\n" + log.text;
+                }
+                else if (event is MouseEvent) // mouseWheel
+                {
+                    if (event.type == "mouseMove")
+                    {
+                        if (myMap.loaded)
+                        {
+                            var mev:MouseEvent = event as MouseEvent;
+                            var mapPoint:MapPoint = myMap.toMapFromStage(mev.stageX, mev.stageY);
+                            mapCoordX = mapPoint.x;
+                            mapCoordY = mapPoint.y;
+                            var mapLocalPixelPoint:Point = myMap.globalToLocal(new Point(mev.stageX, mev.stageY));
+                            pixelCoordX = mapLocalPixelPoint.x;
+                            pixelCoordY = mapLocalPixelPoint.y;
+                        }
+                    }
+                    else
+                    {
+                        log.text = "* MouseEvent: " + event.type + "\n" + log.text;
+                    }
+                }
+                else if (event is MapMouseEvent) // mapClick
+                {
+                    log.text = "* MapMouseEvent: " + event.type + "\n" + log.text;
+                    myMap.infoWindow.show(MapMouseEvent(event).mapPoint);
+                }
+                else if (event is PanEvent) // panStart, panUpdate, panEnd
+                {
+                    log.text = "* PanEvent: " + event.type + "\n" + log.text;
+                }
+                else if (event is ZoomEvent) // zoomStart, zoomUpdate, zoomEnd
+                {
+                    log.text = "* ZoomEvent: " + event.type + "\n" + log.text;
+                }
+                else if (event is FlexEvent) // creationComplete
+                {
+                    if (event.target is Layer)
+                    {
+                        log.text = "* FlexEvent (" + Layer(event.target).id + "): " + event.type + "\n" + log.text;
+                    }
+                    else
+                    {
+                        log.text = "* FlexEvent (" + event.target.id + "): " + event.type + "\n" + log.text;
+                    }
+                }
+                else
+                {
+                    log.text = "* Event (Generic): " + event.type + "\n" + log.text;
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how different events (both Flex built-ins and events
+            specific to the ArcGIS API for Flex) work together.
+            You can listen to many different events, both our Map Navigation specific events,
+            as well as general Flex events.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="middle">
+            <s:Label text="Mouse Coordinates:"/>
+
+            <s:BorderContainer width="80%" height="25"
+                               cornerRadius="5">
+                <s:layout>
+                    <s:HorizontalLayout paddingLeft="5"
+                                        paddingRight="5"
+                                        verticalAlign="middle"/>
+                </s:layout>
+                <s:Label width="50%"
+                         paddingBottom="0"
+                         text="Map x: {mapCoordX.toFixed(4)}   y: {mapCoordY.toFixed(4)}"/>
+                <s:Line width="12" rotation="90">
+                    <s:stroke>
+                        <s:SolidColorStroke/>
+                    </s:stroke>
+                </s:Line>
+                <s:Label width="50%"
+                         paddingBottom="0"
+                         text="Pixel x: {pixelCoordX}   y: {pixelCoordY}"/>
+            </s:BorderContainer>
+        </s:HGroup>
+        <s:Label text="Map spatial reference: well-known id: {myMap.spatialReference.wkid}"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              creationComplete="onMapCreationComplete(event)"
+              crosshairVisible="true"
+              doubleClick="logEvent(event)"
+              extentChange="logEvent(event)"
+              layerAdd="logEvent(event)"
+              load="logEvent(event)"
+              mapClick="logEvent(event)"
+              mouseMove="logEvent(event)"
+              mouseWheel="logEvent(event)"
+              panEnd="logEvent(event)"
+              panStart="logEvent(event)"
+              timeExtentChange="logEvent(event)"
+              updateComplete="logEvent(event)"
+              zoomEnd="logEvent(event)"
+              zoomStart="logEvent(event)"
+              zoomUpdate="logEvent(event)">
+        <esri:extent>
+            <esri:Extent id="lower48"
+                         xmin="-14305000" ymin="2748000" xmax="-6815000" ymax="7117000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer id="tiles"
+                                         creationComplete="logEvent(event)"
+                                         fault="logEvent(event)"
+                                         load="logEvent(event)"
+                                         loadError="logEvent(event)"
+                                         updateEnd="logEvent(event)"
+                                         updateStart="logEvent(event)"
+                                         url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:FeatureLayer id="features"
+                           creationComplete="logEvent(event)"
+                           definitionExpression="TYPE='city' AND POP1990 &gt; 50000"
+                           fault="logEvent(event)"
+                           load="logEvent(event)"
+                           loadError="logEvent(event)"
+                           updateEnd="logEvent(event)"
+                           updateStart="logEvent(event)"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/0"/>
+    </esri:Map>
+    <s:TextArea id="log"
+                width="100%" height="100%"/>
+</s:Application>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="application_initializeHandler(event)"
+               pageTitle="Load a preconfigured WebMap from ArcGIS.com">
+    <!--
+    Description:
+    This sample demonstrates how to use a Web Map from www.arcgis.com
+    to create the basemap and operational layers of your Flex map.
+    The itemId can be hard coded, passed though a url parameter,
+    or retrieved through searching by the Portal class.
+    Using the WebMapUtil class and the itemId of a specific web map
+    (on ArcGIS Online or Portal for ArcGIS) you can create a Flex Map object.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/IdentityManager.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/WebMapEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/WebMapUtil.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html
+
+    Author, design, configure your web map using ArcGIS.com and leverage that web map inside the ArcGIS API for Flex.
+    http://www.arcgis.com/home/item.html?id=ff454fbb59844b259c861f39c027715e
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.events.WebMapEvent;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            [Bindable]
+            private var webMapID:String = "ff454fbb59844b259c861f39c027715e";
+
+            private function application_initializeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+
+                var urlParams:Object = getURLParameters();
+
+                if (urlParams.hasOwnProperty('webmapid'))
+                {
+                    //http://somename.mycompany.com/samples/ArcGISWebMap.html?webmapid=12148d94ace9424d934a085abe58b088
+                    var webmapidParam:String = urlParams['webmapid'] as String;
+                    webMapIDTextInput.prompt = webmapidParam;
+                    webMapUtil.createMapById(webmapidParam);
+                }
+                else
+                {
+                    webMapUtil.createMapById(webMapID);
+                    webMapIDTextInput.prompt = webMapID;
+                }
+            }
+
+            private function webMapUtil_createMapByIdCompleteHandler(event:WebMapEvent):void
+            {
+                /*
+                * event.item (the web map item)
+                * event.itemData (the actual information that makes up the web map [ baseMap, operationalLayers, version, etc])
+                *
+                * var webMapItem:Object = event.item;
+                * webMapItem.id (web map id)
+                * webMapItem.owner (Who owns the document on ArcGIS.com)
+                * webMapItem.snippet (web map summary)
+                * webMapItem.title (web map title)
+                */
+                var webMapItem:Object = event.item as Object;
+                webMapPanel.title = webMapItem.title;
+                webMapLabel.text = webMapItem.snippet + "\nClick on a feature to get more information.";
+                mapGroup.removeAllElements();
+                mapGroup.addElement(event.map);
+            }
+
+            private function loadWebMapButton_clickHandler(event:MouseEvent):void
+            {
+                webMapUtil.createMapById(webMapIDTextInput.text);
+            }
+
+            private function webMapIDTextInput_enterHandler(event:FlexEvent):void
+            {
+                webMapUtil.createMapById(webMapIDTextInput.text);
+            }
+
+            private function getURLParameters():Object
+            {
+                var result:URLVariables = new URLVariables();
+
+                try
+                {
+                    if (ExternalInterface.available)
+                    {
+                        // Use JavaScript to get the search string from the current browser location.
+                        // Use substring() to remove leading '?'.
+                        // See http://livedocs.adobe.com/flex/3/langref/flash/external/ExternalInterface.html
+                        var search:String = ExternalInterface.call("location.search.substring", 1);
+                        if (search && search.length > 0)
+                        {
+                            result.decode(search);
+                        }
+                    }
+                }
+                catch (error:Error)
+                {
+                    Alert.show(error.toString());
+                }
+
+                return result;
+            }
+
+            private function esriService_faultHandler(event:FaultEvent):void
+            {
+                var errorString:String = "Unable to load webmap\n" + event.fault.faultString;
+                Alert.show(errorString, "WebMap Loading Errors");
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:WebMapUtil id="webMapUtil"
+                         createMapByIdComplete="webMapUtil_createMapByIdCompleteHandler(event)"
+                         fault="esriService_faultHandler(event)"
+                         portalURL="{portalURLTextInput.text ? portalURLTextInput.text : 'https://www.arcgis.com'}"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use a Web Map from www.arcgis.com
+            to create the basemap and operational layers of your Flex map.
+            The itemId can be hard coded, passed though a url parameter,
+            or retrieved through searching by the Portal class.
+        </s:RichText>
+        <s:HGroup verticalAlign="baseline">
+            <s:Label width="100" text="Portal URL:"/>
+            <s:TextInput id="portalURLTextInput"
+                         width="300"
+                         enter="webMapIDTextInput_enterHandler(event)"
+                         prompt="http://companyorg.maps.arcgis.com"/>
+        </s:HGroup>
+        <s:HGroup verticalAlign="baseline">
+            <s:Label width="100" text="Web map ID:"/>
+            <s:TextInput id="webMapIDTextInput"
+                         width="300"
+                         enter="webMapIDTextInput_enterHandler(event)"/>
+            <s:Button click="loadWebMapButton_clickHandler(event)" label="Load"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:Group id="mapGroup"
+             width="100%" height="100%"/>
+    <s:Panel id="webMapPanel"
+             width="200"
+             right="20" top="20"
+             title="Load a WebMap from ArcGIS.com">
+        <s:layout>
+            <s:VerticalLayout paddingLeft="5" paddingTop="5"/>
+        </s:layout>
+        <s:RichEditableText id="webMapLabel"
+                            width="90%"
+                            text="ArcGIS.com Web Map"/>
+    </s:Panel>
+</s:Application>

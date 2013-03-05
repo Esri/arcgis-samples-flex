@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Turning the zoom slider horizontal">
+    <!--
+    Description:
+    This sample demonstrates how you can apply the alternative skin
+    included in the ArcGIS API for Flex which will position the
+    Navigation zoom slider in a horizontal position instead of a
+    vertical position.
+
+    Note:
+    All the source code for the skins can be found in the ArcGIS API for Flex
+    download.  Once you unzip the api you can find the skins under the following
+    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins' and the skin assets
+    in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    NavigationSkin.mxml
+    NavigationVSliderSkin.mxml
+    NavigationZoomInButtonSkin.mxml
+    NavigationZoomOutButtonSkin.mxml
+    NavigationHSliderSkin.mxml
+    NavigationHorizontalSkin.mxml
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Navigation.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/NavigationSkin.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/supportClasses/SkinnableComponent.html
+    About Spark skins
+    http://help.adobe.com/en_US/flex/using/WSC8DB0C28-F7A6-48ff-9899-7957415A0A49.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/skins/NavigationHorizontalSkin.mxml
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|Navigation
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.NavigationHorizontalSkin");
+            tickSpacing: 6;
+            left: NaN;
+            top: NaN;
+            bottom: 25;
+            horizontalCenter: 0;
+        }
+    </fx:Style>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can apply the alternative skin
+            included in the ArcGIS API for Flex which will position the
+            Navigation zoom slider in a horizontal position instead of a
+            vertical position.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map level="3">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using ArcGISImageServiceLayer">
+    <!--
+    Description:
+    This sample demonstrates how you can add an ArcGIS Image Service to your map.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISImageServiceLayer.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?imageserver.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Key_concepts_for_image_services/0154000003v2000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Image_service_parameters/015400000524000000/
+    -->
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can add an ArcGIS Image Service to your map.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:Extent xmin="-13486609" ymin="5713307" xmax="-13263258" ymax="5823117">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:ArcGISImageServiceLayer id="imageLayer"
+                                      noData="0"
+                                      url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Portland/CascadeLandsat/ImageServer"/>
+    </esri:Map>
+
+</s:Application>

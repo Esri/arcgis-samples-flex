@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by WMSLayerTOC.mxml -->
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                    xmlns:s="library://ns.adobe.com/flex/spark"
+                    clipAndEnableScrolling="true">
+    <fx:Script>
+        <![CDATA[
+            private function cb_clickHandler(event:MouseEvent):void
+            {
+                var layerVisibility:WMSLayerVisibility = WMSLayerVisibility(data);
+
+                if (cb.selected)
+                {
+                    layerVisibility.visible = true;
+                }
+                else
+                {
+                    layerVisibility.visible = false;
+                }
+                WMSLayerTOC(grid.dataGrid).updateVisibleLayers();
+            }
+        ]]>
+    </fx:Script>
+
+    <s:CheckBox id="cb"
+                click="cb_clickHandler(event)"
+                horizontalCenter="0"
+                selected="{WMSLayerVisibility(data).visible}"
+                verticalCenter="0"/>
+
+</s:GridItemRenderer>

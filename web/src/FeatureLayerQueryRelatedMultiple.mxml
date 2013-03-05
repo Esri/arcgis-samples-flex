@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Multiple RelationshipQuery and Selections">
+    <!--
+    Description:
+    This sample demonstrates how to use multiple FeatureLayers with RelationshipQueries in
+    order to traverse data through relationships in a service.  This is accomplished by performing
+    selections on FeatureLayers and then using RelationshipQueries to find related features and records.
+    The sample accomplishes this by allowing the user to select a well field, then using that selection
+    select related wells.  These selected (related) wells are then used to perform a related query (RelationshipQuery)
+    to find related (well tops) records in another table.  The sample displays a subset of oil fields and wells in Kansas.
+
+    Overview:
+    STEP 1: Select a field at the click location
+    STEP 2: Perform the related query to find wells that are related to the selected field
+    STEP 3: Select the wells that were retrieved through the related query in STEP 2
+    STEP 4: Perform the related query to find the tops that are related to the selected wells in STEP 3
+
+    Details:
+    This portion describes what is happening behind the scenes using REST.
+    Clicking on an oil field selects and highlights the oil field while returning its objectid,
+    the "Fields" layer has a relationship named "Field 2 Wells" which has a relationship id of "2".
+    The "Field 2 Wells" relationship is then used to find and select the related well features.
+    Using the objectid of the selected field and the relationship id of "Field 2 Wells" we find
+    the related wells by calling the queryRelatedRecords operation on the "Fields" layer.
+    This returns all the objectids of the wells.
+
+    Next, we can select and highlight all the wells by asking the "Wells" layer (id 0) for all the
+    objectids that we just received through the previous related query.
+
+    Finally, we ask the "Wells" layer for its related records in the "Tops" table.  The wells layer
+    has a relationship "Well 2 Tops" with a relationship id of "3".  We find the related records
+    by using the queryRelatedRecords operation on the "Wells" layer, where we pass in all the objectids
+    of the wells in addition to the relationship id of "3" which will give us the "Tops".  The related tops
+    are then displayed in a DataGrid beneath the map.
+
+    NOTE: this sample code requires a relationshipId. FeatureLayers can have more than one
+    relationship and each relationship is identified by a unique identifier.
+    Use the Services Directory to find the relationship id.
+    Selected features are fetched from the server when selected (using the 'selection' mode) and drawn clientside.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#selectFeatures()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#queryRelatedFeatures()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#event:queryRelatedFeaturesComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RelationshipQuery.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+
+    ArcGIS REST API documentation
+    http://resources.arcgis.com/en/help/rest/apiref/queryrelatedrecords.html
+
+    ArcGIS for Desktop documentation
+    About relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_joining_and_relating_tables/005s0000002n000000/
+    Essentials of relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Essentials_of_relating_tables/005s0000002t000000/
+    Relating the attributes in one table to another
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Relating_the_attributes_in_one_table_to_another/005s0000002v000000/
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.FeatureLayerEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.Query;
+            import com.esri.ags.tasks.supportClasses.RelationshipQuery;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+
+            [Bindable]
+            private var servicesDirectoryButtonsVisible:Boolean = false;
+            [Bindable]
+            private var wellFieldID:String = "";
+            [Bindable]
+            private var relatedWellsCount:String = "";
+            [Bindable]
+            private var relatedTopsCount:String = "";
+
+            /*
+            *   After you click on the map, issue a query to find the
+            *   Field at the click location of the map.
+            */
+            protected function map_mapClickHandler(event:MapMouseEvent):void
+            {
+                fieldsSelectionQuery.geometry = event.mapPoint;
+                //STEP 1: Select a field at the click location
+                fieldsFeatureLayer.selectFeatures(fieldsSelectionQuery, FeatureLayer.SELECTION_NEW);
+            }
+
+            /*
+            *   The selection complete event handler for the fields layer
+            *   Selects the field, if there was one found
+            *   Issue the query to find the wells (in the wells layer) that are related to
+            *   the fields layer.
+            */
+            private function fieldsLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
+            {
+                relatedWellsRelationshipQuery.outFields = [ "OBJECTID" ];
+                relatedWellsRelationshipQuery.relationshipId = 2;
+                // The "2" comes from the service directory of the layer:
+                // Field 2 Wells (2)  -- Related To: Wells  (0)
+                if (event.features.length > 0)
+                {
+                    selectFieldButton.visible = true;
+                    wellFieldID = event.features[0].attributes.OBJECTID;
+                    relatedWellsRelationshipQuery.objectIds = [ event.features[0].attributes.OBJECTID ];
+                    showRelatedWellRecordsButton.visible = true;
+                    //STEP 2: Perform the related query to find wells that are related to the selected field
+                    fieldsFeatureLayer.queryRelatedFeatures(relatedWellsRelationshipQuery, new AsyncResponder(onResult, onFault));
+                    relatedDatagrid.dataProvider = null;
+                    function onResult(relatedRecords:Object, token:Object = null):void
+                    {
+                        var fset:FeatureSet = (relatedRecords[event.features[0].attributes.OBJECTID]);
+                        relatedWellsCount = String(fset.features.length);
+                        var objIds:Array = new Array();
+                        for each (var g:Graphic in fset.features)
+                        {
+                            objIds.push(g.attributes.OBJECTID)
+                        }
+                        wellsSelectionQuery.objectIds = objIds;
+                        showSelectedWellsButton.visible = true;
+                        //STEP 3: Select the wells that were retrieved through the related query in STEP 2
+                        wellsFeatureLayer.selectFeatures(wellsSelectionQuery, FeatureLayer.SELECTION_NEW);
+                    }
+                    function onFault(info:Object, token:Object = null):void
+                    {
+                        Alert.show(info.toString(), "Query Problem");
+                    }
+                }
+                else
+                {
+                    Alert.show("No fields found at this location", "Info");
+                    relatedDatagrid.dataProvider = null;
+                    selectFieldButton.visible = false;
+                    showRelatedWellRecordsButton.visible = false;
+                    showSelectedWellsButton.visible = false;
+                    showRelatedTopsRecordsButton.visible = false;
+                }
+            }
+
+            /*
+            *   The selection complete handler for the wells layer
+            *   Selects the wells that were found, if any
+            *   Finds the related tops records for the wells layer
+            */
+            private function wellsLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
+            {
+                relatedTopsRelationshipQuery.outFields = [ "API_NUMBER", "ELEVATION", "FORMATION", "TOP" ];
+                relatedTopsRelationshipQuery.relationshipId = 3;
+                // The "3" comes from the service directory of the layer:
+                // Well 2 Tops (3)  -- Related To: TOPS  (2)
+                var objIds:Array = new Array();
+                for each (var g:Graphic in event.features)
+                {
+                    objIds.push(g.attributes.OBJECTID)
+                }
+                relatedTopsRelationshipQuery.objectIds = objIds;
+                showRelatedTopsRecordsButton.visible = true;
+                //STEP 4: Perform the related query to find the tops that are related to the selected wells in STEP 3
+                wellsFeatureLayer.queryRelatedFeatures(relatedTopsRelationshipQuery, new AsyncResponder(onResult, onFault));
+                relatedDatagrid.dataProvider = null;
+                var attrs:Array = new Array();
+                function onResult(relatedRecords:Object, token:Object = null):void
+                {
+                    var relatedRecordsCount:int = 0;
+                    for each (var i:FeatureSet in relatedRecords)
+                    {
+                        for each (var j:Graphic in i.features)
+                        {
+                            relatedRecordsCount++;
+                            attrs.push(j.attributes);
+                        }
+                    }
+                    relatedTopsCount = String(relatedRecordsCount);
+                    relatedDatagrid.dataProvider = new ArrayCollection(attrs);
+                }
+                function onFault(info:Object, token:Object = null):void
+                {
+                    Alert.show(info.toString(), "Query Problem");
+                }
+            }
+
+            protected function showSelectedField_clickHandler(event:MouseEvent):void
+            {
+                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/1/query?returnGeometry=true&spatialRel=esriSpatialRelIntersects&outFields=FIELD_NAME,OBJECTID,PROD_GAS,PROD_OIL&outSR=102100&geometryType=esriGeometryPoint&inSR=102100&geometry={"x":' + MapPoint(fieldsSelectionQuery.geometry).x + ',"y":' + MapPoint(fieldsSelectionQuery.geometry).y + '}&f=html';
+                navigateToURL(new URLRequest(url), "_blank");
+            }
+
+            protected function showRelatedWellRecords_clickHandler(event:MouseEvent):void
+            {
+                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/1/queryRelatedRecords?f=html&returnGeometry=false&objectIds=' + relatedWellsRelationshipQuery.objectIds.toString() + '&relationshipId=2&outFields=OBJECTID';
+                navigateToURL(new URLRequest(url), "_blank");
+            }
+
+            protected function showSelectedWells_clickHandler(event:MouseEvent):void
+            {
+                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0/query?returnGeometry=true&spatialRel=esriSpatialRelIntersects&f=html&outSR=102100&objectIds=' + wellsSelectionQuery.objectIds.toString() + '&outFields=*';
+                navigateToURL(new URLRequest(url), "_blank");
+            }
+
+            protected function showRelatedTopsRecords_clickHandler(event:MouseEvent):void
+            {
+                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0/queryRelatedRecords?f=html&returnGeometry=false&objectIds=' + relatedTopsRelationshipQuery.objectIds.toString() + '&relationshipId=3&outFields=API_NUMBER,ELEVATION,FORMATION,TOP';
+                navigateToURL(new URLRequest(url), "_blank");
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Query used to select the field when you click on the map in STEP 1-->
+        <esri:Query id="fieldsSelectionQuery"/>
+        <!-- Relationship query used in STEP 2 to find the wells related to the selected field from STEP 1 -->
+        <esri:RelationshipQuery id="relatedWellsRelationshipQuery"/>
+        <!-- Query used in STEP 3 to select the wells that are found in the relationship query from STEP 2-->
+        <esri:Query id="wellsSelectionQuery"/>
+        <!-- Relationship query used in STEP 4 to find the tops related to the selected wells from STEP 3 -->
+        <esri:RelationshipQuery id="relatedTopsRelationshipQuery"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use multiple FeatureLayers with RelationshipQueries in
+            order to traverse data through relationships in a service.  This is accomplished by performing
+            selections on FeatureLayers and then using RelationshipQueries to find related features and records.
+            The sample accomplishes this by allowing the user to select a well field, then using that selection
+            select related wells.  These selected (related) wells are then used to perform a related query (RelationshipQuery)
+            to find related (well tops) records in another table.  The sample displays a subset of oil fields and wells in Kansas.
+            Once a field has been selected, you may click the buttons below to view in the Services Directory what happens during each step.
+        </s:RichText>
+        <s:HGroup width="100%" includeInLayout="{selectFieldButton.visible}">
+            <s:Button id="selectFieldButton"
+                      click="showSelectedField_clickHandler(event)"
+                      label="Show well field {wellFieldID}"
+                      toolTip="Show the selected field in the Services Directory"
+                      visible="false"/>
+            <s:Button id="showRelatedWellRecordsButton"
+                      click="showRelatedWellRecords_clickHandler(event)"
+                      label="Show related wells ({relatedWellsCount})"
+                      toolTip="Show wells related to the selected field in the Services Directory"
+                      visible="false"/>
+            <s:Button id="showSelectedWellsButton"
+                      click="showSelectedWells_clickHandler(event)"
+                      label="Show selected wells ({relatedWellsCount})"
+                      toolTip="Show selected wells in the Services Directory"
+                      visible="false"/>
+            <s:Button id="showRelatedTopsRecordsButton"
+                      click="showRelatedTopsRecords_clickHandler(event)"
+                      label="Show well tops related to wells ({relatedTopsCount})"
+                      toolTip="Show the tops that are related to the selected wells in the Services Directory"
+                      visible="false"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map" mapClick="map_mapClickHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-10845705" ymin="4511078" xmax="-10820099" ymax="4524492">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayCollection>
+                    <fx:Number>0</fx:Number>
+                    <fx:Number>1</fx:Number>
+                </s:ArrayCollection>
+            </esri:visibleLayers>
+        </esri:ArcGISDynamicMapServiceLayer>
+        <esri:FeatureLayer id="fieldsFeatureLayer"
+                           mode="selection"
+                           selectionColor="0x0080FF"
+                           selectionComplete="fieldsLayer_selectionCompleteHandler(event)"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/1"/>
+        <esri:FeatureLayer id="wellsFeatureLayer"
+                           mode="selection"
+                           outFields="*"
+                           selectionColor="0xB3B3B3"
+                           selectionComplete="wellsLayer_selectionCompleteHandler(event)"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0">
+            <esri:infoWindowRenderer>
+                <fx:Component>
+                    <esri:LabelDataRenderer label="Well:">
+                        <esri:layout>
+                            <s:VerticalLayout/>
+                        </esri:layout>
+                        <s:Label text="ID: {data.OBJECTID}"/>
+                        <s:Label text="Completion: {data.completion ? new Date(data.completion) : 'No date available'}"/>
+                        <s:Label text="Plug date: {data.plug_date ? new Date(data.plug_date) : 'No date available'}"/>
+                    </esri:LabelDataRenderer>
+                </fx:Component>
+            </esri:infoWindowRenderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+    <s:DataGrid id="relatedDatagrid"
+                width="100%" height="35%">
+        <s:columns>
+            <s:ArrayList>
+                <s:GridColumn dataField="API_NUMBER" headerText="API Number"/>
+                <s:GridColumn dataField="ELEVATION" headerText="Elevation"/>
+                <s:GridColumn dataField="TOP" headerText="Top"/>
+                <s:GridColumn dataField="FORMATION" headerText="Formation"/>
+            </s:ArrayList>
+        </s:columns>
+    </s:DataGrid>
+</s:Application>

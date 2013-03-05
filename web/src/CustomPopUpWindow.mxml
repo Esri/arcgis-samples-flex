@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:samples="com.esri.ags.samples.*"
+               pageTitle="Custom Pop-up Window">
+    <!--
+    Description:
+    This sample demonstrates how to create custom pop-up window
+    content using the IGraphicRenderer interface and the infoWindowRenderer
+    property on a graphic.  When you click on one of the graphics in the map,
+    you will see a custom TextArea component displayed.
+
+    The graphics in this sample are using a custom BalloonSymbol that exposes an
+    htmlText property.  The BalloonSymbol's default htmlText is set to a templated
+    set of text that will be replaced with the real values of the individual graphic
+    instances are used in this sample.  Each graphic also has its infoWindowRenderer
+    property set to an instance of the BalloonTextArea class which extends TextArea and
+    implements IGraphicRenderer.  When a graphic is clicked on in this sample, on the
+    mouse event on the graphic, the info window renderer instance checks to see if it is
+    an implementation of the IGraphicRenderer interface and if so then the graphic
+    setter operation is invoked on it.  In the BalloonTextArea class, the set graphic
+    method calls the private method setHtmlText which replaces the templated set of text
+    with the real attributes in each individual graphic.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html#infoWindowRenderer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#infoWindowRenderersEnabled
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/IGraphicRenderer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/Symbol.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/BalloonSymbol.as
+    com/esri/ags/samples/BalloonTextArea.as
+    -->
+    <fx:Declarations>
+        <samples:BalloonSymbol id="balloonSymbol"
+                               color="0xFF0000"
+                               size="10">
+            <samples:htmlText>
+                <![CDATA[
+                <b>$[head]</b><br/>
+                <i>$[lat]</i><br/>
+                <i>$[lon]</i><br/>
+                ]]>
+            </samples:htmlText>
+        </samples:BalloonSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create custom pop-up window
+            content using the IGraphicRenderer interface and the infoWindowRenderer
+            property on a graphic.  When you click on one of the graphics in the map,
+            you will see a custom TextArea component displayed.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map" scaleBarVisible="false">
+        <esri:extent>
+            <esri:Extent xmin="-14192701" ymin="-8502926" xmax="12067392" ymax="9695201">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:GraphicsLayer>
+            <esri:Graphic symbol="{balloonSymbol}">
+                <esri:geometry>
+                    <esri:MapPoint x="-5009000" y="-5621000"/>
+                </esri:geometry>
+                <esri:attributes>
+                    <fx:Object>
+                        <fx:head>Marker 1</fx:head>
+                        <fx:lat>S 45</fx:lat>
+                        <fx:lon>W 45</fx:lon>
+                    </fx:Object>
+                </esri:attributes>
+                <esri:infoWindowRenderer>
+                    <fx:Component>
+                        <samples:BalloonTextArea/>
+                    </fx:Component>
+                </esri:infoWindowRenderer>
+            </esri:Graphic>
+            <esri:Graphic symbol="{balloonSymbol}">
+                <esri:geometry>
+                    <esri:MapPoint x="5009000" y="5621000"/>
+                </esri:geometry>
+                <esri:attributes>
+                    <fx:Object>
+                        <fx:head>Marker 2</fx:head>
+                        <fx:lat>N 45</fx:lat>
+                        <fx:lon>E 45</fx:lon>
+                    </fx:Object>
+                </esri:attributes>
+                <esri:infoWindowRenderer>
+                    <fx:Component>
+                        <samples:BalloonTextArea/>
+                    </fx:Component>
+                </esri:infoWindowRenderer>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+</s:Application>

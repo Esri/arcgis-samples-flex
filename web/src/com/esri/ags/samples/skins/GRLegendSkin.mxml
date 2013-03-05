@@ -1,0 +1,802 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!---
+The default skin class for a Legend component.
+-->
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:s="library://ns.adobe.com/flex/spark"
+             xmlns:mx="library://ns.adobe.com/flex/mx"
+             initialize="sparkskin1_initializeHandler(event)">
+
+    <!-- host component -->
+    <fx:Metadata>
+        /**
+        * A strongly typed property that references the component to which this skin is applied.
+        */
+        [HostComponent("com.esri.ags.components.Legend")]
+    </fx:Metadata>
+
+    <!-- states -->
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="disabled"/>
+        <s:State name="loading"/>
+    </s:states>
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Map;
+            import com.esri.ags.events.ExtentEvent;
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.ArcGISDynamicMapServiceLayer;
+            import com.esri.ags.layers.GraphicsLayer;
+            import com.esri.ags.layers.KMLLayer;
+            import com.esri.ags.layers.Layer;
+            import com.esri.ags.layers.supportClasses.LayerInfo;
+            import com.esri.ags.layers.supportClasses.LayerLegendInfo;
+            import com.esri.ags.samples.skins.supportClasses.GRLegendGroupItemRenderer;
+
+            import mx.binding.utils.ChangeWatcher;
+            import mx.collections.ArrayCollection;
+            import mx.controls.Spacer;
+            import mx.events.CollectionEvent;
+            import mx.events.FlexEvent;
+
+            import spark.components.DataGroup;
+            import spark.components.HGroup;
+            import spark.components.Label;
+
+            private var _legendCollectionChanged:Boolean;
+            private var _changeWatcher:ChangeWatcher;
+            private var _visibleLayersChangeWatcher:ChangeWatcher;
+            private var _itemRenderer:GRLegendGroupItemRenderer = new GRLegendGroupItemRenderer;
+
+            [Bindable]
+            [Embed(source="../../../../../assets/skins/loader.swf")]
+            private var loader:Class;
+
+            private function sparkskin1_initializeHandler(event:FlexEvent):void
+            {
+                _changeWatcher = ChangeWatcher.watch(hostComponent, "legendCollection", legendCollectionChangeHandler);
+            }
+
+            private function legendCollectionChangeHandler(event:Event = null):void
+            {
+                invalidateProperties();
+                _legendCollectionChanged = true;
+            }
+
+            /**
+             * @private
+             */
+            override protected function commitProperties():void
+            {
+                super.commitProperties();
+
+                if (_legendCollectionChanged)
+                {
+                    _legendCollectionChanged = false;
+
+                    //First remove all service groups
+                    for (var element:int = 0; element < vGrp.numElements; )
+                    {
+                        if (vGrp.getElementAt(element) && (vGrp.getElementAt(element) is VGroup || vGrp.getElementAt(element) is Spacer))
+                        {
+                            vGrp.removeElement(vGrp.getElementAt(element));
+                            element--;
+                        }
+                        else
+                        {
+                            element++;
+                        }
+                    }
+
+                    if (hostComponent.legendCollection)
+                    {
+                        noLegendImage.visible = noLegendImage.includeInLayout = false;
+
+                        //extent change
+                        hostComponent.map.removeEventListener(ExtentEvent.EXTENT_CHANGE, extentChangeHandler);
+                        hostComponent.map.addEventListener(ExtentEvent.EXTENT_CHANGE, extentChangeHandler);
+
+                        for (var i:Number = 0; i < hostComponent.legendCollection.length; i++)
+                        {
+                            if (hostComponent.legendCollection[i].layerLegendInfos && hostComponent.legendCollection[i].layerLegendInfos.length > 0)
+                            {
+                                var serviceGroup:VGroup = new VGroup;
+                                serviceGroup.name = hostComponent.legendCollection[i].layer.id;
+
+                                var serviceLabel:Label = new Label;
+                                serviceLabel.text = hostComponent.legendCollection[i].title;
+                                serviceLabel.setStyle("fontWeight", "bold");
+
+                                serviceGroup.addElement(serviceLabel);
+                                serviceGroup.addElement(new Spacer());
+
+                                vGrp.addElement(serviceGroup);
+
+                                // check visibility and scale range
+                                if (Layer(hostComponent.legendCollection[i].layer).visible)
+                                {
+                                    if (!Layer(hostComponent.legendCollection[i].layer).isInScaleRange)
+                                    {
+                                        if (hostComponent.respectCurrentMapScale)
+                                        {
+                                            serviceGroup.visible = serviceGroup.includeInLayout = false;
+                                        }
+                                        else
+                                        {
+                                            serviceGroup.alpha = 0.5;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    serviceGroup.visible = serviceGroup.includeInLayout = false;
+                                }
+                                for (var j:Number = 0; j < hostComponent.legendCollection[i].layerLegendInfos.length; j++)
+                                {
+                                    addLegendGroup(serviceGroup, serviceLabel, hostComponent.legendCollection[i].layer, LayerLegendInfo(hostComponent.legendCollection[i].layerLegendInfos[j]));
+                                }
+
+                                // listen for change of scale and visibility
+                                Layer(hostComponent.legendCollection[i].layer).removeEventListener(LayerEvent.IS_IN_SCALE_RANGE_CHANGE, layer_isInScaleRangeChangeHandler);
+                                Layer(hostComponent.legendCollection[i].layer).removeEventListener(FlexEvent.HIDE, layer_hideShowHandler);
+                                Layer(hostComponent.legendCollection[i].layer).removeEventListener(FlexEvent.SHOW, layer_hideShowHandler);
+
+                                Layer(hostComponent.legendCollection[i].layer).addEventListener(LayerEvent.IS_IN_SCALE_RANGE_CHANGE, layer_isInScaleRangeChangeHandler);
+                                Layer(hostComponent.legendCollection[i].layer).addEventListener(FlexEvent.HIDE, layer_hideShowHandler);
+                                Layer(hostComponent.legendCollection[i].layer).addEventListener(FlexEvent.SHOW, layer_hideShowHandler);
+                                if (hostComponent.legendCollection[i].layer is ArcGISDynamicMapServiceLayer)
+                                {
+                                    checkServiceGroupVisibility(serviceGroup); // looking at sub layers
+
+                                    var dynamicMapServiceLayer:ArcGISDynamicMapServiceLayer = ArcGISDynamicMapServiceLayer(hostComponent.legendCollection[i].layer);
+                                    if (dynamicMapServiceLayer.visibleLayers)
+                                    {
+                                        dynamicMapServiceLayer.visibleLayers.removeEventListener(CollectionEvent.COLLECTION_CHANGE, visibleLayersChangeHandler);
+                                        dynamicMapServiceLayer.visibleLayers.addEventListener(CollectionEvent.COLLECTION_CHANGE, visibleLayersChangeHandler);
+                                    }
+                                    _visibleLayersChangeWatcher = ChangeWatcher.watch(dynamicMapServiceLayer, "visibleLayers", visibleLayersChange);
+                                }
+                            }
+                        }
+                        invalidateDisplayList();
+                        isLegendShown();
+                    }
+                    else
+                    {
+                        noLegendImage.visible = noLegendImage.includeInLayout = true;
+                    }
+                }
+
+                function addLegendGroup(serviceGroup:VGroup, serviceLabel:Label, layer:Layer, currentLayerLegendInfo:LayerLegendInfo):void
+                {
+                    if (currentLayerLegendInfo)
+                    {
+                        if (currentLayerLegendInfo.layerLegendInfos && currentLayerLegendInfo.layerLegendInfos.length > 0)
+                        {
+                            for each (var layerLegendInfo:LayerLegendInfo in currentLayerLegendInfo.layerLegendInfos)
+                            {
+                                addLegendGroup(serviceGroup, serviceLabel, layer, layerLegendInfo);
+                            }
+                        }
+                        else
+                        {
+                            if (layer is GraphicsLayer || layer is KMLLayer)
+                            {
+                                serviceLabel.text = currentLayerLegendInfo.layerName;
+                            }
+                            else
+                            {
+                                var layerLabel:Label = new Label;
+                                layerLabel.name = String(currentLayerLegendInfo.layerId);
+                                layerLabel.text = currentLayerLegendInfo.layerName;
+                                if (layer is ArcGISDynamicMapServiceLayer)
+                                {
+                                    if (layer.visible)
+                                    {
+                                        if (currentLayerLegendInfo.visible)
+                                        {
+                                            if (!subLayerInScaleRange(currentLayerLegendInfo))
+                                            {
+                                                if (hostComponent.respectCurrentMapScale)
+                                                {
+                                                    layerLabel.visible = layerLabel.includeInLayout = false;
+                                                }
+                                                else
+                                                {
+                                                    layerLabel.alpha = 0.5;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            layerLabel.visible = layerLabel.includeInLayout = false;
+                                        }
+                                    }
+                                }
+                                serviceGroup.addElement(layerLabel);
+                            }
+
+                            const verticalLayout:VerticalLayout = new VerticalLayout();
+                            verticalLayout.gap = 0;
+                            verticalLayout.horizontalAlign = "left";
+                            verticalLayout.useVirtualLayout = true;
+
+                            var legendDataGroup:DataGroup = new DataGroup;
+                            legendDataGroup.name = String(currentLayerLegendInfo.layerId);
+                            legendDataGroup.layout = verticalLayout;
+
+                            var arrLegendItemInfo:ArrayCollection = new ArrayCollection;
+                            for (var k:Number = 0; k < currentLayerLegendInfo.legendItemInfos.length; k++)
+                            {
+                                arrLegendItemInfo.addItem(currentLayerLegendInfo.legendItemInfos[k]);
+                            }
+                            legendDataGroup.dataProvider = arrLegendItemInfo;
+                            legendDataGroup.itemRenderer = new ClassFactory(GRLegendGroupItemRenderer);
+                            if (layer is ArcGISDynamicMapServiceLayer)
+                            {
+                                if (layer.visible)
+                                {
+                                    if (currentLayerLegendInfo.visible)
+                                    {
+                                        if (!subLayerInScaleRange(currentLayerLegendInfo))
+                                        {
+                                            if (hostComponent.respectCurrentMapScale)
+                                            {
+                                                legendDataGroup.visible = legendDataGroup.includeInLayout = false;
+                                            }
+                                            else
+                                            {
+                                                legendDataGroup.alpha = 0.5;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        legendDataGroup.visible = legendDataGroup.includeInLayout = false;
+                                    }
+                                }
+                            }
+                            serviceGroup.addElement(legendDataGroup);
+                        }
+                    }
+                }
+            }
+
+            /**
+             * @private
+             */
+            override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+            {
+                super.updateDisplayList(unscaledWidth, unscaledHeight);
+
+                if (vGrp)
+                {
+                    for (var i:Number = 0; i < vGrp.numElements; i++)
+                    {
+                        if (vGrp.getElementAt(i) is VGroup)
+                        {
+                            VGroup(vGrp.getElementAt(i)).percentWidth = 100;
+                        }
+                    }
+                    vGrp.invalidateSize();
+                }
+            }
+
+            private function checkServiceGroupVisibility(serviceGroup:VGroup):void
+            {
+                serviceGroup.visible = serviceGroup.includeInLayout = false;
+                for (var i:int = 0; i < serviceGroup.numElements; )
+                {
+                    if (serviceGroup.getElementAt(i) is DataGroup && serviceGroup.getElementAt(i).visible)
+                    {
+                        serviceGroup.visible = serviceGroup.includeInLayout = true;
+                        break;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+            }
+
+            private function isSubLayerVisible(layerLegendInfo:LayerLegendInfo, dynamicMapServiceLayer:ArcGISDynamicMapServiceLayer, checkDefaultVisibility:Boolean = false):Boolean
+            {
+                if (!checkDefaultVisibility)
+                {
+                    var actualVisibleLayers:Array = getActualVisibleLayers(dynamicMapServiceLayer.visibleLayers.toArray(), dynamicMapServiceLayer.dynamicLayerInfos ? dynamicMapServiceLayer.dynamicLayerInfos.slice() : dynamicMapServiceLayer.layerInfos.slice());
+                    layerLegendInfo.visible = actualVisibleLayers.indexOf(Number(layerLegendInfo.layerId)) != -1 ? true : false;
+                }
+                else
+                {
+                    var layerInfos:Array = dynamicMapServiceLayer.dynamicLayerInfos ? dynamicMapServiceLayer.dynamicLayerInfos : dynamicMapServiceLayer.layerInfos;
+                    for (var i:int = 0; i < layerInfos.length; )
+                    {
+                        if (layerInfos[i].layerId == layerLegendInfo.layerId)
+                        {
+                            if (layerInfos[i].parentLayerId != -1)
+                            {
+                                // find the parent and check its default visibility
+                                var parentLayerInfo:LayerInfo = findLayerById(layerInfos[0].parentLayerId, layerInfos);
+                                layerInfos[i].defaultVisibility = parentLayerInfo.defaultVisibility;
+                            }
+                            layerLegendInfo.visible = layerInfos[i].defaultVisibility;
+                            break;
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                }
+
+                return layerLegendInfo.visible;
+            }
+
+            private function findLayerById(id:Number, layerInfos:Array):LayerInfo
+            {
+                for each (var layerInfo:LayerInfo in layerInfos)
+                {
+                    if (id == layerInfo.layerId)
+                    {
+                        return layerInfo;
+                    }
+                }
+                return null;
+            }
+
+            private function getActualVisibleLayers(layerIds:Array, layerInfos:Array):Array
+            {
+                var result:Array = [];
+
+                layerIds = layerIds ? layerIds.concat() : null;
+                var layerInfo:LayerInfo;
+                var layerIdIndex:int;
+
+                if (layerIds)
+                {
+                    // replace group layers with their sub layers
+                    for each (layerInfo in layerInfos)
+                    {
+                        layerIdIndex = layerIds.indexOf(layerInfo.layerId);
+                        if (layerInfo.subLayerIds && layerIdIndex != -1)
+                        {
+                            layerIds.splice(layerIdIndex, 1); // remove the group layer id
+                            for each (var subLayerId:Number in layerInfo.subLayerIds)
+                            {
+                                layerIds.push(subLayerId); // add subLayerId
+                            }
+                        }
+                    }
+
+                    for each (layerInfo in layerInfos.reverse())
+                    {
+                        if (layerIds.indexOf(layerInfo.layerId) != -1 && layerIds.indexOf(layerInfo.parentLayerId) == -1 && layerInfo.parentLayerId != -1)
+                        {
+                            layerIds.push(layerInfo.parentLayerId);
+                        }
+                    }
+
+                    result = layerIds;
+                }
+
+                return result;
+            }
+
+            private function subLayerInScaleRange(layerLegendInfo:LayerLegendInfo):Boolean
+            {
+                var result:Boolean = true;
+                var map:Map = hostComponent.map;
+
+                if (map && (layerLegendInfo.maxScale > 0 || layerLegendInfo.minScale > 0))
+                {
+                    var scale:Number = map.scale;
+                    if (layerLegendInfo.maxScale > 0 && layerLegendInfo.minScale > 0)
+                    {
+                        result = layerLegendInfo.maxScale <= Math.ceil(scale) && Math.floor(scale) <= layerLegendInfo.minScale;
+                    }
+                    else if (layerLegendInfo.maxScale > 0)
+                    {
+                        result = layerLegendInfo.maxScale <= Math.ceil(scale);
+                    }
+                    else if (layerLegendInfo.minScale > 0)
+                    {
+                        result = Math.floor(scale) <= layerLegendInfo.minScale;
+                    }
+                }
+                return result;
+            }
+
+            private function layer_isInScaleRangeChangeHandler(event:LayerEvent):void
+            {
+                serviceGroupShowHide(event.layer);
+            }
+
+            private function layer_hideShowHandler(event:FlexEvent):void
+            {
+                serviceGroupShowHide(Layer(event.target));
+            }
+
+            private function extentChangeHandler(event:ExtentEvent):void
+            {
+                for (var l:Number = 0; l < hostComponent.legendCollection.length; )
+                {
+                    if (hostComponent.legendCollection[l].layer is ArcGISDynamicMapServiceLayer && ArcGISDynamicMapServiceLayer(hostComponent.legendCollection[l].layer).isInScaleRange && ArcGISDynamicMapServiceLayer(hostComponent.legendCollection[l].layer).visible)
+                    {
+                        checkServiceGroupForDynamicMapServiceLayer(hostComponent.legendCollection[l]);
+                        break;
+                    }
+                    else
+                    {
+                        l++;
+                    }
+                }
+                isLegendShown();
+            }
+
+            private function checkServiceGroupForDynamicMapServiceLayer(legendCollectionObject:Object):void
+            {
+                var serviceGroup:VGroup = getServiceGroup(legendCollectionObject.layer);
+                var count:int = 0;
+
+                // find all the leaf layerLegendInfo
+                var arrLeafLayerLegendInfo:Array = [];
+                if (legendCollectionObject.layerLegendInfos && legendCollectionObject.layerLegendInfos.length > 0)
+                {
+                    for (var j:Number = 0; j < legendCollectionObject.layerLegendInfos.length; j++)
+                    {
+                        findLeafLayerLegendInfo(LayerLegendInfo(legendCollectionObject.layerLegendInfos[j]), arrLeafLayerLegendInfo);
+                    }
+                }
+
+                for each (var leafLayerLegendInfo:LayerLegendInfo in arrLeafLayerLegendInfo)
+                {
+                    showHideLayersBasedOnScale(subLayerInScaleRange(leafLayerLegendInfo), serviceGroup, legendCollectionObject.layer, leafLayerLegendInfo, arrLeafLayerLegendInfo.length);
+                }
+
+                function showHideLayersBasedOnScale(isInScaleRange:Boolean, serviceGroup:VGroup, layer:Layer, leafLayerLegendInfo:LayerLegendInfo, numLeaf:Number):void
+                {
+                    var i:int;
+                    if (!isInScaleRange)
+                    {
+                        count++;
+                    }
+                    if (count == numLeaf) // all the layers with legends are out of scale range
+                    {
+                        if (hostComponent.respectCurrentMapScale)
+                        {
+                            serviceGroup.includeInLayout = serviceGroup.visible = false;
+                        }
+                        else
+                        {
+                            serviceGroup.alpha = isInScaleRange ? 1 : 0.5;
+                        }
+                    }
+                    else
+                    {
+                        if (hostComponent.respectCurrentMapScale)
+                        {
+                            serviceGroup.visible = serviceGroup.includeInLayout = true;
+                        }
+                        else
+                        {
+                            serviceGroup.alpha = 1;
+                        }
+                        for (var e:int = 0; e < serviceGroup.numElements; e++)
+                        {
+                            if (serviceGroup.getElementAt(e) is Label && Label(serviceGroup.getElementAt(e)).name == String(leafLayerLegendInfo.layerId))
+                            {
+                                if (leafLayerLegendInfo.visible)
+                                {
+                                    Label(serviceGroup.getElementAt(e)).visible = Label(serviceGroup.getElementAt(e)).includeInLayout = true;
+                                    if (hostComponent.respectCurrentMapScale)
+                                    {
+                                        Label(serviceGroup.getElementAt(e)).visible = Label(serviceGroup.getElementAt(e)).includeInLayout = isInScaleRange;
+                                    }
+                                    else
+                                    {
+                                        Label(serviceGroup.getElementAt(e)).alpha = isInScaleRange ? 1 : 0.5;
+                                    }
+                                }
+                                else
+                                {
+                                    Label(serviceGroup.getElementAt(e)).visible = Label(serviceGroup.getElementAt(e)).includeInLayout = false;
+                                }
+                            }
+
+                            if (serviceGroup.getElementAt(e) is DataGroup && DataGroup(serviceGroup.getElementAt(e)).name == String(leafLayerLegendInfo.layerId))
+                            {
+                                if (leafLayerLegendInfo.visible)
+                                {
+                                    DataGroup(serviceGroup.getElementAt(e)).visible = DataGroup(serviceGroup.getElementAt(e)).includeInLayout = true;
+                                    if (hostComponent.respectCurrentMapScale)
+                                    {
+                                        DataGroup(serviceGroup.getElementAt(e)).visible = DataGroup(serviceGroup.getElementAt(e)).includeInLayout = isInScaleRange;
+                                    }
+                                    else
+                                    {
+                                        DataGroup(serviceGroup.getElementAt(e)).alpha = isInScaleRange ? 1 : 0.5;
+                                    }
+                                }
+                                else
+                                {
+                                    DataGroup(serviceGroup.getElementAt(e)).visible = DataGroup(serviceGroup.getElementAt(e)).includeInLayout = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            private function visibleLayersChange(event:Event = null):void
+            {
+                var dynamicMapServiceLayer:ArcGISDynamicMapServiceLayer = ArcGISDynamicMapServiceLayer(event.target);
+
+                if (dynamicMapServiceLayer.visibleLayers)
+                {
+                    dynamicMapServiceLayer.visibleLayers.removeEventListener(CollectionEvent.COLLECTION_CHANGE, visibleLayersChangeHandler);
+                    dynamicMapServiceLayer.visibleLayers.addEventListener(CollectionEvent.COLLECTION_CHANGE, visibleLayersChangeHandler);
+                }
+                if (dynamicMapServiceLayer.visible)
+                {
+                    visibleLayersChanged(dynamicMapServiceLayer, dynamicMapServiceLayer.visibleLayers ? false : true);
+                }
+            }
+
+            private function visibleLayersChangeHandler(event:CollectionEvent):void
+            {
+                const mapLayers:ArrayCollection = ArrayCollection(hostComponent.map.layers);
+                for (var i:int = 0; i < mapLayers.length; )
+                {
+                    if (mapLayers.getItemAt(i) is ArcGISDynamicMapServiceLayer &&
+                        ArcGISDynamicMapServiceLayer(mapLayers.getItemAt(i)).visible &&
+                        ArcGISDynamicMapServiceLayer(mapLayers.getItemAt(i)).visibleLayers === event.target)
+                    {
+                        visibleLayersChanged(ArcGISDynamicMapServiceLayer(mapLayers.getItemAt(i)));
+                        break;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+            }
+
+            private function visibleLayersChanged(layer:ArcGISDynamicMapServiceLayer, goBackToDeafultVisibility:Boolean = false):void
+            {
+                for (var l:Number = 0; l < hostComponent.legendCollection.length; )
+                {
+                    if (hostComponent.legendCollection[l].layer is ArcGISDynamicMapServiceLayer && ArcGISDynamicMapServiceLayer(hostComponent.legendCollection[l].layer).visibleLayers === layer.visibleLayers)
+                    {
+                        var dynamicMapServiceLayer:ArcGISDynamicMapServiceLayer = hostComponent.legendCollection[l].layer;
+                        var serviceGroup:VGroup = getServiceGroup(hostComponent.legendCollection[l].layer);
+                        var count:int = 0;
+
+                        // find all the leaf layerLegendInfo
+                        var arrLeafLayerLegendInfo:Array = [];
+                        for (var j:Number = 0; j < hostComponent.legendCollection[l].layerLegendInfos.length; j++)
+                        {
+                            findLeafLayerLegendInfo(LayerLegendInfo(hostComponent.legendCollection[l].layerLegendInfos[j]), arrLeafLayerLegendInfo);
+                        }
+
+                        for each (var leafLayerLegendInfo:LayerLegendInfo in arrLeafLayerLegendInfo)
+                        {
+                            showHideLayersBasedOnVisibility(isSubLayerVisible(leafLayerLegendInfo, dynamicMapServiceLayer, goBackToDeafultVisibility), serviceGroup, hostComponent.legendCollection[l].layer, leafLayerLegendInfo, arrLeafLayerLegendInfo.length);
+                        }
+
+                        break;
+                    }
+                    else
+                    {
+                        l++;
+                    }
+                }
+
+                function showHideLayersBasedOnVisibility(isSubLayerVisible:Boolean, serviceGroup:VGroup, layer:Layer, leafLayerLegendInfo:LayerLegendInfo, numLeaf:Number):void
+                {
+                    var i:int;
+                    if (!isSubLayerVisible)
+                    {
+                        count++;
+                    }
+                    if (count == numLeaf) // all the layers with legends are not visible
+                    {
+                        serviceGroup.includeInLayout = serviceGroup.visible = false;
+                    }
+                    else
+                    {
+                        serviceGroup.visible = serviceGroup.includeInLayout = true;
+                        for (var e:int = 0; e < serviceGroup.numElements; e++)
+                        {
+                            if (serviceGroup.getElementAt(e) is Label && Label(serviceGroup.getElementAt(e)).name == String(leafLayerLegendInfo.layerId))
+                            {
+                                if (isSubLayerVisible)
+                                {
+                                    Label(serviceGroup.getElementAt(e)).visible = Label(serviceGroup.getElementAt(e)).includeInLayout = true;
+                                    if (!subLayerInScaleRange(leafLayerLegendInfo))
+                                    {
+                                        if (hostComponent.respectCurrentMapScale)
+                                        {
+                                            Label(serviceGroup.getElementAt(e)).visible = Label(serviceGroup.getElementAt(e)).includeInLayout = false;
+                                        }
+                                        else
+                                        {
+                                            Label(serviceGroup.getElementAt(e)).alpha = 0.5;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Label(serviceGroup.getElementAt(e)).visible = Label(serviceGroup.getElementAt(e)).includeInLayout = false;
+                                }
+                            }
+
+                            if (serviceGroup.getElementAt(e) is DataGroup && DataGroup(serviceGroup.getElementAt(e)).name == String(leafLayerLegendInfo.layerId))
+                            {
+                                if (isSubLayerVisible)
+                                {
+                                    DataGroup(serviceGroup.getElementAt(e)).visible = DataGroup(serviceGroup.getElementAt(e)).includeInLayout = true;
+                                    if (!subLayerInScaleRange(leafLayerLegendInfo))
+                                    {
+                                        if (hostComponent.respectCurrentMapScale)
+                                        {
+                                            DataGroup(serviceGroup.getElementAt(e)).visible = DataGroup(serviceGroup.getElementAt(e)).includeInLayout = false;
+                                        }
+                                        else
+                                        {
+                                            DataGroup(serviceGroup.getElementAt(e)).alpha = 0.5;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    DataGroup(serviceGroup.getElementAt(e)).visible = DataGroup(serviceGroup.getElementAt(e)).includeInLayout = false;
+                                }
+                            }
+                        }
+                    }
+                }
+                isLegendShown();
+            }
+
+            private function serviceGroupShowHide(layer:Layer):void
+            {
+                var serviceGroup:VGroup = getServiceGroup(layer);
+                var i:int;
+                if (layer.visible)
+                {
+                    serviceGroup.visible = serviceGroup.includeInLayout = true;
+                    serviceGroup.alpha = 1;
+                    if (!layer.isInScaleRange)
+                    {
+                        if (hostComponent.respectCurrentMapScale)
+                        {
+                            serviceGroup.visible = serviceGroup.includeInLayout = false;
+                        }
+                        else
+                        {
+                            serviceGroup.alpha = 0.5;
+                        }
+                    }
+                    else
+                    {
+                        if (layer is ArcGISDynamicMapServiceLayer)
+                        {
+                            checkServiceGroupForDynamicMapServiceLayer(getLegendCollectionForLayer(layer));
+                        }
+                    }
+                }
+                else
+                {
+                    serviceGroup.visible = serviceGroup.includeInLayout = false;
+                }
+                isLegendShown();
+            }
+
+            private function getServiceGroup(layer:Layer):VGroup
+            {
+                var result:VGroup;
+                for (var g:int = 0; g < vGrp.numElements; g++)
+                {
+                    if (vGrp.getElementAt(g) is VGroup && VGroup(vGrp.getElementAt(g)).name == layer.id)
+                    {
+                        result = VGroup(vGrp.getElementAt(g));
+                    }
+                }
+                return result;
+            }
+
+            private function getLegendCollectionForLayer(layer:Layer):Object
+            {
+                var result:Object;
+                for (var l:Number = 0; l < hostComponent.legendCollection.length; )
+                {
+                    if (hostComponent.legendCollection[l].layer === layer)
+                    {
+                        result = hostComponent.legendCollection[l];
+                        break;
+                    }
+                    else
+                    {
+                        l++;
+                    }
+                }
+                return result;
+            }
+
+            private function findLeafLayerLegendInfo(currentLayerLegendInfo:LayerLegendInfo, arrLeafLayerLegendInfo:Array):void
+            {
+                if (currentLayerLegendInfo)
+                {
+                    if (currentLayerLegendInfo.layerLegendInfos && currentLayerLegendInfo.layerLegendInfos.length > 0)
+                    {
+                        for each (var layerLegendInfo:LayerLegendInfo in currentLayerLegendInfo.layerLegendInfos)
+                        {
+                            findLeafLayerLegendInfo(layerLegendInfo, arrLeafLayerLegendInfo);
+                        }
+                    }
+                    else
+                    {
+                        arrLeafLayerLegendInfo.push(currentLayerLegendInfo);
+                    }
+                }
+            }
+
+            private function isLegendShown():void
+            {
+                noLegendImage.visible = noLegendImage.includeInLayout = false;
+
+                var nothingIsShown:Boolean = true;
+                for (var g:int = 0; g < vGrp.numElements; )
+                {
+                    if (vGrp.getElementAt(g) is VGroup && VGroup(vGrp.getElementAt(g)).visible)
+                    {
+                        nothingIsShown = false;
+                        break;
+                    }
+                    else
+                    {
+                        g++;
+                    }
+                }
+                if (nothingIsShown)
+                {
+                    noLegendImage.visible = noLegendImage.includeInLayout = true;
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <s:Scroller width="100%" height="100%"
+                enabled.disabled="true"
+                enabled.normal="true"
+                focusEnabled="false"
+                hasFocusableChildren="true"
+                horizontalScrollPolicy="auto"
+                verticalScrollPolicy="auto">
+        <!--- @private -->
+        <s:VGroup width="80%" height="100%">
+            <s:HGroup width="100%"
+                      includeIn="loading"
+                      verticalAlign="middle">
+                <mx:SWFLoader source="{loader}"/>
+                <s:Label width="100%" text="{resourceManager.getString('ESRIMessages', 'loadingLabel')}"/>
+            </s:HGroup>
+            <!--- @private -->
+            <s:VGroup id="vGrp"
+                      excludeFrom="loading"
+                      paddingLeft="5">
+                <!--- Image to display when there are no layers at all. Optional. -->
+                <s:BitmapImage id="noLegendImage"
+                               includeInLayout="false"
+                               source="@Embed('../../../../../assets/skins/nolayers.png')"
+                               visible="false"/>
+            </s:VGroup>
+        </s:VGroup>
+    </s:Scroller>
+</s:SparkSkin>

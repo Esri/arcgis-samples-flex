@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Message in a bottle GP">
+    <!--
+    Description:
+    This sample demonstrates how you can use a geoprocessing service to
+    expose a particle tracking model to show where a bottle would
+    go after a specified number of days if you dropped it in the ocean.
+    First, enter a number of days to track the bottle. Then click the map
+    to draw a point somewhere in the ocean to start the model. In a few
+    seconds you'll see a line appear depicting where the bottle would go.
+
+    Note:
+    One of the most important things to notice when publishing your geoprocessing service is to notice
+    the "Execution mode" in the parameters setting.  The execution mode will be either
+    "Synchronous" or "Asynchronous".  When a service is set to synchronous, the client waits for the task
+    to finish.  An asynchronous task typically takes longer to execute, and the client must periodically
+    ask the server if the task has finished and, if it has finished, get the result.  In the ArcGIS API for Flex,
+    if your service is "Synchronous" you will call the "gp.execute()" method or "gp.submitJob()" method
+    if your service is "Asynchronous".  Another important item to observe is the parameter names and types, you
+    can find out the name, case-sensitivity, and data type through exploring the service in the ArcGIS REST
+    Services Directory.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/gpserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/gptask.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpexecute.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpsubmit.html
+    http://resources.arcgis.com/en/help/rest/apiref/gpjob.html
+
+    ArcGIS for Server documentation:
+    What is a geoprocessing service?
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_geoprocessing_service/0154000004v5000000/
+    A quick tour of authoring and sharing geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/A_quick_tour_of_authoring_and_sharing_geoprocessing_services/01540000054n000000/
+    Essential vocabulary for geoprocessing services
+    http://resources.arcgis.com/en/help/main/10.1/#/Essential_vocabulary_for_geoprocessing_services/0154000004v2000000/
+    Geoprocessing service settings: Parameters
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Parameters/01540000054v000000/
+
+    ArcGIS for Desktop documentation:
+    A quick tour of creating custom tools
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//001500000001000000
+    A quick tour of creating tools with ModelBuilder
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_ModelBuilder/00150000001t000000/
+    A quick tour of creating tools with Python
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_Python/00150000002q000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.GeoprocessorEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.symbols.SimpleLineSymbol;
+            import com.esri.ags.symbols.SimpleMarkerSymbol;
+            import com.esri.ags.tasks.Geoprocessor;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            private function startGeoProcess(event:MapMouseEvent):void
+            {
+                var mapPoint:Geometry = event.mapPoint;
+                var myPointSymbol:SimpleMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 10, 0xFF0000, 0.5);
+                var startGraphic:Graphic = new Graphic(mapPoint, myPointSymbol);
+                startGraphic.toolTip = "Starting point";
+                myMap.defaultGraphicsLayer.add(startGraphic);
+
+                var featureSet:FeatureSet = new FeatureSet();
+                featureSet.features = [{ geometry: mapPoint }];
+
+                var parms:Object = new Object();
+                parms.Input_Point = featureSet;
+                parms.Days = Number(numberOfDays.text);
+
+                var geoprocessTask:Geoprocessor = new Geoprocessor();
+                geoprocessTask.outSpatialReference = myMap.spatialReference;
+                geoprocessTask.showBusyCursor = true;
+                geoprocessTask.url = "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_Currents_World/GPServer/MessageInABottle";
+                geoprocessTask.useAMF = false;
+                geoprocessTask.execute(parms);
+                geoprocessTask.addEventListener(GeoprocessorEvent.EXECUTE_COMPLETE, executeCompleteHandler);
+                geoprocessTask.addEventListener(FaultEvent.FAULT, faultHandler);
+            }
+
+            private function executeCompleteHandler(event:GeoprocessorEvent):void
+            {
+                var myLineSymbol:SimpleLineSymbol = new SimpleLineSymbol();
+                myLineSymbol.color = 0xFFFF99;
+                myLineSymbol.width = 2;
+                myLineSymbol.alpha = 1.0;
+
+                for each (var graphic:Graphic in event.executeResult.results[0].value.features)
+                {
+                    graphic.symbol = myLineSymbol;
+                    myMap.defaultGraphicsLayer.add(graphic);
+                }
+            }
+
+            private function faultHandler(event:FaultEvent):void
+            {
+                if (event.type == "fault"
+                    && event.fault.name == 'Error'
+                    && event.fault.faultCode == '500'
+                    && event.fault.faultString == 'Error Executing Task')
+                {
+                    Alert.show("Oops - no results.  Try clicking in an ocean...");
+                }
+                else
+                {
+                    Alert.show("Unexpected fault:\n" + event.toString());
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use a geoprocessing service to
+            expose a particle tracking model to show where a bottle would
+            go after a specified number of days if you dropped it in the ocean.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:RichText text="First, enter a number of days to track the bottle. Where will the bottle end up after"/>
+            <s:TextInput id="numberOfDays"
+                         width="40"
+                         paddingLeft="5"
+                         paddingRight="0"
+                         text="300"/>
+            <s:RichText text="days in the ocean?"/>
+        </s:HGroup>
+        <s:RichText width="100%">Next, click the map to draw a point somewhere in the ocean to start the model.
+            In a few seconds you'll see a line appear depicting where the bottle would go.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              level="2"
+              mapClick="startGeoProcess(event)">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+    </esri:Map>
+
+</s:Application>

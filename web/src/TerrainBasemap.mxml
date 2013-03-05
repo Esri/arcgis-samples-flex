@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Terrain BaseMap with custom data">
+    <!--
+    Description:
+    This sample demonstrates how to add multiple layers to your application.
+    The sample consists of three layers, a basemap, demographic data,
+    and finally a reference layer with boundaries and place names.
+
+    The World Terrain Base service, a cached map service from ArcGIS
+    Online is added first. This service was designed to be used as a
+    basemap with additional layers, such as demographic data, displayed
+    on top.
+
+    Next, custom data is added to the map. This can be reference data
+    from ArcGIS Online or your own published map service. When adding
+    this layer to the map the alpha (transparency) is set to 0.5 so
+    that the basemap is visible underneath the demographic data.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#lods
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LOD.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TileInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TileInfo.html#lods
+
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Types_of_layers/017p00000027000000/
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/tile.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_map_service/0154000002m7000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_map_caching/01540000048q000000/
+    -->
+
+    <fx:Declarations>
+        <esri:Extent id="initialExtent"
+                     xmin="-514000" ymin="5385000" xmax="4847000" ymax="7641000">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add multiple layers to your application.
+            The sample consists of three layers, a basemap, demographic data,
+            and finally a reference layer with boundaries and place names.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map extent="{initialExtent}">
+        <esri:lods>
+            <esri:LOD level="0"
+                      resolution="156543.033928"
+                      scale="591657527.591555"/>
+            <esri:LOD level="1"
+                      resolution="78271.5169639999"
+                      scale="295828763.795777"/>
+            <esri:LOD level="2"
+                      resolution="39135.7584820001"
+                      scale="147914381.897889"/>
+            <esri:LOD level="3"
+                      resolution="19567.8792409999"
+                      scale="73957190.948944"/>
+            <esri:LOD level="4"
+                      resolution="9783.93962049996"
+                      scale="36978595.474472"/>
+            <esri:LOD level="5"
+                      resolution="4891.96981024998"
+                      scale="18489297.737236"/>
+            <esri:LOD level="6"
+                      resolution="2445.98490512499"
+                      scale="9244648.868618"/>
+            <esri:LOD level="7"
+                      resolution="1222.99245256249"
+                      scale="4622324.434309"/>
+            <esri:LOD level="8"
+                      resolution="611.49622628138"
+                      scale="2311162.217155"/>
+            <esri:LOD level="9"
+                      resolution="305.748113140558"
+                      scale="1155581.108577"/>
+            <!--<esri:LOD resolution="152.874056570411" scale="577790.554289" level="10"/>
+            <esri:LOD resolution="76.4370282850732" scale="288895.277144" level="11"/>
+            <esri:LOD resolution="38.2185141425366" scale="144447.638572" level="12"/>
+            <esri:LOD resolution="19.1092570712683" scale="72223.819286" level="13"/>
+            <esri:LOD resolution="9.55462853563415" scale="36111.909643" level="14"/>
+            <esri:LOD resolution="4.77731426794937" scale="18055.954822" level="15"/>
+            <esri:LOD resolution="2.38865713397468" scale="9027.977411" level="16"/>
+            <esri:LOD resolution="1.19432856685505" scale="4513.988705" level="17"/>
+            <esri:LOD resolution="0.597164283559817" scale="2256.994353" level="18"/>
+            <esri:LOD resolution="0.298582141647617" scale="1128.497176" level="19"/>-->
+        </esri:lods>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer alpha="0.5" url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Population_World/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer"/>
+    </esri:Map>
+
+</s:Application>
+

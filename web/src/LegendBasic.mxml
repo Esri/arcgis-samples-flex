@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Legend Component">
+    <!--
+    Description:
+    This sample demonstrates how to add a legend to your ArcGIS API for Flex
+    application that displays some or all of the layers in the map.
+    To create a new legend component specify the map to be displayed.
+    Optionally you can provide a list of layers to display in the legend.
+    If no layers are specified then all the layers will display in the legend.
+
+    The respectCurrentMapScale property, if set to true (default) will force
+    the legend component to only display layers that are visible in the current map scale.
+
+    Note:
+    If the layer is an ArcGISDynamicMapServiceLayer or ArcGISTiledMapServiceLayer created
+    using ArcGIS Server 10.0 SP1 or higher the legend is generated using the REST Map Service
+    legend resource of that service.
+    If the layers are version 10 or lower the legend is created using the ArcGIS Online legend service.
+    In order to use the ArcGIS Online legend service your map service needs to be publicly accessible
+    and your application must be able to access www.arcgis.com.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Legend.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Legend.html#layers
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Legend.html#respectCurrentMapScale
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mslegend.html
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+        s|Panel
+        {
+            chromeColor: #403F33;
+            backgroundColor: #62696D;
+            backgroundAlpha: 0.8;
+            color: #FFFFFF;
+        }
+    </fx:Style>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add a legend to your ArcGIS API for Flex
+            application that displays some or all of the layers in the map.
+            To create a new legend component specify the map to be displayed.
+            Optionally you can provide a list of layers to display in the legend.
+            If no layers are specified then all the layers will display in the legend.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap">
+        <esri:extent>
+            <esri:Extent xmin="-10753431" ymin="4624151" xmax="-10737799" ymax="4635884">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer id="baseLayer" url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="legendLayer" name="Kansas Hydrography"
+                                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Hydrography/Watershed173811/MapServer"/>
+    </esri:Map>
+    <s:Panel id="legendPanel"
+             height="200"
+             left="20" top="230"
+             title="Legend"
+             visible="{legendLayer.loaded}">
+        <s:layout>
+            <s:VerticalLayout paddingTop="10"/>
+        </s:layout>
+        <esri:Legend width="250" height="100%"
+                     layers="{[legendLayer]}"
+                     map="{myMap}"/>
+    </s:Panel>
+
+</s:Application>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="FeatureLayer and its definitionExpression">
+    <!--
+    Description:
+    This sample demonstrates how to use a definitionExpression on a FeatureLayer
+    in order to filter the information displayed for a given operational layer (states).
+    When you populate the search input and click the "Search" button (or hits enter in the text box),
+    the definitionExpression is then updated on the FeatureLayer which will request its new features.
+
+    Note that the busy cursor is shown while the definitionExpression is being updated.
+
+    Problem:
+    How to search a layer for certain features and display the results on a map?
+
+    Solution:
+    The easiest way is to use "FeatureLayer" and modifying the definitionExpression property
+    based on the user input.
+
+    Tip 1: if you wanted to use a different symbol, specify a symbol or renderer on the feature layer.
+    Tip 2: if you want to add a toolTip, listen to the graphicAdd event and add the tooltip at that time.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#definitionExpression
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:updateStart
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:updateEnd
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            private function doSearch():void
+            {
+                // fLayer.layerDetails.displayField
+                fLayer.definitionExpression = "STATE_NAME like '" + qText.text + "'";
+            }
+
+            // the following four functions are 'just' error handling and showing/hiding the busy cursor
+            protected function fLayer_updateStartHandler(event:LayerEvent):void
+            {
+                this.cursorManager.setBusyCursor();
+            }
+
+            protected function fLayer_updateEndHandler(event:LayerEvent):void
+            {
+                if (event.fault)
+                {
+                    trace("updateEnd: " + event.fault); // maybe a badly formatted query?
+                }
+                else if (event.updateSuccess == false)
+                {
+                    trace(event.type + ": " + event.updateSuccess + " ... unexpected failure");
+                }
+                else // things seem OK
+                {
+                    if (FeatureLayer(event.layer).numGraphics < 1)
+                    {
+                        Alert.show("Sorry, found no such features, please try something else");
+                    }
+                }
+                this.cursorManager.removeBusyCursor();
+            }
+
+            protected function fLayer_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "FeatureLayer Fault " + event.fault.faultCode);
+            }
+
+            protected function fLayer_loadErrorHandler(event:LayerEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "FeatureLayer Load Error " + event.fault.faultCode);
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use a definitionExpression on a FeatureLayer
+            in order to filter the information displayed for a given operational layer (states).
+            When you populate the search input and click the "Search" button (or hits enter in the text box),
+            the definitionExpression is then updated on the FeatureLayer which will request its new features.
+        </s:RichText>
+
+        <s:BorderContainer width="100%"
+                           backgroundAlpha="0"
+                           borderAlpha="0.4"
+                           borderWeight="2"
+                           cornerRadius="5"
+                           dropShadowVisible="true">
+            <s:layout>
+                <s:HorizontalLayout paddingBottom="5"
+                                    paddingLeft="5"
+                                    paddingRight="5"
+                                    paddingTop="5"
+                                    verticalAlign="baseline"/>
+            </s:layout>
+            <s:Label text="Query a layer (search for U.S. states)"/>
+            <s:TextInput id="qText"
+                         width="100%"
+                         enter="doSearch()"
+                         text="California"
+                         toolTip="You may use % as a wildcard, e.g., New%"/>
+            <s:Button click="doSearch()" label="Search"/>
+        </s:BorderContainer>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap">
+        <esri:extent>
+            <esri:Extent xmin="-14305000" ymin="2748000" xmax="-6815000" ymax="7117000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer"/>
+        <esri:FeatureLayer id="fLayer"
+                           fault="fLayer_faultHandler(event)"
+                           load="{doSearch()}"
+                           loadError="fLayer_loadErrorHandler(event)"
+                           mode="snapshot"
+                           updateEnd="fLayer_updateEndHandler(event)"
+                           updateStart="fLayer_updateStartHandler(event)"
+                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/5">
+            <esri:renderer>
+                <esri:SimpleRenderer>
+                    <esri:SimpleFillSymbol>
+                        <esri:SimpleLineSymbol width="2"/>
+                    </esri:SimpleFillSymbol>
+                </esri:SimpleRenderer>
+            </esri:renderer>
+        </esri:FeatureLayer>
+    </esri:Map>
+
+</s:Application>

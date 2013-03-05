@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:mx="library://ns.adobe.com/flex/mx"
+        height="30">
+
+    <!-- host component -->
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.samples.components.PortalQueryResultPager")]
+    </fx:Metadata>
+
+    <!-- SkinParts
+    name=pageList, type=spark.components.DataGroup, required=false
+    name=nextButton, type=spark.components.Button, required=false
+    name=previousButton, type=spark.components.Button, required=false
+    -->
+
+    <s:layout>
+        <s:HorizontalLayout horizontalAlign="center" verticalAlign="middle"/>
+    </s:layout>
+
+    <s:Button id="previousButton"
+              height="100%"
+              buttonMode="true"
+              cornerRadius="3"
+              enabled="{hostComponent.hasPrevious}"
+              fontSize="12"
+              label="Previous"/>
+
+    <s:List id="pageList"
+            height="100%"
+            allowMultipleSelection="false"
+            borderVisible="false"
+            contentBackgroundAlpha="0"
+            dataProvider="{hostComponent.pages}"
+            selectedIndex="{hostComponent.selectedIndex}">
+        <s:layout>
+            <s:HorizontalLayout gap="0"/>
+        </s:layout>
+        <s:itemRenderer>
+            <fx:Component>
+                <s:ItemRenderer height="100%"
+                                autoDrawBackground="false"
+                                buttonMode="{data.enabled}"
+                                enabled="{data.enabled}"
+                                useHandCursor="{data.enabled}">
+
+                    <s:states>
+                        <s:State name="normal"/>
+                        <s:State name="selected"/>
+                        <s:State name="hovered"/>
+                    </s:states>
+
+                    <s:Rect left="1" right="1" top="1" bottom="1"
+                            includeIn="selected, hovered">
+                        <s:fill>
+                            <s:SolidColor color="#EFEFEF"/>
+                        </s:fill>
+                        <s:stroke>
+                            <s:SolidColorStroke color.hovered="#cccccc" color.selected="#777777"/>
+                        </s:stroke>
+                    </s:Rect>
+
+                    <s:Group top="1" bottom="1">
+                        <s:layout>
+                            <s:HorizontalLayout paddingLeft="6"
+                                                paddingRight="6"
+                                                verticalAlign="middle"/>
+                        </s:layout>
+                        <s:Label height="100%"
+                                 color="#21759B"
+                                 color.selected="#666666"
+                                 text="{data.label}"
+                                 verticalAlign="middle"/>
+                    </s:Group>
+
+                </s:ItemRenderer>
+            </fx:Component>
+        </s:itemRenderer>
+    </s:List>
+
+    <s:Button id="nextButton"
+              height="100%"
+              buttonMode="true"
+              cornerRadius="3"
+              enabled="{hostComponent.hasNext}"
+              fontSize="12"
+              label="Next"/>
+
+</s:Skin>

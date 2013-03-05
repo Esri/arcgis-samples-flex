@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundColor="#D3D1D1"
+               initialize="initializeHandler(event)"
+               pageTitle="Explore picture marker symbols">
+    <!--
+    Description:
+    This sample demonstrates how to create symbology for points
+    using the PictureMarkerSymbol class in both mxml and ActionScript.
+    Select a category in the "Picture Marker Properties"
+    panel and view the changes in the "mxml and ActionScript" panels.
+    This sample allows you to explore symbolizing points interactively,
+    then copy and paste the mxml or ActionScript code into your application.
+
+    Points (and multipoints) are graphics which have Geometry and Symbol.
+    Points (and multipoints) can be symbolized as either SimpleMarkerSymbol,
+    PictureMarkerSymbol or TextSymbol.
+
+    Note:
+    This sample uses the Portal API to search for symbols hosted on ArcGIS Online.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html
+    These symbols are found using search parameters such as (group, type, and typekeywords).
+    For more information on query syntax, please see the link below: ArcGIS Online -> 'Using search' -> 'Finding and opening content'.
+    http://help.arcgis.com/en/arcgisonline/help/010q/010q0000000n000000.htm
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/PortalEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalGroup.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalItem.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/PictureMarkerSymbol.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.PortalEvent;
+            import com.esri.ags.portal.supportClasses.PortalGroup;
+            import com.esri.ags.portal.supportClasses.PortalItem;
+            import com.esri.ags.portal.supportClasses.PortalQueryParameters;
+            import com.esri.ags.portal.supportClasses.PortalQueryResult;
+            import com.esri.ags.symbols.PictureMarkerSymbol;
+
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            [Bindable]
+            private var itemsList:ArrayList;
+
+            [Bindable]
+            private var pmsSymbolsList:ArrayList;
+
+            [Bindable]
+            private var pmsCount:int = 0;
+
+            protected function initializeHandler(event:FlexEvent):void
+            {
+                portalService.load();
+            }
+
+            protected function portalService_loadHandler(event:PortalEvent):void
+            {
+                portalService.queryGroups(PortalQueryParameters.forQuery(portalService.info.symbolSetsGroupQuery));
+            }
+
+            protected function portalService_queryGroupsCompleteHandler(event:PortalEvent):void
+            {
+                var symbolGroup:PortalGroup = event.queryResult.results[0];
+                var queryParameters:PortalQueryParameters = PortalQueryParameters.forItemsInGroup(symbolGroup.id).withSortField("name").withLimit(20);
+                queryParameters.addQueryCondition('typekeywords:"by value"', "+");
+                portalService.queryItems(queryParameters);
+
+            }
+
+            protected function portalService_unloadHandler(event:PortalEvent):void
+            {
+                //trace('unload');
+            }
+
+            protected function portalService_faultHandler(event:FaultEvent):void
+            {
+                var faultstring:String = event.fault.faultString;
+                Alert.show(faultstring);
+            }
+
+            protected function portalService_queryItemsCompleteHandler(event:PortalEvent):void
+            {
+                var queryResult:PortalQueryResult = event.queryResult;
+                var queryResults:Array = queryResult.results; //array of PortalItem
+
+                itemsList = new ArrayList();
+                for (var i:int = 0; i < queryResults.length; i++)
+                {
+                    var itemObject:PortalItem = queryResults[i] as PortalItem;
+                    if (itemObject.name != "Business" && itemObject.name != "Animated")
+                    {
+                        itemsList.addItem({ data: itemObject, label: itemObject.name });
+                    }
+                }
+
+                var selectedItem:PortalItem = itemsList.getItemAt(0).data as PortalItem;
+                selectedItem.getJSONData(new AsyncResponder(getItemResultFunction, getItemFaultFunction));
+            }
+
+            protected function itemsDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedItem:PortalItem = DropDownList(event.target).selectedItem.data as PortalItem;
+                selectedItem.getJSONData(new AsyncResponder(getItemResultFunction, getItemFaultFunction));
+            }
+
+            protected function getItemResultFunction(result:Object, token:Object = null):void
+            {
+                pmsSymbolsList = new ArrayList();
+                var symbolsArray:Array = result as Array;
+                for (var i:int = 0; i < symbolsArray.length; i++)
+                {
+                    var symbolObject:Object = symbolsArray[i];
+                    if (symbolObject.type == 'esriPMS')
+                    {
+                        delete symbolObject.imageData;
+                        var pms:PictureMarkerSymbol = PictureMarkerSymbol.fromJSON(symbolObject);
+                        pmsSymbolsList.addItem(pms);
+                    }
+                }
+                var selectedSymbol:PictureMarkerSymbol = pmsSymbolsList.getItemAt(0) as PictureMarkerSymbol;
+                myGraphicsLayer.symbol = selectedSymbol;
+                symbolPickerList.selectedIndex = 0;
+                generateSymbolCode(selectedSymbol);
+            }
+
+            protected function getItemFaultFunction(result:Object, token:Object = null):void
+            {
+                trace('getItemFaultFunction');
+            }
+
+            protected function symbolPickerList_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedSymbol:PictureMarkerSymbol = List(event.currentTarget).selectedItem as PictureMarkerSymbol;
+                myGraphicsLayer.symbol = selectedSymbol;
+                generateSymbolCode(selectedSymbol);
+            }
+
+            protected function generateSymbolCode(value:PictureMarkerSymbol):void
+            {
+                //Generate MXML
+                symbolMXMLTextArea.text = '<esri:PictureMarkerSymbol id="pms' + pmsCount + '" width="' + value.width + '" height="' + value.height + '"';
+                if (value.angle != 0)
+                {
+                    symbolMXMLTextArea.text += ' angle="' + value.angle + '"';
+                }
+
+                if (value.xoffset != 0)
+                {
+                    symbolMXMLTextArea.text += ' xoffset="' + numberFormatter.format(value.xoffset) + '"';
+                }
+
+                if (value.yoffset != 0)
+                {
+                    symbolMXMLTextArea.text += ' yoffset="' + numberFormatter.format(value.yoffset) + '"';
+                }
+
+                symbolMXMLTextArea.text += ' source="' + value.source + '"/>';
+
+                //Generate ActionScript
+                symbolAS3TextArea.text = 'var pms' + pmsCount + ':PictureMarkerSymbol = new PictureMarkerSymbol();\n';
+                symbolAS3TextArea.text += 'pms' + pmsCount + '.width = ' + value.width + ';\n';
+                symbolAS3TextArea.text += 'pms' + pmsCount + '.height = ' + value.height + ';\n';
+
+                if (value.angle != 0)
+                {
+                    symbolAS3TextArea.text += 'pms' + pmsCount + '.angle = ' + value.angle + ';\n';
+                }
+
+                if (value.xoffset != 0)
+                {
+                    symbolAS3TextArea.text += 'pms' + pmsCount + '.xoffset = ' + numberFormatter.format(value.xoffset) + ';\n';
+                }
+
+                if (value.yoffset != 0)
+                {
+                    symbolAS3TextArea.text += 'pms' + pmsCount + '.yoffset = ' + numberFormatter.format(value.yoffset) + ';\n';
+                }
+
+                symbolAS3TextArea.text += 'pms' + pmsCount + '.source = "' + value.source + '";';
+                //increment variable reference
+                pmsCount++;
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <esri:Portal id="portalService"
+                     culture="en-us"
+                     fault="portalService_faultHandler(event)"
+                     load="portalService_loadHandler(event)"
+                     queryGroupsComplete="portalService_queryGroupsCompleteHandler(event)"
+                     queryItemsComplete="portalService_queryItemsCompleteHandler(event)"
+                     unload="portalService_unloadHandler(event)"
+                     url="http://www.arcgis.com/sharing/rest/"/>
+
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="2"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create symbology for points
+            using the PictureMarkerSymbol class in both mxml and ActionScript.
+            Select a category in the "Picture Marker Properties"
+            panel and view the changes in the "mxml and ActionScript" panels.
+            This sample allows you to explore symbolizing points interactively,
+            then copy and paste the mxml or ActionScript code into your application.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:extent>
+            <esri:Extent xmin="-3256336" ymin="-4688658" xmax="22964622" ymax="9047994">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer">
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="1447153" y="7477225"/>
+                </esri:geometry>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="8107398" y="2151404"/>
+                </esri:geometry>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="3952955" y="4011359"/>
+                </esri:geometry>
+            </esri:Graphic>
+            <esri:Graphic>
+                <esri:geometry>
+                    <esri:MapPoint x="-14963565" y="8030603"/>
+                </esri:geometry>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+    <s:Panel right="10" top="5"
+             backgroundColor="0xEEEEEE"
+             title="Picture Marker Properties">
+        <s:layout>
+            <s:VerticalLayout gap="0" horizontalAlign="center"/>
+        </s:layout>
+        <s:HGroup width="100%"
+                  paddingBottom="5"
+                  paddingLeft="5"
+                  paddingRight="5"
+                  paddingTop="5"
+                  verticalAlign="baseline">
+
+            <s:Label text="Category:"/>
+            <s:DropDownList id="itemsDropDownList"
+                            width="200"
+                            change="itemsDropDownList_changeHandler(event)"
+                            dataProvider="{itemsList}"
+                            prompt="Select a symbol set"
+                            requireSelection="true"/>
+        </s:HGroup>
+        <s:List id="symbolPickerList"
+                width="300" height="200"
+                borderAlpha="0.3"
+                change="symbolPickerList_changeHandler(event)"
+                contentBackgroundColor="0xEEEEEE"
+                dataProvider="{pmsSymbolsList}"
+                requireSelection="true"
+                rollOverColor="0xD4D4D4"
+                selectionColor="0xA8A8A8">
+            <s:layout>
+                <s:TileLayout paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+            </s:layout>
+            <s:itemRenderer>
+                <fx:Component>
+                    <s:ItemRenderer>
+                        <s:Image width="{data.width}" height="{data.height}"
+                                 source="{data.source}"/>
+                    </s:ItemRenderer>
+                </fx:Component>
+            </s:itemRenderer>
+        </s:List>
+
+    </s:Panel>
+
+    <s:HGroup width="100%" height="140"
+              bottom="60"
+              paddingLeft="10"
+              paddingRight="10">
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="PictureMarkerSymbol mxml">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"
+                                    paddingBottom="0"
+                                    paddingLeft="0"
+                                    paddingRight="0"
+                                    paddingTop="0"/>
+            </s:layout>
+            <s:TextArea id="symbolMXMLTextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="symbolMXMLTextArea.selectAll();System.setClipboard(symbolMXMLTextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10"/>
+        </s:Panel>
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="PictureMarkerSymbol ActionScript">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"
+                                    paddingBottom="0"
+                                    paddingLeft="0"
+                                    paddingRight="0"
+                                    paddingTop="0"/>
+            </s:layout>
+            <s:TextArea id="symbolAS3TextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="symbolAS3TextArea.selectAll();System.setClipboard(symbolAS3TextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10"/>
+        </s:Panel>
+    </s:HGroup>
+</s:Application>

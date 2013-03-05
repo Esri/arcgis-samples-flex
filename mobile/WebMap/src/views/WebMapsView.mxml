@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:esri="http://www.esri.com/2008/ags"
+        creationComplete="creationCompleteHandler(event)"
+        title="Web Maps">
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.WebMapEvent;
+            import com.esri.ags.portal.Portal;
+
+            import mx.collections.ArrayList;
+            import mx.events.FlexEvent;
+
+            import spark.events.IndexChangeEvent;
+            import spark.managers.PersistenceManager;
+
+            private var persistenceManager:PersistenceManager = new PersistenceManager();
+            private var webMapTitle:String;
+            private var currentItemId:String;
+
+            private function creationCompleteHandler(event:FlexEvent):void
+            {
+                list.dataProvider = persistenceManager.getProperty('webmaps') as ArrayList;
+            }
+
+            private function list_changeHandler(event:IndexChangeEvent):void
+            {
+                bi.visible = true;
+                currentItemId = event.target.selectedItem.id;
+                webMapTitle = event.target.selectedItem.title;
+                webMapUtil.createMapById(currentItemId);
+            }
+
+            private function webMapUtil_createMapByIdCompleteHandler(event:WebMapEvent):void
+            {
+                bi.visible = false;
+                if (event.item.id === currentItemId)
+                {
+                    navigator.pushView(MapView, { map: event.map, view: this, title: webMapTitle });
+                }
+            }
+
+            private function searchButton_clickHandler(event:MouseEvent):void
+            {
+                navigator.pushView(SearchView, data as Portal);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:GeometryServiceSingleton url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer"/>
+        <esri:WebMapUtil id="webMapUtil" createMapByIdComplete="webMapUtil_createMapByIdCompleteHandler(event)"/>
+    </fx:Declarations>
+
+    <s:actionContent>
+        <s:Button id="searchButton"
+                  click="searchButton_clickHandler(event)"
+                  icon="@Embed('assets/search.png')"/>
+    </s:actionContent>
+
+    <s:List id="list"
+            width="100%" height="100%"
+            change="list_changeHandler(event)">
+        <s:itemRenderer>
+            <fx:Component>
+                <s:IconItemRenderer iconField="thumbnailURL"
+                                    iconHeight="54"
+                                    iconScaleMode="letterbox"
+                                    iconWidth="80"
+                                    labelField="title"/>
+            </fx:Component>
+        </s:itemRenderer>
+    </s:List>
+
+    <s:BusyIndicator id="bi"
+                     horizontalCenter="0"
+                     verticalCenter="0"
+                     visible="false"/>
+</s:View>

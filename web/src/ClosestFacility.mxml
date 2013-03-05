@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Closest Facility sample">
+    <!--
+    Description:
+    This sample demonstrates how to work with ClosestFacilityTask.
+    The ClosestFacilityTask is used to find the closest facilities around
+    an input location. The ClosestFacilityParameters object is used to
+    define how many facilities to find and various other properties,
+    such as travel direction and cutoff.
+
+    The closest facility solver measures the cost of traveling between incidents
+    and facilities and determines which are nearest to one other.
+    When finding closest facilities, you can specify how many to find and
+    whether the direction of travel is toward or away from them.
+    The closest facility solver displays the best routes between incidents
+    and facilities, reports their travel costs, and returns driving directions.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ClosestFacilityEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/ClosestFacilityTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ClosestFacilityParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ClosestFacilitySolveResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/NAMessage.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/naserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/nalayer.html
+    http://resources.arcgis.com/en/help/rest/apiref/cfSolve.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Network_analysis_services/015400000276000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/What_is_the_ArcGIS_Network_Analyst_extension/004700000001000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_the_ArcGIS_Network_Analyst_extension_tutorial/00470000005r000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Closest_facility_analysis/00470000004n000000/
+
+    NOTE: In order to support this workflow (author and publish the services) in your own environment,
+    you will need a streets network dataset such as StreetMap Premium for ArcGIS,
+    ArcGIS Network Analyst for Desktop, and ArcGIS Network Analyst for Server.
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.ClosestFacilityEvent;
+            import com.esri.ags.events.MapEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.NAMessage;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            [Bindable]
+            private var incidents:FeatureSet = new FeatureSet([]);
+
+            private function myMap_loadHandler(event:MapEvent):void
+            {
+                var facilitiesSet:FeatureSet = new FeatureSet([]);
+                var facility1:Graphic = new Graphic(new MapPoint(-13043098, 3856928, new SpatialReference(102100)), null, { Name: "Hyatt" });
+                var facility2:Graphic = new Graphic(new MapPoint(-13042125, 3856513, new SpatialReference(102100)), null, { Name: "Tin Fish" });
+                var facility3:Graphic = new Graphic(new MapPoint(-13042081, 3856754, new SpatialReference(102100)), null, { Name: "The Broken Yolk Cafe" });
+                var facility4:Graphic = new Graphic(new MapPoint(-13042580, 3857208, new SpatialReference(102100)), null, { Name: "Ralphs" });
+                var facility5:Graphic = new Graphic(new MapPoint(-13042175, 3856901, new SpatialReference(102100)), null, { Name: "Royal Thai Cuisine" });
+                var facility6:Graphic = new Graphic(new MapPoint(-13042343, 3857046, new SpatialReference(102100)), null, { Name: "Royal India" });
+                var facility7:Graphic = new Graphic(new MapPoint(-13042285, 3856726, new SpatialReference(102100)), null, { Name: "Rama" });
+
+                facilitiesSet.features.push(facility1, facility2, facility3, facility4, facility5, facility6, facility7);
+                facilitiesGraphicsLayer.graphicProvider = facilitiesSet.features;
+
+                cfParams.facilities = facilitiesSet;
+                cfParams.outSpatialReference = myMap.spatialReference;
+            }
+
+            private function myMap_mapClickHandler(event:MapMouseEvent):void
+            {
+                clearClosestFacility();
+                var incident:Graphic = new Graphic(event.mapPoint, null, { Name: "My Location" });
+                incidentsGraphicsLayer.add(incident);
+                incidents.features.push(incident);
+
+                cfTask.solve(cfParams);
+            }
+
+            private function solveCompleteHandler(event:ClosestFacilityEvent):void
+            {
+                var routes:Array = [];
+                for (var i:int = 0; i < event.closestFacilitySolveResult.routes.length; i++)
+                {
+                    var r:Graphic = event.closestFacilitySolveResult.routes[i];
+                    r.toolTip = r.attributes.Name;
+
+                    if (r.attributes.Total_TravelTime)
+                    {
+                        r.toolTip += " in " + Math.round(Number(r.attributes.Total_TravelTime * 60)) + " seconds.";
+                    }
+                    routes.push(r);
+                }
+                // Check for messages
+                if (event.closestFacilitySolveResult.messages.length > 0)
+                {
+                    var msg:NAMessage = event.closestFacilitySolveResult.messages[0] as NAMessage;
+                    incidentsGraphicsLayer.remove(incidents.features.pop());
+                    Alert.show("Unexpected Message:\n\n" + msg.description, "Closest Facility Error " + msg.type);
+                }
+                routes.reverse(); // to get the route with the lowest time rendered first
+                routeGraphicsLayer.graphicProvider = routes;
+            }
+
+            private function faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "Closest Facility Error " + event.fault.faultCode);
+                // remove the last incident
+                incidentsGraphicsLayer.remove(incidents.features.pop());
+            }
+
+            private function clearButton_clickHandler(event:MouseEvent):void
+            {
+                clearClosestFacility();
+            }
+
+            private function clearClosestFacility():void
+            {
+                routeGraphicsLayer.clear();
+                incidentsGraphicsLayer.clear();
+                incidents = new FeatureSet([]);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:ClosestFacilityTask id="cfTask"
+                                  concurrency="last"
+                                  fault="faultHandler(event)"
+                                  requestTimeout="30"
+                                  showBusyCursor="true"
+                                  solveComplete="solveCompleteHandler(event)"
+                                  url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/ClosestFacility"/>
+
+        <esri:ClosestFacilityParameters id="cfParams"
+                                        defaultCutoff="5"
+                                        defaultTargetFacilityCount="{int(facilityCount.selectedItem)}"
+                                        incidents="{incidents}"
+                                        returnDirections="true"
+                                        returnIncidents="true"
+                                        returnRoutes="true"/>
+
+        <esri:SimpleMarkerSymbol id="incidentSymbol"
+                                 color="0xB0000F"
+                                 size="20"
+                                 style="triangle">
+            <esri:SimpleLineSymbol width="3" color="0x81000B"/>
+        </esri:SimpleMarkerSymbol>
+
+        <esri:SimpleMarkerSymbol id="facilitySymbol"
+                                 color="0x589426"
+                                 size="18"
+                                 style="circle">
+            <esri:SimpleLineSymbol width="3" color="0x3B631A"/>
+        </esri:SimpleMarkerSymbol>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to work with ClosestFacilityTask.
+            The ClosestFacilityTask is used to find the closest facilities around
+            an input location. The ClosestFacilityParameters object is used to
+            define how many facilities to find and various other properties,
+            such as travel direction and cutoff.
+        </s:RichText>
+        <s:HGroup verticalAlign="baseline">
+            <s:Label text="Click on map to add incidents and find routes for the "/>
+            <s:DropDownList id="facilityCount"
+                            width="45"
+                            requireSelection="true"
+                            selectedIndex="2">
+                <s:ArrayList>
+                    <fx:int>1</fx:int>
+                    <fx:int>2</fx:int>
+                    <fx:int>3</fx:int>
+                    <fx:int>4</fx:int>
+                    <fx:int>5</fx:int>
+                </s:ArrayList>
+            </s:DropDownList>
+            <s:Label text="closest facilities."/>
+        </s:HGroup>
+        <s:Button id="clearButton"
+                  click="clearButton_clickHandler(event)"
+                  label="Clear incidents and routes"/>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              load="myMap_loadHandler(event)"
+              mapClick="myMap_mapClickHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13042947" ymin="3856278" xmax="-13041347" ymax="3857116">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+        <esri:GraphicsLayer id="routeGraphicsLayer">
+            <esri:renderer>
+                <!--<esri:ClassBreaksRenderer field="Total_TravelTime">
+                    <esri:ClassBreakInfo maxValue="0.50" symbol="{new SimpleLineSymbol('solid', 0xCF0000, 0.8, 6)}"/>
+                    <esri:ClassBreakInfo maxValue="1.00"
+                                         minValue="0.50"
+                                         symbol="{new SimpleLineSymbol('solid', 0xEF0E0E, 0.8, 6)}"/>
+                    <esri:ClassBreakInfo minValue="1.00" symbol="{new SimpleLineSymbol('solid', 0xFF2F2F, 0.8, 6)}"/>
+                </esri:ClassBreaksRenderer>-->
+                <esri:UniqueValueRenderer field="FacilityRank">
+                    <esri:UniqueValueInfo label="First"
+                                          symbol="{new SimpleLineSymbol('solid', 0x4CBD36, 1.0, 6)}"
+                                          value="1"/>
+                    <esri:UniqueValueInfo label="Second"
+                                          symbol="{new SimpleLineSymbol('solid', 0x2C32BD, 1.0, 6)}"
+                                          value="2"/>
+                    <esri:UniqueValueInfo label="Third"
+                                          symbol="{new SimpleLineSymbol('solid', 0x3ABABD, 1.0, 6)}"
+                                          value="3"/>
+                    <esri:UniqueValueInfo label="Fourth"
+                                          symbol="{new SimpleLineSymbol('solid', 0xBDAF3B, 1.0, 6)}"
+                                          value="4"/>
+                    <esri:UniqueValueInfo label="Fifth"
+                                          symbol="{new SimpleLineSymbol('solid', 0xBD433A, 1.0, 6)}"
+                                          value="5"/>
+
+                </esri:UniqueValueRenderer>
+            </esri:renderer>
+        </esri:GraphicsLayer>
+        <esri:GraphicsLayer id="facilitiesGraphicsLayer" symbol="{facilitySymbol}"/>
+        <esri:GraphicsLayer id="incidentsGraphicsLayer" symbol="{incidentSymbol}"/>
+    </esri:Map>
+
+</s:Application>

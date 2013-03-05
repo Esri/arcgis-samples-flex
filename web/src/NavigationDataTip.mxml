@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Customize NavigationClass to change zoom slider tooltips">
+    <!--
+    Description:
+    This sample demonstrates how to modify the NavigationClass data tip
+    of the navigation skin to display custom tool tips
+    instead of the default scale number.  In order to display the tooltips
+    on the zoom slider, you need to click and hold the mouse down on the
+    little circle within the zoom slider's vertical slider bar.  As you move
+    the vertical slider from its position near the minus button up to the
+    position near the plus button you will see the tool tips change from
+    "World", "Continent", "Region", "Country", "State/Province", "County",
+    "City", "Neighborhood".
+
+    Note:
+    All the source code for the skins can be found in the ArcGIS API for Flex
+    download.  Once you unzip the api you can find the skins under the following
+    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins' and the skin assets
+    in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    NavigationSkin.mxml
+    NavigationVSliderSkin.mxml
+    NavigationZoomInButtonSkin.mxml
+    NavigationZoomOutButtonSkin.mxml
+    NavigationHSliderSkin.mxml
+    NavigationHorizontalSkin.mxml
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Navigation.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/NavigationSkin.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/supportClasses/SkinnableComponent.html
+    About Spark skins
+    http://help.adobe.com/en_US/flex/using/WSC8DB0C28-F7A6-48ff-9899-7957415A0A49.html
+
+    This sample also uses the following files:
+    com/esri/ags/samples/skins/MyNavigationSkin.mxml
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace esri "http://www.esri.com/2008/ags";
+
+        esri|Navigation
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.MyNavigationSkin");
+        }
+    </fx:Style>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to modify the NavigationClass data tip
+            of the navigation skin to display custom tool tips
+            instead of the default scale number.  In order to display the tooltips
+            on the zoom slider, you need to click and hold the mouse down on the
+            little circle within the zoom slider's vertical slider bar.  As you move
+            the vertical slider from its position near the minus button up to the
+            position near the plus button you will see the tool tips change from
+            "World", "Continent", "Region", "Country", "State/Province", "County",
+            "City", "Neighborhood".
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>

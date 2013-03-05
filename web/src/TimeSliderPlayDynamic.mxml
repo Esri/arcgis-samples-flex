@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               backgroundColor="0xD3D1D1"
+               pageTitle="Petroleum Wells in Kansas 1889-2009">
+    <!--
+    Description:
+    This sample demonstrates how to display time aware data using
+    the TimeSlider and ArcGISDynamicMapServiceLayer.  The wells service used in
+    this example is time-aware, the ArcGISDynamicMapServiceLayer is used to display the
+    well points server-side using a TimeExtent filter, and the
+    TimeSlider provides the user interface for manipulating the service
+    TimeExtent.  This sample displays petroleum wells in Kansas 1889-2009.
+
+    Note:
+    In ArcGIS Server 10 built-in support was added for Time-Aware layers.
+    On the server you can specify a certain field as a special Time field.
+    This time field can be used to set time extent and only ask for data
+    covering certain times. Using a DynamicLayer we get full time extent
+    metadata from the server.
+
+    Step 1. Create the time slider
+    Step 2. Give the map a time slider (to make it time-aware).
+    Step 3. Set the time extent of the time slider
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#timeExtent
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#timeSlider
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html#createTimeStopsByCount()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#visibleLayers
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/mapserver.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Serving_time_aware_layers/00sq00000090000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_enabling_time_on_data/005z0000000p000000/
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Declarations>
+        <s:DateTimeFormatter id="myDateFormatter" dateTimePattern="MMMM d, yyyy"/>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.geometry.Extent;
+
+            protected function myTimeLayer_loadHandler(event:LayerEvent):void
+            {
+                // myMap.extent = WebMercatorUtil.geographicToWebMercator(myTimeLayer.initialExtent) as Extent;
+                myFirstTimeSlider.createTimeStopsByCount(myTimeLayer.timeInfo.timeExtent); // defaults to 10 intervals
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to display time aware data using
+            the TimeSlider and ArcGISDynamicMapServiceLayer.  The wells service used in
+            this example is time-aware, the ArcGISDynamicMapServiceLayer is used to display the
+            well points server-side using a TimeExtent filter, and the
+            TimeSlider provides the user interface for manipulating the service
+            TimeExtent.  This sample displays petroleum wells in Kansas 1889-2009.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" timeSlider="{myFirstTimeSlider}">
+        <esri:extent>
+            <esri:Extent xmin="-10854962" ymin="4514317" xmax="-10779136" ymax="4572944">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer id="myTimeLayer"
+                                           load="myTimeLayer_loadHandler(event)"
+                                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSWells/MapServer">
+            <!-- this service has all layers turned off by default, so we turn some of them "on" -->
+            <esri:visibleLayers>
+                <mx:ArrayCollection>
+                    <fx:Number>0</fx:Number>
+                    <fx:Number>1</fx:Number>
+                </mx:ArrayCollection>
+            </esri:visibleLayers>
+        </esri:ArcGISDynamicMapServiceLayer>
+    </esri:Map>
+
+    <s:Line width="100%">
+        <s:stroke>
+            <s:SolidColorStroke color="0x000000" weight="1"/>
+        </s:stroke>
+    </s:Line>
+
+    <s:VGroup width="100%"
+              gap="10"
+              horizontalAlign="center"
+              paddingBottom="7"
+              paddingLeft="10"
+              paddingRight="10"
+              paddingTop="7">
+        <s:Label fontSize="14" text="Showing wells up to {myDateFormatter.format(myFirstTimeSlider.timeExtent.endTime)}"/>
+        <esri:TimeSlider id="myFirstTimeSlider"/>
+    </s:VGroup>
+</s:Application>

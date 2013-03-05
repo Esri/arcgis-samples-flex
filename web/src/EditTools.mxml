@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Edit graphics with the EditTool">
+    <!--
+    Description:
+    This sample demonstrates how to use the EditTool in your workflows.
+    The DrawTool and EditTool are both part of an editing experience.
+    The DrawTool allows you to draw new graphics,
+    while the EditTool allows you to edit geometries of existing graphics.
+    In this sample, click on the toolbar first, then draw a graphic on the map.
+    Next, click the graphic that you just created; this will activate the EditTool for that feature.
+    You can then move the selected feature by click (mouse down) and drag (move) it somewhere else.
+    To edit individual vertices of a line or polygon, simply move any existing
+    vertices or add new ones by clicking on a "ghost" vertice and dragging it to anywhere.
+    Reshaping features (ellipses, circles, extent, and polygons): click once to select the graphic,
+    click again (to activate scaling and rotate mode) you will be able to re-shape the feature.
+    Be sure to read to the documentation for full editing behaviors.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/EditTool.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/featureserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/fslayer.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_feature_service/0154000002w8000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/Using_feature_services_in_a_client_application/0154000005sq000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.Polygon;
+            import com.esri.ags.geometry.Polyline;
+            import com.esri.ags.symbols.SimpleFillSymbol;
+            import com.esri.ags.symbols.SimpleLineSymbol;
+            import com.esri.ags.symbols.SimpleMarkerSymbol;
+
+            import mx.events.FlexEvent;
+            import mx.events.ItemClickEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            private var graphic:Graphic;
+            private var lastEditGraphic:Graphic;
+            private var lastActiveEditTypes:String;
+
+            protected function tbb_itemClickHandler(event:ItemClickEvent):void
+            {
+                if (tbb.selectedIndex < 0)
+                {
+                    // when toggling a tool off, deactivate it
+                    myDrawTool.deactivate();
+                }
+                else
+                {
+                    switch (event.item.label)
+                    {
+                        case "MAPPOINT":
+                        {
+                            myDrawTool.activate(DrawTool.MAPPOINT);
+                            break;
+                        }
+                        case "POLYLINE":
+                        {
+                            myDrawTool.activate(DrawTool.POLYLINE);
+                            break;
+                        }
+                        case "FREEHAND_POLYLINE":
+                        {
+                            myDrawTool.activate(DrawTool.FREEHAND_POLYLINE);
+                            break;
+                        }
+                        case "POLYGON":
+                        {
+                            myDrawTool.activate(DrawTool.POLYGON);
+                            break;
+                        }
+                        case "FREEHAND_POLYGON":
+                        {
+                            myDrawTool.activate(DrawTool.FREEHAND_POLYGON);
+                            break;
+                        }
+                        case "EXTENT":
+                        {
+                            myDrawTool.activate(DrawTool.EXTENT);
+                            break;
+                        }
+                        case "CIRCLE":
+                        {
+                            myDrawTool.activate(DrawTool.CIRCLE);
+                            break;
+                        }
+                        case "ELLIPSE":
+                        {
+                            myDrawTool.activate(DrawTool.ELLIPSE);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            protected function drawTool_drawEndHandler(event:DrawEvent):void
+            {
+                // reset after finished drawing a feature
+                myDrawTool.deactivate();
+                tbb.selectedIndex = -1;
+            }
+
+            private function myMap_mapMouseDownHandler(event:MapMouseEvent):void
+            {
+                event.currentTarget.addEventListener(MouseEvent.MOUSE_MOVE, map_mouseMoveHandler);
+                event.currentTarget.addEventListener(MouseEvent.MOUSE_UP, map_mouseUpHandler);
+            }
+
+            private function map_mouseMoveHandler(event:MouseEvent):void
+            {
+                event.currentTarget.removeEventListener(MouseEvent.MOUSE_MOVE, map_mouseMoveHandler);
+                event.currentTarget.removeEventListener(MouseEvent.MOUSE_UP, map_mouseUpHandler);
+            }
+
+            private function map_mouseUpHandler(event:MouseEvent):void
+            {
+                event.currentTarget.removeEventListener(MouseEvent.MOUSE_MOVE, map_mouseMoveHandler);
+                event.currentTarget.removeEventListener(MouseEvent.MOUSE_UP, map_mouseUpHandler);
+
+                if (event.target is Graphic || event.target.parent is Graphic)
+                {
+                    if (event.target is Graphic)
+                    {
+                        graphic = Graphic(event.target);
+                    }
+                    else if (event.target.parent is Graphic) //check for PictureMarkerSymbol
+                    {
+                        graphic = Graphic(event.target.parent);
+                    }
+
+                    if (lastEditGraphic !== graphic)
+                    {
+                        lastEditGraphic = graphic;
+                        lastActiveEditTypes = "moveRotateScale"; // make sure move and edit vertices is the 1st mode
+                    }
+                    if (graphic.geometry is Polyline || graphic.geometry is Polygon)
+                    {
+                        if (lastActiveEditTypes == "moveEditVertices")
+                        {
+                            lastActiveEditTypes = "moveRotateScale";
+                            myEditTool.activate(EditTool.MOVE | EditTool.SCALE | EditTool.ROTATE, [ graphic ]);
+                        }
+                        else
+                        {
+                            lastActiveEditTypes = "moveEditVertices";
+                            myEditTool.activate(EditTool.MOVE | EditTool.EDIT_VERTICES, [ graphic ]);
+                        }
+                    }
+                    else if (graphic.geometry is Extent)
+                    {
+                        myEditTool.activate(EditTool.MOVE | EditTool.SCALE, [ graphic ]);
+                    }
+                    else if (graphic.graphicsLayer == myGraphicsLayer)
+                    {
+                        myEditTool.activate(EditTool.MOVE | EditTool.EDIT_VERTICES, [ graphic ]);
+                    }
+                }
+                else
+                {
+                    myEditTool.deactivate();
+                    lastActiveEditTypes = "moveRotateScale"; // make sure move and edit vertices is the 1st mode
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Symbol for all point shapes -->
+        <esri:SimpleMarkerSymbol id="sms"
+                                 color="0x00FF00"
+                                 size="12"
+                                 style="square"/>
+
+        <!-- Symbol for all line shapes -->
+        <esri:SimpleLineSymbol id="sls"
+                               width="3"
+                               color="0x00FF00"/>
+
+        <!-- Symbol for all polygon shapes -->
+        <esri:SimpleFillSymbol id="sfs"
+                               color="0xFFFFFF"
+                               style="diagonalcross">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="2" color="0x00FF00"/>
+            </esri:outline>
+        </esri:SimpleFillSymbol>
+
+        <esri:DrawTool id="myDrawTool"
+                       drawEnd="drawTool_drawEndHandler(event)"
+                       fillSymbol="{sfs}"
+                       graphicsLayer="{myGraphicsLayer}"
+                       lineSymbol="{sls}"
+                       map="{myMap}"
+                       markerSymbol="{sms}"/>
+
+        <esri:EditTool id="myEditTool" map="{myMap}"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            The DrawTool and EditTool are both part of an editing experience.  The DrawTool allows you to draw new graphics,
+            while the EditTool allows you to edit geometries of existing graphics.
+            In this sample, click on the toolbar first, then draw a graphic on the map.
+            Next, click the graphic that you just created; this will activate the EditTool for that feature.
+            You can then move the selected feature by click (mouse down) and drag (move) it somewhere else.
+            To edit individual vertices of a line or polygon, simply move any existing
+            vertices or add new ones by clicking on a "ghost" vertice and dragging it to anywhere.
+            Reshaping features (ellipses, circles, extent, and polygons): click once to select the graphic,
+            click again (to activate scaling and rotate mode) you will be able to re-shape the feature.
+            Be sure to read to the documentation for full editing behaviors.
+        </s:RichText>
+        <mx:ToggleButtonBar id="tbb"
+                            itemClick="tbb_itemClickHandler(event)"
+                            labelField="null"
+                            selectedIndex="-1"
+                            toggleOnClick="true">
+            <fx:Object icon="@Embed(source='assets/i_draw_point.png')"
+                       label="MAPPOINT"
+                       toolTip="MapPoint"/>
+            <fx:Object icon="@Embed(source='assets/i_draw_line.png')"
+                       label="POLYLINE"
+                       toolTip="Polyline"/>
+            <fx:Object icon="@Embed(source='assets/i_draw_freeline.png')"
+                       label="FREEHAND_POLYLINE"
+                       toolTip="Freehand Polyline"/>
+            <fx:Object icon="@Embed(source='assets/i_draw_poly.png')"
+                       label="POLYGON"
+                       toolTip="Polygon"/>
+            <fx:Object icon="@Embed(source='assets/i_draw_freepoly.png')"
+                       label="FREEHAND_POLYGON"
+                       toolTip="Freehand Polygon"/>
+            <fx:Object icon="@Embed(source='assets/i_draw_rect.png')"
+                       label="EXTENT"
+                       toolTip="Extent"/>
+            <fx:Object icon="@Embed(source='assets/i_draw_circle.png')"
+                       label="CIRCLE"
+                       toolTip="Circle"/>
+            <fx:Object icon="@Embed(source='assets/i_draw_ellipse.png')"
+                       label="ELLIPSE"
+                       toolTip="Ellipse"/>
+        </mx:ToggleButtonBar>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              level="3"
+              mapMouseDown="myMap_mapMouseDownHandler(event)"
+              wrapAround180="true">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer"/>
+    </esri:Map>
+
+</s:Application>

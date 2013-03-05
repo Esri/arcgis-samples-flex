@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+         xmlns:s="library://ns.adobe.com/flex/spark"
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="100%">
+    <fx:Metadata>
+        [Event(name="themeSelectionChanged", type="flash.events.Event")]
+    </fx:Metadata>
+    <s:layout>
+        <s:HorizontalLayout gap="15"
+                            horizontalAlign="left"
+                            verticalAlign="middle"/>
+    </s:layout>
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.samples.layers.supportClasses.HeatMapGradientDict;
+
+            import spark.events.IndexChangeEvent;
+
+            private var selectedThemeValue:String = "";
+
+            public function set themeLabel(value:String):void
+            {
+                m_themeLabel.text = value;
+            }
+
+            public function get selectedTheme():String
+            {
+                return selectedThemeValue;
+            }
+
+            public function set theme(value:String):void
+            {
+                var themeObject:Object;
+                for (var i:int = 0; i < themeButtonBar.dataProvider.length; i++)
+                {
+                    themeObject = themeButtonBar.dataProvider.getItemAt(i);
+                    if (themeObject.data == value)
+                    {
+                        themeButtonBar.selectedIndex = i;
+                        break;
+                        dispatchEvent(new Event("themeSelectionChanged"));
+                    }
+                }
+                selectedThemeValue = value;
+            }
+
+            protected function themeButtonBar_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedItem:Object = ButtonBar(event.target).selectedItem;
+                if (selectedItem)
+                {
+                    selectedThemeValue = ButtonBar(event.target).selectedItem.data;
+                    dispatchEvent(new Event("themeSelectionChanged"));
+                }
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+
+    <s:Label id="m_themeLabel"/>
+    <s:ButtonBar id="themeButtonBar"
+                 change="themeButtonBar_changeHandler(event)"
+                 skinClass="com.esri.ags.samples.skins.HeatMapButtonBarImageSkin">
+        <s:dataProvider>
+            <s:ArrayList>
+                <fx:Object data="{HeatMapGradientDict.RAINBOW_TYPE}"
+                           icon="@Embed('../../../../../assets/i_rainbow.png')"
+                           label="Rainbow"/>
+                <fx:Object data="{HeatMapGradientDict.RED_WHITE_BLUE_TYPE}"
+                           icon="@Embed('../../../../../assets/i_redwhiteblue.png')"
+                           label="Red, White, Blue"/>
+                <fx:Object data="{HeatMapGradientDict.THERMAL_TYPE}"
+                           icon="@Embed('../../../../../assets/i_thermal.png')"
+                           label="Thermal"/>
+            </s:ArrayList>
+        </s:dataProvider>
+    </s:ButtonBar>
+</s:Group>

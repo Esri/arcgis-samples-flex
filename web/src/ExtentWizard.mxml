@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Explore map extents">
+    <!--
+    Description:
+    This sample demonstrates how to create an extent
+    using the Extent and WebMercatorExtent classes
+    in both mxml and ActionScript.
+    This sample allows you to explore creating extents interactively,
+    then copy and paste the mxml or ActionScript code into your application.
+    Click the "Show extent ..." button to switch between Extent and WebMercatorExtent.
+
+    Note:
+    You can also use this sample to click on the map to get the lat/lon where you want
+    to center your map and get the level.  This information can then be used to set
+    the Map using the center and level.
+
+    <esri:Map level="14">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-4.485556" lat="48.390834"/>
+        </esri:center>
+        <esri:ArcGISTiledMapServiceLayer/>
+    </esri:Map>
+
+    Note:
+    This sample can be used to create an extent that can be used as
+    a child element to the Map component in mxml (see the Extent in Map section),
+    as an element in the Declarations section (see the Extent in Declarations section),
+    or as code that can be used in an ActionScript code block.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ExtentEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorExtent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
+
+    For more details on the World Geocoding Service follow the link below.
+    http://geocode.arcgis.com/arcgis/index.html
+    -->
+
+    <s:states>
+        <s:State name="default"/>
+        <s:State name="searchProcessing"/>
+    </s:states>
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace esri "http://www.esri.com/2008/ags";
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.ExtentEvent;
+            import com.esri.ags.events.LocatorEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.TiledMapServiceLayer;
+            import com.esri.ags.symbols.SimpleMarkerSymbol;
+            import com.esri.ags.tasks.supportClasses.AddressCandidate;
+            import com.esri.ags.tasks.supportClasses.AddressToLocationsParameters;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            [Bindable]
+            private var geoExtent:Extent;
+
+            private function loadHandler():void
+            {
+                myMap.addEventListener(MapMouseEvent.MAP_CLICK, mouseClickHandler);
+            }
+
+            private function mouseClickHandler(event:MapMouseEvent):void
+            {
+                myMap.defaultGraphicsLayer.clear();
+                const mapPoint:MapPoint = myMap.toMapFromStage(event.stageX, event.stageY);
+                myMap.defaultGraphicsLayer.add(new Graphic(mapPoint, sms));
+                const latlong:MapPoint = WebMercatorUtil.webMercatorToGeographic(mapPoint) as MapPoint;
+                if (!tbExtentOptions.selected)
+                {
+                    mousecoords.text = 'y/x (lat="' + latlong.y.toFixed(6) + '" lon="' + latlong.x.toFixed(6) + '")';
+                }
+                else
+                {
+                    mousecoords.text = 'Map (x="' + mapPoint.x.toFixed(0) + '" y="' + mapPoint.y.toFixed(0) + '")';
+                }
+            }
+
+            protected function myMap_extentChangeHandler(event:ExtentEvent):void
+            {
+                geoExtent = WebMercatorUtil.webMercatorToGeographic(event.extent) as Extent;
+            }
+
+            protected function searchTextInput_searchHandler():void
+            {
+                if (searchTextInput.text.length > 2)
+                {
+                    var params:AddressToLocationsParameters = new AddressToLocationsParameters();
+                    var place:Object = { SingleLine: searchTextInput.text };
+                    params.address = place;
+                    params.outFields = [ 'Loc_name' ];
+                    worldGeocodeLocator.addressToLocations(params);
+                    currentState = 'searchProcessing';
+                }
+            }
+
+            protected function placesLocator_addressToLocationsCompleteHandler(event:LocatorEvent):void
+            {
+                var placesResults:Array = event.addressCandidates as Array;
+                if (placesResults[0])
+                {
+                    myMap.defaultGraphicsLayer.clear();
+                    var placeCandidate:AddressCandidate = placesResults[0] as AddressCandidate;
+                    var mapPoint:MapPoint = placeCandidate.location as MapPoint;
+                    var graphic:Graphic = new Graphic(mapPoint, sms);
+                    graphic.toolTip = placeCandidate.address as String;
+                    myMap.defaultGraphicsLayer.add(graphic);
+                    myMap.level = 12;
+                    myMap.centerAt(mapPoint);
+                    currentState = 'default';
+                }
+                else
+                {
+                    Alert.show("Unable to locate address", "Search Results");
+                    currentState = 'default';
+                }
+            }
+
+            protected function esriService_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
+                currentState = 'default';
+            }
+
+            private function layerShowHandler(event:FlexEvent):void
+            {
+                // update the LODs/zoomslider to use/show the levels for the selected base map
+                var tiledLayer:TiledMapServiceLayer = event.target as TiledMapServiceLayer;
+                myMap.lods = tiledLayer.tileInfo.lods;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <s:NumberFormatter id="numberFormatter" fractionalDigits="0"/>
+
+        <esri:Locator id="worldGeocodeLocator"
+                      addressToLocationsComplete="placesLocator_addressToLocationsCompleteHandler(event)"
+                      fault="esriService_faultHandler(event)"
+                      outSpatialReference="{myMap.spatialReference}"
+                      url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"/>
+        <!--
+            Extent in Declarations:
+            Here we are declaring an extent variable using mxml.
+            This is one of the ways the Extent element can be
+            used, another way is as a child to the Map element
+            see the "Extent in Map" section.
+
+            One way of using this second declared extent could be
+            as follows:
+            Create a button and when the button is clicked, set the
+            map extent.
+
+            <s:Button click="myMap.extent = usExtent"
+            label="U.S. Extent"/>
+        -->
+        <esri:Extent id="usExtent"
+                     xmin="-13958841" ymin="2889195" xmax="-7403601" ymax="6323358">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+
+        <esri:SimpleMarkerSymbol id="sms"
+                                 alpha="0.7"
+                                 color="0xD3D1D1"
+                                 size="10"
+                                 style="circle">
+            <esri:SimpleLineSymbol width="2" color="0xBA0022"/>
+        </esri:SimpleMarkerSymbol>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to create an extent
+            using the Extent and WebMercatorExtent classes
+            in both mxml and ActionScript.
+            This sample allows you to explore creating extents interactively,
+            then copy and paste the mxml or ActionScript code into your application.
+            Click the "Show extent ..." button to switch between Extent and WebMercatorExtent.
+        </s:RichText>
+        <s:HGroup width="100%"
+                  paddingLeft="5"
+                  verticalAlign="middle">
+            <s:Label fontWeight="bold" text="Map scale is"/>
+            <s:RichEditableText editable="false" text="1:{numberFormatter.format(myMap.scale)} (level {myMap.level})"/>
+            <s:Line width="15" rotation="-90">
+                <s:stroke>
+                    <s:SolidColorStroke alpha="0.5"
+                                        color="0x000000"
+                                        weight="2"/>
+                </s:stroke>
+            </s:Line>
+            <s:Label fontWeight="bold" text="Mouse location:"/>
+            <s:RichEditableText id="mousecoords"
+                                editable="false"
+                                text="Click the map to see its current coordinates..."/>
+        </s:HGroup>
+        <s:HGroup width="100%"
+                  horizontalAlign="right"
+                  verticalAlign="middle">
+            <s:ToggleButton id="tbExtentOptions"
+                            click="mousecoords.text='Click the map to see its current coordinates...';myMap.defaultGraphicsLayer.clear();"
+                            label="{!tbExtentOptions.selected ? 'Show extent in map coordinates' : 'Show extent in geographic (lat/lon)'}"/>
+            <s:Spacer width="100%"/>
+            <s:Group id="searchGroup">
+                <s:Rect width="100%" height="100%"
+                        radiusX="10"
+                        radiusY="10">
+                    <s:fill>
+                        <s:SolidColor color="0xD3D1D1"/>
+                    </s:fill>
+                </s:Rect>
+                <s:Rect width="100%" height="100%"
+                        left="2" right="2" top="2" bottom="2"
+                        radiusX="10"
+                        radiusY="10">
+                    <s:fill>
+                        <s:SolidColor color="0xEEEEEE"/>
+                    </s:fill>
+                </s:Rect>
+                <s:HGroup width="285"
+                          paddingBottom="4"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="4"
+                          verticalAlign="baseline">
+
+                    <s:Label width="18%" text="Search"/>
+                    <s:TextInput id="searchTextInput"
+                                 width="64%"
+                                 borderAlpha="0.2"
+                                 click="{searchTextInput.selectAll()}"
+                                 enter="searchTextInput_searchHandler()"
+                                 prompt="Where do you want to go?"
+                                 text.searchProcessing="Search in progress...."/>
+                    <s:Button width="18%"
+                              click="searchTextInput_searchHandler()"
+                              cornerRadius="10"
+                              label="Go"/>
+                </s:HGroup>
+            </s:Group>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <s:Group width="100%" height="100%">
+        <esri:Map id="myMap"
+                  extentChange="myMap_extentChangeHandler(event)"
+                  load="loadHandler()"
+                  wrapAround180="true">
+            <!--
+                Extent in Map:
+                Here we are setting the extent property on the map.
+                This is one of the ways the Extent element can be
+                used, the another way is in the Declarations section.
+                See the "Extent in Declarations" section.
+            -->
+            <esri:extent>
+                <esri:Extent xmin="-18958434" ymin="-5539767" xmax="7262524" ymax="13558484">
+                    <esri:SpatialReference wkid="102100"/>
+                </esri:Extent>
+            </esri:extent>
+            <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                             url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+                                             visible="{bb.selectedIndex == 0}"/>
+            <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                             url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"
+                                             visible="{bb.selectedIndex == 1}"/>
+            <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                             url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"
+                                             visible="{bb.selectedIndex == 2}"/>
+            <esri:ArcGISTiledMapServiceLayer show="layerShowHandler(event)"
+                                             url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"
+                                             visible="{bb.selectedIndex == 3}"/>
+        </esri:Map>
+
+        <s:ButtonBar id="bb"
+                     right="20" top="20"
+                     requireSelection="true"
+                     selectedIndex="2">
+            <s:dataProvider>
+                <s:ArrayList>
+                    <fx:String>Imagery</fx:String>
+                    <fx:String>Streets</fx:String>
+                    <fx:String>Topographic</fx:String>
+                    <fx:String>Oceans</fx:String>
+                </s:ArrayList>
+            </s:dataProvider>
+        </s:ButtonBar>
+    </s:Group>
+    <!-- GROUP FOR WEB MERCATOR EXTENTS IN MXML AND ACTIONSCRIPT -->
+    <s:HGroup width="100%" height="140"
+              bottom="60"
+              paddingLeft="10"
+              paddingRight="10"
+              visible="{!tbExtentOptions.selected}">
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="WebMercatorExtent mxml"
+                 toolTip="Copy this code, and paste it as a child element of the &lt;esri:Map&gt; element">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="extentGeoMXMLTextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="extentGeoMXMLTextArea.selectAll();System.setClipboard(extentGeoMXMLTextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>&lt;esri:extent&gt;&#xd;&lt;esri:WebMercatorExtent minlon=&quot;{geoExtent.xmin.toFixed(6)}&quot; minlat=&quot;{geoExtent.ymin.toFixed(6)}&quot; maxlon=&quot;{geoExtent.xmax.toFixed(6)}&quot; maxlat=&quot;{geoExtent.ymax.toFixed(6)}&quot;/&gt;&#xd;&lt;/esri:extent&gt;</s:text>
+            </s:TextArea>
+        </s:Panel>
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="WebMercatorExtent in ActionScript">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="extentGeoAS3TextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="extentGeoAS3TextArea.selectAll();System.setClipboard(extentGeoAS3TextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>var myWebMercatorExtent:WebMercatorExtent = new WebMercatorExtent({geoExtent.xmin.toFixed(6)}, {geoExtent.ymin.toFixed(6)}, {geoExtent.xmax.toFixed(6)}, {geoExtent.ymax.toFixed(6)});</s:text>
+            </s:TextArea>
+        </s:Panel>
+    </s:HGroup>
+    <!-- GROUP FOR GEOGRAPHIC EXTENTS IN MXML AND ACTIONSCRIPT -->
+    <s:HGroup width="100%" height="140"
+              bottom="60"
+              paddingLeft="10"
+              paddingRight="10"
+              visible="{tbExtentOptions.selected}">
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="Extent mxml"
+                 toolTip="Copy this code, and paste it as a child element of the &lt;esri:Map&gt; element">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="extentMXMLTextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="extentMXMLTextArea.selectAll();System.setClipboard(extentMXMLTextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>&lt;esri:extent&gt;&#xd;&lt;esri:Extent xmin=&quot;{myMap.extent.xmin.toFixed(0)}&quot; ymin=&quot;{myMap.extent.ymin.toFixed(0)}&quot; xmax=&quot;{myMap.extent.xmax.toFixed(0)}&quot; ymax=&quot;{myMap.extent.ymax.toFixed(0)}&quot;&gt;&#xd;&lt;esri:SpatialReference wkid=&quot;{myMap.spatialReference.wkid}&quot;/&gt;&#xd;&lt;/esri:Extent&gt;&#xd;&lt;/esri:extent&gt;</s:text>
+            </s:TextArea>
+        </s:Panel>
+        <s:Panel width="100%" height="100%"
+                 backgroundColor="#D3D1D1"
+                 borderAlpha="0.8"
+                 title="Extent in ActionScript">
+            <s:layout>
+                <s:HorizontalLayout horizontalAlign="center"/>
+            </s:layout>
+            <s:TextArea id="extentAS3TextArea"
+                        width="100%" height="100%"
+                        borderVisible="false"
+                        click="extentAS3TextArea.selectAll();System.setClipboard(extentAS3TextArea.text)"
+                        contentBackgroundColor="0xEEEEEE"
+                        editable="false"
+                        paddingBottom="10"
+                        paddingLeft="10"
+                        paddingRight="10"
+                        paddingTop="10">
+                <s:text>var myExtent:Extent = new Extent({myMap.extent.xmin.toFixed(0)}, {myMap.extent.ymin.toFixed(0)}, {myMap.extent.xmax.toFixed(0)}, {myMap.extent.ymax.toFixed(0)}, new SpatialReference({myMap.spatialReference.wkid}));</s:text>
+            </s:TextArea>
+        </s:Panel>
+    </s:HGroup>
+
+</s:Application>

@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Multiple Service Areas">
+    <!--
+    Description:
+    This sample demonstrates how to use the ServiceAreaTask
+    to calculate a 30 second drive time and 1 minute drive time
+    around a user defined geographic location.
+    A network service area is a region that encompasses all accessible streets
+    (that is, streets that are within a specified impedance).
+    A 30 second service area and a 1-minute service area for a point
+    on a network includes all the streets
+    that can be reached within one minute from that point.
+
+    When user clicks on map, a facility (point marker) is added where user clicked and
+    a ServiceArea request is sent to the server with that facility.
+    Once the request has been solved (and returned to client), the result is
+    added to the resultsGraphicsLayer.
+
+    Note that in this example additional ServiceAreaParameters are being used, for example
+    defaultBreaks="{[0.5,1]}"
+    which will return both a 0.5-minute service area as well as a 1-minute service area.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ServiceAreaEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/ServiceAreaTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/ServiceAreaTask.html#solve()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ServiceAreaParameters.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ServiceAreaSolveResult.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/naserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/nalayer.html
+    http://resources.arcgis.com/en/help/rest/apiref/saSolve.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Network_analysis_services/015400000276000000/
+
+    ArcGIS for Desktop documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/What_is_the_ArcGIS_Network_Analyst_extension/004700000001000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_the_ArcGIS_Network_Analyst_extension_tutorial/00470000005r000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Service_area_analysis/004700000048000000/
+
+    NOTE: In order to support this workflow (author and publish the services) in your own environment,
+    you will need a streets network dataset such as StreetMap Premium for ArcGIS,
+    ArcGIS Network Analyst for Desktop, and ArcGIS Network Analyst for Server.
+    -->
+
+    <fx:Style>
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        mx|ToolTip
+        {
+            font-size: 14;
+            backgroundColor: #EEEEEE;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.MapEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.events.ServiceAreaEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.NAMessage;
+
+            import mx.controls.Alert;
+            import mx.events.CloseEvent;
+            import mx.rpc.events.FaultEvent;
+
+            [Bindable]
+            private var facilities:FeatureSet;
+
+            private function mapClickHandler(event:MapMouseEvent):void
+            {
+                // clear existing graphics on each map click
+                if (facilitiesGraphicsLayer.numChildren > 0)
+                {
+                    facilitiesGraphicsLayer.clear();
+                }
+                if (resultsGraphicsLayer.numChildren > 0)
+                {
+                    resultsGraphicsLayer.clear();
+                }
+
+                facilities = new FeatureSet([]);
+
+                var facility:Graphic = new Graphic(event.mapPoint);
+                facilitiesGraphicsLayer.add(facility);
+
+                facilities.features.push(facility);
+                saParams.facilities = facilities;
+
+                saTask.solve(saParams);
+            }
+
+            private function solveCompleteHandler(event:ServiceAreaEvent):void
+            {
+                // loop through service area polygons
+                for (var i:Number = 0; i < event.serviceAreaSolveResult.serviceAreaPolygons.length; i++)
+                {
+                    var polygonGraphic:Graphic = event.serviceAreaSolveResult.serviceAreaPolygons[i];
+                    polygonGraphic.toolTip = polygonGraphic.attributes.Name;
+
+                    resultsGraphicsLayer.add(polygonGraphic);
+                }
+
+                //loop through service area polylines
+                for (var n:Number = 0; n < event.serviceAreaSolveResult.serviceAreaPolylines.length; n++)
+                {
+                    var polylineGraphic:Graphic = event.serviceAreaSolveResult.serviceAreaPolylines[n];
+                    polylineGraphic.toolTip = polylineGraphic.attributes.Name;
+
+                    resultsGraphicsLayer.add(polylineGraphic);
+                }
+
+                // Check for messages
+                if (event.serviceAreaSolveResult.messages.length > 0)
+                {
+                    var showErrors:Boolean = false;
+                    var msgDesc:String = "";
+                    var numMessages:int = event.serviceAreaSolveResult.messages.length;
+                    for (var j:int = 0; j < numMessages; j++)
+                    {
+                        var msg:NAMessage = event.serviceAreaSolveResult.messages[0] as NAMessage;
+                        if (msg.type == 50)
+                        {
+                            msgDesc += "Warning: " + msg.description;
+                        }
+                        else if (msg.type == 100)
+                        {
+
+                            msgDesc += "Error: " + msg.description;
+                            showErrors = true;
+                        }
+                        if (j < numMessages)
+                        {
+                            msgDesc += "\n";
+                        }
+                    }
+                    if (showErrors)
+                    {
+                        facilitiesGraphicsLayer.remove(facilities.features.pop());
+                        Alert.show(msgDesc, "Service Area Messages");
+                    }
+                }
+            }
+
+            private function faultHandler(event:FaultEvent):void
+            {
+                var msg:String = "Unable to calculate the service area.\nTry clicking closer to a street.\nTo see the full error message click 'OK'";
+                Alert.show(msg, "Service Information", Alert.OK | Alert.CANCEL, this, onAlertClose, null, Alert.CANCEL);
+                function onAlertClose(evt:CloseEvent):void
+                {
+                    switch (evt.detail) {
+                        case Alert.OK:
+                        {Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "Service Area Error " + event.fault.faultCode);
+                            break;}
+                        case Alert.CANCEL:
+                            break;
+                    }
+                }
+                // remove the last facility
+                facilitiesGraphicsLayer.remove(facilities.features.pop());
+            }
+
+            protected function myMap_loadHandler(event:MapEvent):void
+            {
+                var facility1:Graphic = new Graphic(new MapPoint(-13042285, 3856726, new SpatialReference(102100)), null, { Name: "Rama" });
+                var facility2:Graphic = new Graphic(new MapPoint(-13042125, 3856513, new SpatialReference(102100)), null, { Name: "Tin Fish" });
+                var facility3:Graphic = new Graphic(new MapPoint(-13042081, 3856754, new SpatialReference(102100)), null, { Name: "The Broken Yolk Cafe" });
+                facilities = new FeatureSet([]);
+                facilitiesGraphicsLayer.add(facility1);
+                facilitiesGraphicsLayer.add(facility2);
+                facilitiesGraphicsLayer.add(facility3);
+                facilities.features.push(facility1);
+                facilities.features.push(facility2);
+                facilities.features.push(facility3);
+
+                saParams.facilities = facilities;
+                saTask.solve(saParams);
+
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:ServiceAreaTask id="saTask"
+                              concurrency="last"
+                              fault="faultHandler(event)"
+                              requestTimeout="30"
+                              showBusyCursor="true"
+                              solveComplete="solveCompleteHandler(event)"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/ServiceArea"/>
+
+        <esri:ServiceAreaParameters id="saParams"
+                                    defaultBreaks="{[0.5,1]}"
+                                    impedanceAttribute="TravelTime"
+                                    outSpatialReference="{myMap.spatialReference}"
+                                    restrictionAttributes="{['Avoid Gates','Avoid Private Roads','Avoid Unpaved Roads','Divider Restriction','Driving an Automobile','Oneway','Through Traffic Prohibited']}"
+                                    returnFacilities="false"/>
+
+        <esri:SimpleMarkerSymbol id="facilitySymbol"
+                                 color="0xEC0015"
+                                 size="17"
+                                 style="circle">
+            <esri:SimpleLineSymbol width="2" color="0xBD0010"/>
+        </esri:SimpleMarkerSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the ServiceAreaTask
+            to calculate a 30 second drive time and 1 minute drive time
+            around a user defined geographic location.
+            A network service area is a region that encompasses all accessible streets
+            (that is, streets that are within a specified impedance).
+            A 30 second service area and a 1-minute service area for a point
+            on a network includes all the streets
+            that can be reached within one minute from that point.
+            Click on the map to calculate a service area.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap"
+              load="myMap_loadHandler(event)"
+              mapClick="mapClickHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13042947" ymin="3856278" xmax="-13041347" ymax="3857116">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="resultsGraphicsLayer">
+            <esri:renderer>
+                <esri:UniqueValueRenderer id="uniqueValueRenderer" field="ToBreak">
+                    <esri:UniqueValueInfo label="0 - 0.5 Travel Time" value="0.5">
+                        <esri:SimpleFillSymbol color="0x38B036">
+                            <esri:SimpleLineSymbol width="2" color="0x9A9A9A"/>
+                        </esri:SimpleFillSymbol>
+                    </esri:UniqueValueInfo>
+                    <esri:UniqueValueInfo label="0.5 - 1 Travel Time" value="1">
+                        <esri:SimpleFillSymbol color="0x1C25B0">
+                            <esri:SimpleLineSymbol width="2" color="0x9A9A9A"/>
+                        </esri:SimpleFillSymbol>
+                    </esri:UniqueValueInfo>
+                </esri:UniqueValueRenderer>
+            </esri:renderer>
+        </esri:GraphicsLayer>
+        <esri:GraphicsLayer id="facilitiesGraphicsLayer" symbol="{facilitySymbol}"/>
+    </esri:Map>
+
+</s:Application>

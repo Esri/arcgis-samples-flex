@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Project a point">
+    <!--
+    Description:
+    This sample demonstrates how to use the geometry service to
+    project a point (map location x,y) from one projection
+    to another map projection.
+
+    There are two approaches to project point coordinates from one
+    projection into another.
+
+    Case #1: If projecting between geographic and WebMercator, built-in
+    clientside WebMercatorUtil can be used.
+    Refer to MapClick, MapCoordinates.mxml and other samples.
+
+    Case #2: Use the project() method of a geometry service (as in this sample).
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#project()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#event:projectComplete
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ProjectParameters.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/geometryserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/project.html
+    http://resources.arcgis.com/en/help/rest/apiref/pcs.html
+
+    ArcGIS for Server documentation:
+    What are map projections?
+    http://resources.arcgis.com/en/help/main/10.1/index.html#//003r00000001000000
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.SpatialReference;
+            import com.esri.ags.events.GeometryServiceEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.ProjectParameters;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.components.TextArea;
+            import spark.events.IndexChangeEvent;
+
+            private var infoWindowText:String;
+
+            private var lastClick:MapPoint;
+
+            private const projectionList:ArrayCollection = new ArrayCollection(
+                [
+                { data: 4326, label: "GCS_WGS_1984" },
+                { data: 4269, label: "GCS_North_American_1983" },
+                { data: 102113, label: "WGS_1984_Web_Mercator" }, /* Use 102100 instead */
+                { data: 102100, label: "WGS_1984_Web_Mercator_Auxiliary_Sphere" }, /* same as 3857 starting with AGS 10 (which accepts both), but 9x only understand 102100 */
+                { data: 102003, label: "USA_Contiguous_Albers_Equal_Area_Conic" },
+                { data: 102004, label: "USA_Contiguous_Lambert_Conformal_Conic" },
+                { data: 102005, label: "USA_Contiguous_Equidistant_Conic" },
+                { data: 3395, label: "WGS_1984_World_Mercator" },
+                { data: 54001, label: "World_Plate_Carree" },
+                { data: 54004, label: "World_Mercator" },
+                { data: 54008, label: "World_Sinusoidal" },
+                { data: 54009, label: "World_Mollweide" },
+                { data: 102038, label: "The_World_From_Space" },
+                { data: 26985, label: "NAD_1983_StatePlane_Maryland_FIPS_1900" },
+                { data: 26912, label: "NAD_1983_UTM_Zone_12N" }
+                ]);
+
+            private function myClickHandler(event:MapMouseEvent):void
+            {
+                lastClick = event.mapPoint;
+                var coordGraphic:Graphic = new Graphic(lastClick);
+                myGraphicsLayer.clear();
+                myGraphicsLayer.add(coordGraphic);
+                projectNow();
+            }
+
+            private function projectNow():void
+            {
+                var outSR:SpatialReference = new SpatialReference(wkid.selectedItem.data);
+                // Note: GeometryService takes in geometries instead of graphics as input
+                const projectParameters:ProjectParameters = new ProjectParameters;
+                projectParameters.geometries = [ lastClick as Geometry ];
+                projectParameters.outSpatialReference = outSR;
+                geometryService.project(projectParameters);
+
+                infoWindowText = "From wkid = " + myMap.spatialReference.wkid + ":\nX: " + lastClick.x + "\nY: " + lastClick.y;
+                myMap.infoWindow.show(lastClick);
+            }
+
+            private function projectCompleteHandler(event:GeometryServiceEvent):void
+            {
+                try
+                {
+                    // Note: As of version 2.0, GeometryService returns geometries (instead of graphics)
+                    var pt:MapPoint = (event.result as Array)[0] as MapPoint;
+                    var textArea:TextArea = new TextArea();
+                    textArea.editable = false;
+                    textArea.width = 170;
+                    textArea.height = 130;
+                    infoWindowText = infoWindowText.concat("\r\nTo wkid = " + wkid.selectedItem.data + ":\n"
+                                                           + "  X: " + pt.x + "\n"
+                                                           + "  Y: " + pt.y);
+                    textArea.text = infoWindowText;
+                    myMap.infoWindow.label = "Coordinates";
+                    myMap.infoWindow.content = textArea;
+                }
+                catch (error:Error)
+                {
+                    Alert.show(error.toString());
+                }
+            }
+
+            protected function geometryService_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "Geometry Service Error " + event.fault.faultCode);
+            }
+
+            protected function wkid_changeHandler(event:IndexChangeEvent):void
+            {
+                if (lastClick) // only if someone already clicked the map
+                {
+                    projectNow();
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:GeometryService id="geometryService"
+                              concurrency="last"
+                              fault="geometryService_faultHandler(event)"
+                              projectComplete="projectCompleteHandler(event)"
+                              showBusyCursor="true"
+                              url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the geometry service to
+            project a point (map location x,y) from one projection
+            to another map projection.
+            Click on the map see the projected coordinates.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label text="Select a map projection:"/>
+            <s:DropDownList id="wkid"
+                            width="80%"
+                            change="wkid_changeHandler(event)"
+                            dataProvider="{projectionList}"
+                            selectedIndex="0"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" mapClick="myClickHandler(event)">
+        <esri:extent>
+            <esri:Extent id="lower48"
+                         xmin="-14305000" ymin="2748000" xmax="-6815000" ymax="7117000">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer">
+            <esri:symbol>
+                <!-- Symbol to clearly mark the point to be projected -->
+                <esri:SimpleMarkerSymbol alpha="0.9"
+                                         color="0xFFFF00"
+                                         size="16"
+                                         style="square">
+                    <esri:SimpleLineSymbol color="0x000000"/>
+                </esri:SimpleMarkerSymbol>
+            </esri:symbol>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+</s:Application>

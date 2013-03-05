@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               backgroundAlpha.bingKeyState="0.5"
+               backgroundColor.bingKeyState="0x000000"
+               controlBarVisible="false"
+               currentState="bingKeyState"
+               pageTitle="Bing Maps with ArcGIS API for Flex">
+    <!--
+    Description:
+    This sample demonstrates how to add a Bing Maps tiled layer to your
+    ArcGIS API for Flex application.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/virtualearth/VETiledLayer.html
+
+    To use VETiledLayer/VEGeocoder you will need access to Bing Maps (formerly Microsoft Virtual Earth).
+    http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Introduction_to_Bing_Maps_in_ArcGIS_API_for_Flex/017p0000001t000000/
+
+    Bing Maps culture codes
+    http://msdn.microsoft.com/en-us/library/hh441729.aspx for supported culture codes
+    -->
+
+    <s:states>
+        <s:State name="bingKeyState"/>
+        <s:State name="mapState"/>
+    </s:states>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+
+            protected function bingMapsKeyTextInput_enterHandler(event:FlexEvent):void
+            {
+                loadBingMap();
+            }
+
+            protected function loadMap_clickHandler(event:MouseEvent):void
+            {
+                loadBingMap();
+            }
+
+            protected function loadBingMap():void
+            {
+                currentState = 'mapState';
+                veLayer.key = bingMapsKeyTextInput.text;
+                controlBarVisible = true;
+            }
+
+            protected function veLayer_loadErrorHandler(event:LayerEvent):void
+            {
+                Alert.show(event.fault.faultString, 'VETiledLayer loadError');
+                controlBarVisible = false;
+                bingMapsKeyTextInput.selectAll();
+                currentState = 'bingKeyState';
+            }
+        ]]>
+    </fx:Script>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add a Bing Maps tiled layer to your
+            ArcGIS API for Flex application.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Spacer width="100%"/>
+            <s:Label text="Change 'Culture'"/>
+            <s:DropDownList id="culture"
+                            requireSelection="true"
+                            selectedIndex="1">
+                <s:ArrayList>
+                    <fx:String>de-DE</fx:String>
+                    <fx:String>en-US</fx:String>
+                    <fx:String>es-ES</fx:String>
+                    <fx:String>fr-FR</fx:String>
+                    <fx:String>it-IT</fx:String>
+                    <fx:String>ja-JP</fx:String>
+                    <fx:String>nl-BE</fx:String>
+                </s:ArrayList>
+            </s:DropDownList>
+            <s:Label paddingLeft="10" text="Change Map Style"/>
+            <s:DropDownList id="mapStyle"
+                            width="130"
+                            requireSelection="true"
+                            selectedIndex="0">
+                <s:dataProvider>
+                    <s:ArrayList>
+                        <fx:String>road</fx:String>
+                        <fx:String>aerial</fx:String>
+                        <fx:String>aerialWithLabels</fx:String>
+                    </s:ArrayList>
+                </s:dataProvider>
+            </s:DropDownList>
+            <s:Spacer width="100%"/>
+            <s:Label paddingRight="7" text="Level: {map.level}"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              crosshairVisible="true"
+              includeIn="mapState"
+              wrapAround180="true">
+        <esri:VETiledLayer id="veLayer"
+                           culture="{culture.selectedItem}"
+                           loadError="veLayer_loadErrorHandler(event)"
+                           mapStyle="{mapStyle.selectedItem}"/>
+    </esri:Map>
+
+    <s:Panel id="bingKeyPanel"
+             width="400"
+             right="5" top="5"
+             backgroundColor="0xD3D1D1"
+             includeIn="bingKeyState"
+             title="Authorization required">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"
+                              paddingLeft="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <s:Label fontWeight="bold" text="Please enter a valid Bing Key below"/>
+        <s:TextInput id="bingMapsKeyTextInput"
+                     width="95%"
+                     enter="bingMapsKeyTextInput_enterHandler(event)"/>
+        <s:HGroup>
+            <s:Button click="navigateToURL(new URLRequest('https://www.bingmapsportal.com/'))" label="Get Bing Key"/>
+            <s:Button click="loadMap_clickHandler(event)" label="Load Map"/>
+        </s:HGroup>
+    </s:Panel>
+
+</s:Application>

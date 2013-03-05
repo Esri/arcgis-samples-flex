@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using RelationshipInspector (view)">
+    <!--
+    Description:
+    This sample demonstrates how to use the FeatureLayer to perform graphical selections,
+    and then use that selection to view related records using the RelationshipInspector
+    component.
+
+    The first selection which is made by a single click on the map selects
+    features in the FeatureLayer.  The selected graphic is then assigned to the RelationshipInspector
+    and the RelationshipInspector is assigned to the map's infoWindow content property.  The
+    graphic's location is then used to display the map's InfoWindow.
+
+    Note:
+    The RelationshipInspector is doing all the work here, if you want more control you can
+    modify the default skin or check out the "Related Records" sample found under the "FeatureLayer"
+    folder in the samples.
+
+    This sample will look for related records in the TOPS table.
+    In this case, the relations have been setup in ArcMap, and the relationships information
+    made available in the Service Directory which lists two relationships.
+    See http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer
+    * a table - Tops: http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/2
+    * a point layer - Wells : http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/RelationshipInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FeatureLayerEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#mode
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#selectFeatures()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+
+    ArcGIS REST API documentation
+    http://resources.arcgis.com/en/help/rest/apiref/queryrelatedrecords.html
+
+    ArcGIS for Desktop documentation
+    About relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/About_joining_and_relating_tables/005s0000002n000000/
+    Essentials of relating tables
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Essentials_of_relating_tables/005s0000002t000000/
+    Relating the attributes in one table to another
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Relating_the_attributes_in_one_table_to_another/005s0000002v000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.FeatureLayerEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.Query;
+
+            import mx.controls.Alert;
+
+            private function findWells(event:MapMouseEvent):void
+            {
+                // find wells near the mouse click
+                var tol:Number = map.extent.width / map.width * 5;
+                var x:Number = event.mapPoint.x;
+                var y:Number = event.mapPoint.y;
+                var queryExtent:Extent = new Extent(x - tol, y - tol, x + tol, y + tol, event.mapPoint.spatialReference);
+                var thisSelectionQuery:Query = new Query();
+                thisSelectionQuery.geometry = queryExtent;
+                wellsLayer.selectFeatures(thisSelectionQuery, FeatureLayer.SELECTION_NEW);
+            }
+
+            private function wellsLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
+            {
+                // check the first return feature to see if it has any related features
+                if (event.features.length > 0)
+                {
+                    map.infoWindow.content = relationshipInspector;
+                    relationshipInspector.infoWindowLabel = "ID: " + event.features[0].attributes["KID"];
+                    relationshipInspector.graphic = event.features[0];
+                    map.infoWindow.show(event.features[0].geometry as MapPoint);
+                }
+                else
+                {
+                    map.infoWindow.hide();
+                    Alert.show("No wells found here, please try somewhere else.", "No features");
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:RelationshipInspector id="relationshipInspector"
+                                    width="300" height="300"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the FeatureLayer to perform graphical selections,
+            and then use that selection to view related records using the RelationshipInspector
+            component.  Click a well location to select and view its related record information.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map" mapClick="findWells(event)">
+        <esri:extent>
+            <esri:Extent xmin="-10844058" ymin="4513057" xmax="-10837656" ymax="4516411">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer alpha="0.7" url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer">
+            <esri:visibleLayers>
+                <s:ArrayCollection>
+                    <fx:Number>0</fx:Number>
+                    <fx:Number>1</fx:Number>
+                </s:ArrayCollection>
+            </esri:visibleLayers>
+        </esri:ArcGISDynamicMapServiceLayer>
+        <esri:FeatureLayer id="wellsLayer"
+                           mode="selection"
+                           outFields="[KID]"
+                           selectionComplete="wellsLayer_selectionCompleteHandler(event)"
+                           url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0"/>
+    </esri:Map>
+
+</s:Application>

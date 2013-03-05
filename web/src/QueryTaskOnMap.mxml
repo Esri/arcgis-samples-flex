@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Query Task (with a map)">
+    <!--
+    Description:
+    This sample demonstrates how to use the query task to search a layer
+    in a map service for values (text) in a field.
+    The query is sent to the server using the execute() method on a QueryTask
+    and the result is displayed on the map in a graphics layer.  To perform another
+    search, enter any letter(s) of a state name and click the search button.
+
+    There are two alternative ways to do this.
+    Option #1: Use FeatureLayer - see FeatureLayer_Search sample.
+    Option #2: Use GraphicsLayer plus QueryTask (this sample).
+
+    This sample sets up a QueryTask (what layer on what server to query).
+    When user clicks the "Searcj" button, a Query is sent to the server
+    with the user-provided text to search for.
+    queryTask.execute(query, new AsyncResponder(onResult, onFault));
+    When the results comes back the specified function ("onResult") is called.
+
+    The results is automatically added to the map (using executeLastResult).
+    <esri:GraphicsLayer id="myGraphicsLayer" graphicProvider="{queryTask.executeLastResult.features}"/>
+
+    Note that the busy cursor is automatically shown while the query is executing because of
+    showBusyCursor="true"
+
+    Tip 1: To use a different symbol, set the symbol on the graphics layer.
+    Tip 2: To add a toolTip, loop through the graphics in the returned featureset,
+    in the onResult() and set the tooltip on each graphic.
+    The featureSet is an array of graphics.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#executeLastResult
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GraphicUtil.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/query.html
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.utils.GraphicUtil;
+
+            import mx.controls.Alert;
+            import mx.rpc.AsyncResponder;
+
+            private function doQuery():void
+            {
+                queryTask.execute(query, new AsyncResponder(onResult, onFault));
+                function onResult(featureSet:FeatureSet, token:Object = null):void
+                {
+                    if (featureSet.features.length == 1)
+                    {
+                        myMap.zoomTo(featureSet.features[0].geometry);
+                    }
+                    else if (featureSet.features.length > 1)
+                    {
+                        var graphicsExtent:Extent = GraphicUtil.getGraphicsExtent(featureSet.features);
+                        if (graphicsExtent)
+                        {
+                            myMap.extent = graphicsExtent;
+                        }
+                    }
+                }
+                function onFault(info:Object, token:Object = null):void
+                {
+                    Alert.show(info.toString(), "Query Problem");
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Layer with US States -->
+        <esri:QueryTask id="queryTask"
+                        showBusyCursor="true"
+                        url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/5"
+                        useAMF="false"/>
+
+        <esri:Query id="query"
+                    outSpatialReference="{myMap.spatialReference}"
+                    returnGeometry="true"
+                    text="{qText.text}">
+            <esri:outFields>
+                <fx:String>MED_AGE</fx:String>
+                <fx:String>POP2007</fx:String>
+            </esri:outFields>
+        </esri:Query>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the query task to search a layer
+            in a map service for values (text) in a field.
+            The query is sent to the server using the execute() method on a QueryTask
+            and the result is displayed on the map in a graphics layer.  To perform another
+            search, enter any letter(s) of a state name and click the search button.
+        </s:RichText>
+        <s:HGroup width="100%" verticalAlign="baseline">
+            <s:Label text="Search for a state:"/>
+            <s:TextInput id="qText"
+                         width="100%"
+                         enter="doQuery()"
+                         text="California"/>
+            <s:Button click="doQuery()" label="Search"/>
+        </s:HGroup>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap">
+        <esri:extent>
+            <esri:Extent xmin="-13909920" ymin="2928237" xmax="-7354680" ymax="6362400">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:GraphicsLayer id="myGraphicsLayer" graphicProvider="{queryTask.executeLastResult.features}"/>
+    </esri:Map>
+
+</s:Application>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               pageTitle="Selecting graphcis and displaying results">
+    <!--
+    Description:
+    This sample demonstrates how you can use the draw tool to select
+    graphics that are within a user defined extent/area using client-side
+    methods.  After the map loads, a query task retrieves features and
+    adds them to the graphics layer.  To select the features, draw
+    a rectangle/extent around the points to display them in the data
+    grid next to the map.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html#contains()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleFillSymbol.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    ArcGIS REST API documentation:
+
+    ArcGIS for Server documentation:
+
+    ArcGIS for Desktop documentation:
+
+    This sample also uses the following files:
+
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.QueryTask;
+            import com.esri.ags.tasks.supportClasses.Query;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.AsyncResponder;
+
+            private function myMap_loadHandler():void
+            {
+                var queryTask:QueryTask = new QueryTask("http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/0");
+                queryTask.useAMF = false;
+                var query:Query = new Query();
+                query.where = "STATE_NAME = 'Washington'";
+                query.outSpatialReference = myMap.spatialReference;
+                query.returnGeometry = true;
+                query.outFields = [ "CITY_NAME" ];
+                queryTask.execute(query, new AsyncResponder(onResult, onFault));
+
+                function onResult(featureSet:FeatureSet, token:Object = null):void
+                {
+                    for each (var myGraphic:Graphic in featureSet.features)
+                    {
+                        myGraphic.symbol = defaultSymbol;
+                        myGraphicsLayer.add(myGraphic);
+                    }
+                }
+                function onFault(info:Object, token:Object = null):void
+                {
+                    Alert.show(info.toString());
+                }
+
+                drawTool.activate(DrawTool.EXTENT);
+            }
+
+            private function drawEndHandler(event:DrawEvent):void
+            {
+
+                var extent:Extent = event.graphic.geometry as Extent;
+                var graphic:Graphic;
+                var results:ArrayCollection = new ArrayCollection();
+                for (var i:Number = 0; i < myGraphicsLayer.graphicProvider.length; i++)
+                {
+                    graphic = myGraphicsLayer.graphicProvider[i] as Graphic;
+                    //if point is contained within extent, highlight it and add for display in results list
+                    if (extent.contains(MapPoint(graphic.geometry)))
+                    {
+                        graphic.symbol = highlightedSymbol;
+                        results.addItem(graphic.attributes);
+                    }
+                    //else if point was previously highlighted, reset its symbology
+                    else if (graphic.symbol == highlightedSymbol)
+                    {
+                        graphic.symbol = defaultSymbol;
+                    }
+                }
+                labelPoints.text = "Number of points within extent = " + results.length;
+                dg.visible = true;
+                dg.dataProvider = results;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:SimpleMarkerSymbol id="defaultSymbol"
+                                 alpha="0.5"
+                                 color="0x0000FF"
+                                 size="12"
+                                 style="circle">
+            <esri:SimpleLineSymbol/>
+        </esri:SimpleMarkerSymbol>
+
+        <esri:SimpleMarkerSymbol id="highlightedSymbol"
+                                 color="0xFF0000"
+                                 style="circle">
+            <esri:SimpleLineSymbol/>
+        </esri:SimpleMarkerSymbol>
+
+        <esri:SimpleFillSymbol id="sfs"
+                               alpha="0.5"
+                               color="0x000000"
+                               style="solid">
+            <esri:SimpleLineSymbol color="0xFF0000"/>
+        </esri:SimpleFillSymbol>
+
+        <esri:DrawTool id="drawTool"
+                       drawEnd="drawEndHandler(event)"
+                       fillSymbol="{sfs}"
+                       map="{myMap}"/>
+    </fx:Declarations>
+
+    <s:controlBarLayout>
+        <s:VerticalLayout gap="10"
+                          paddingBottom="7"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="7"/>
+    </s:controlBarLayout>
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how you can use the draw tool to select
+            graphics that are within a user defined extent/area using client-side
+            methods.  After the map loads, a query task retrieves features and
+            adds them to the graphics layer.  To select the features, draw
+            a rectangle/extent around the points to display them in the data
+            grid next to the map.
+        </s:RichText>
+        <s:Label id="labelPoints"
+                 width="100%"
+                 fontSize="12"
+                 fontWeight="bold"/>
+    </s:controlBarContent>
+
+    <s:HGroup width="100%" height="100%"
+              gap="0">
+        <esri:Map id="myMap" load="myMap_loadHandler()">
+            <esri:extent>
+                <esri:Extent xmin="-14015000" ymin="5558000" xmax="-12757000" ymax="6481000">
+                    <esri:spatialReference>
+                        <esri:SpatialReference wkid="102100"/>
+                    </esri:spatialReference>
+                </esri:Extent>
+            </esri:extent>
+            <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+            <esri:GraphicsLayer id="myGraphicsLayer"/>
+        </esri:Map>
+        <s:DataGrid id="dg"
+                    width="100%" height="100%"
+                    visible="false">
+            <s:columns>
+                <s:ArrayList>
+                    <s:GridColumn dataField="CITY_NAME" headerText="City Name"/>
+                </s:ArrayList>
+            </s:columns>
+        </s:DataGrid>
+    </s:HGroup>
+
+</s:Application>

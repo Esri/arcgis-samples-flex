@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Using an ArcIMS map service with the ArcGIS API for Flex">
+    <!--
+    Description:
+    This sample demonstrates how to add an ArcIMS service to your application.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcIMSMapServiceLayer.html
+    -->
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add an ArcIMS service to your application.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map>
+        <esri:ArcIMSMapServiceLayer serviceHost="http://www.geographynetwork.com" serviceName="Census_TIGER2000"/>
+    </esri:Map>
+</s:Application>

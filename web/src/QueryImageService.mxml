@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Query raster catalog of an ImageService">
+    <!--
+    Description:
+    This sample demonstrates how to query the raster catalog of an Image Service layer.
+    Click or draw an area on the the map in order to query the footprints of the
+    image service.
+
+    It also shows how to have an ImageServer as the baselayer below a tiled mapservice,
+    but still have the tiled service determine the map scales to use.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#reorderLayer()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISImageServiceLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/imageserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/isquery.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/Key_concepts_for_image_services/0154000003v2000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/Image_service_parameters/015400000524000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/Server_side_processing_with_raster_functions/0154000003w6000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.DrawEvent;
+            import com.esri.ags.events.MapEvent;
+            import com.esri.ags.events.QueryEvent;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            protected function map_loadHandler(event:MapEvent):void
+            {
+                // Start with tiledLayer as the base layer to set the map's units and lods,
+                // but we actually want the imageLayer on the bottom,
+                // so we re-order once map is loaded :)
+                map.reorderLayer(imageLayer.id, 0);
+
+                drawTool.activate(DrawTool.EXTENT);
+            }
+
+            protected function drawTool_drawEndHandler(event:DrawEvent):void
+            {
+                query.geometry = event.graphic.geometry;
+                queryTask.execute(query);
+            }
+
+            protected function queryTask_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:DrawTool id="drawTool"
+                       drawEnd="drawTool_drawEndHandler(event)"
+                       map="{map}">
+            <esri:fillSymbol>
+                <esri:SimpleFillSymbol alpha="0.5" color="0xFF0000">
+                    <esri:SimpleLineSymbol color="0xFF0000"/>
+                </esri:SimpleFillSymbol>
+            </esri:fillSymbol>
+        </esri:DrawTool>
+
+        <esri:Query id="query"
+                    outSpatialReference="{map.spatialReference}"
+                    returnGeometry="true"
+                    where="Category = 1"/>
+        <esri:QueryTask id="queryTask"
+                        fault="queryTask_faultHandler(event)"
+                        url="{imageLayer.url}"
+                        useAMF="false"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to query the raster catalog of an Image Service layer.
+            Click the map or draw an area on the the map in order to query the footprints of the
+            image service.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map" load="map_loadHandler(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13670997" ymin="5697204" xmax="-13637149" ymax="5714270">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer id="tiledLayer" url="http://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer"/>
+        <esri:ArcGISImageServiceLayer id="imageLayer"
+                                      imageFormat="jpgpng"
+                                      url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Portland/Aerial/ImageServer"/>
+        <esri:GraphicsLayer id="graphicsLayer" graphicProvider="{queryTask.executeLastResult.features}">
+            <esri:symbol>
+                <esri:SimpleFillSymbol style="null">
+                    <esri:SimpleLineSymbol width="4" color="0xFFFFFF"/>
+                </esri:SimpleFillSymbol>
+            </esri:symbol>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+</s:Application>

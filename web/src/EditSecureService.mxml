@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               initialize="application1_initializeHandler(event)"
+               pageTitle="Editing Secure Service">
+    <!--
+    Description:
+    This sample demonstrates the editor tracking capabilities available at ArcGIS 10.1.
+    Editor tracking is a feature of ArcGIS for Desktop that can be utilized by ArcGIS Server
+    to track edits on feature classes and tables.
+    You can configure a feature service to record information in the database about who created each feature.
+    You can also restrict people from accessing features that they do not own. This is known as ownership-based access control.
+    Once you have published and secured your feature service, the ArcGIS API for Flex has the
+    remaining functionality necessary for editor tracking workflows built into the Editor, FeatureLayer, and IdentityManager.
+
+    To test this sample:
+    Log in as user1 and create a feature, then refresh your browser.
+    Log in as user2 and select the feature that you just created as user1, you should not be able to modify that feature.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/IdentityManager.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeInspector.html#fieldInspectors
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/FieldInspector.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/featureserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/fslayer.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/What_is_a_feature_service/0154000002w8000000/
+    http://resources.arcgis.com/en/help/main/10.1/#/Using_feature_services_in_a_client_application/0154000005sq000000/
+    Feature service permissions and editor tracking
+    http://resources.arcgis.com/en/help/main/10.1/0154/0154000004p0000000.htm
+    Editor permissions for feature services
+    http://resources.arcgis.com/en/help/main/10.1/0154/015400000393000000.htm
+    Editor tracking for feature services
+    http://resources.arcgis.com/en/help/main/10.1/0154/01540000048s000000.htm
+    Ownership-based access control for feature services
+    http://resources.arcgis.com/en/help/main/10.1/0154/0154000004n9000000.htm
+    -->
+
+    <s:layout>
+        <s:VerticalLayout gap="0"/>
+    </s:layout>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.events.LayerEvent;
+
+            import mx.events.FlexEvent;
+
+            protected function application1_initializeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+            }
+
+            protected function marine_loadHandler(event:LayerEvent):void
+            {
+                myEditor.featureLayers = [ marine ];
+                myEditor.attributeInspector.fieldInspectors = [ creatorFI, typeFI ];
+
+                myEditor.visible = myEditor.includeInLayout = true;
+                waitForLayerLoad.visible = waitForLayerLoad.includeInLayout = false;
+            }
+
+            protected function marine_loadErrorHandler(event:LayerEvent):void
+            {
+                waitForLayerLoad.visible = waitForLayerLoad.includeInLayout = false;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Extent id="initialExtent"
+                     xmin="-13449015" ymin="4182302" xmax="-13433803" ymax="4191340">
+            <esri:SpatialReference wkid="102100"/>
+        </esri:Extent>
+        <!-- FieldInspector for the 'creator' field -->
+        <esri:FieldInspector id="creatorFI"
+                             featureLayer="{marine}"
+                             fieldName="creator"
+                             label="Biologist"/>
+        <esri:FieldInspector id="typeFI"
+                             featureLayer="{marine}"
+                             fieldName="type"
+                             label="Sighting"/>
+    </fx:Declarations>
+
+    <s:BorderContainer width="100%" backgroundColor="#D7D7D7">
+        <s:layout>
+            <s:VerticalLayout paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+        <s:RichEditableText width="100%" editable="false">
+            <s:content>
+                <s:p>
+                This sample demonstrates how to view and edit a secure map service using token-based authentication. View the
+                <s:a href="http://sampleserver6.arcgisonline.com/arcgis/rest/services/SaveTheBay/FeatureServer/0">feature service</s:a>
+                (requires login).
+                Use the following credentials to test the application:
+                </s:p>
+            </s:content>
+        </s:RichEditableText>
+        <s:RichText width="250" height="30"
+                    columnCount="2"
+                    columnGap="10"
+                    paddingLeft="3">
+            <s:content>User Name: <s:span fontWeight="bold">user1</s:span>
+                Password: <s:span fontWeight="bold">user1</s:span>
+                User Name: <s:span fontWeight="bold">user2</s:span>
+                Password: <s:span fontWeight="bold">user2</s:span>
+            </s:content>
+        </s:RichText>
+    </s:BorderContainer>
+
+    <esri:Map id="myMap"
+              width="100%" height="100%"
+              extent="{initialExtent}">
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+        <esri:FeatureLayer id="marine" name="SaveTheBay-Marine"
+                           load="marine_loadHandler(event)"
+                           loadError="marine_loadErrorHandler(event)"
+                           mode="snapshot"
+                           outFields="[type, confirmed, comments, creator]"
+                           url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/SaveTheBay/FeatureServer/0"/>
+    </esri:Map>
+    <s:VGroup id="waitForLayerLoad"
+              width="100%" height="200"
+              horizontalAlign="center"
+              verticalAlign="middle">
+        <s:Label fontSize="14"
+                 fontWeight="bold"
+                 text="Waiting for user to log in..."/>
+    </s:VGroup>
+    <esri:Editor id="myEditor"
+                 width="100%" height="100"
+                 geometryService="{new GeometryService('http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer')}"
+                 includeInLayout="false"
+                 map="{myMap}"
+                 visible="false"/>
+</s:Application>

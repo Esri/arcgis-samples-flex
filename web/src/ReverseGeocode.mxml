@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Get the address for a location">
+    <!--
+    Description:
+    This sample demonstrates how to convert a geographic location
+    on the map into a address, which is commonly referred to as
+    reverse geocoding.  In this sample, the locationToAddress()
+    method on the Locator is used to find the address for a specified
+    geographic location.  The sample takes the location of a mapClick
+    and sends it to a service, when the service response
+    completes, the onLocationToAddressComplete() function adds a graphic
+    and an infoWindow with the address.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html#locationToAddress()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+
+    For more details on the World Geocoding Service follow the link below.
+    http://geocode.arcgis.com/arcgis/index.html
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/geocodeserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/candidates.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/#/Geocode_services/01540000035t000000/
+
+    ArcGIS for Desktop documentation:
+    What is geocoding?
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/What_is_geocoding/002500000001000000/
+    Essential geocoding vocabulary
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Essential_geocoding_vocabulary/002500000004000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.events.LocatorEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.supportClasses.AddressCandidate;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import flashx.textLayout.conversion.TextConverter;
+
+            import mx.controls.Alert;
+            import mx.rpc.events.FaultEvent;
+
+            private function onMapClick(event:MapMouseEvent):void
+            {
+                locateTask.locationToAddress(event.mapPoint, 100);
+            }
+
+            private function onLocationToAddressComplete(event:LocatorEvent):void
+            {
+                var candidate:AddressCandidate = event.addressCandidate;
+
+                if (candidate && candidate.address && candidate.address.Address)
+                {
+                    var address:Object = candidate.address;
+
+                    var myGraphic:Graphic = new Graphic(WebMercatorUtil.geographicToWebMercator(candidate.location), mySymbol, address);
+                    myMap.defaultGraphicsLayer.clear();
+                    myMap.defaultGraphicsLayer.add(myGraphic);
+
+                    var htmlText:String = "<b>Address:</b><br>";
+                    htmlText += address.Address + "<br>";
+                    if (address.Admin1 && address.Admin2)
+                    {
+                        htmlText += address.Admin1 + ", " + address.Admin2 + "<br>";
+                    }
+                    textArea.textFlow = TextConverter.importToFlow(htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT);
+
+                    myMap.infoWindow.label = "Reverse Geocode";
+                    myMap.infoWindow.show(myGraphic.geometry as MapPoint);
+                }
+                else
+                {
+                    Alert.show("This location does not have a known street address.");
+                }
+            }
+
+            private function onFault(event:FaultEvent):void
+            {
+                if (event.fault.name == 'Error'
+                    && event.fault.faultCode == '500'
+                    && event.fault.faultString == 'An unexpected error occurred processing the request.')
+                {
+                    Alert.show("Did you click too far from a road?\n\n" + event.fault.faultDetail, "No result");
+                }
+                else
+                {
+                    Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "Reverse Geocoding Error " + event.fault.faultCode);
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Locator id="locateTask"
+                      concurrency="last"
+                      fault="onFault(event)"
+                      locationToAddressComplete="onLocationToAddressComplete(event)"
+                      showBusyCursor="true"
+                      url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"/>
+
+        <esri:SimpleMarkerSymbol id="mySymbol"
+                                 alpha="0.5"
+                                 color="0xFF0000"
+                                 size="19"
+                                 style="circle">
+            <esri:SimpleLineSymbol width="2"/>
+        </esri:SimpleMarkerSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to convert a geographic location
+            on the map into a address, which is commonly referred to as
+            reverse geocoding.  In this sample, the locationToAddress()
+            method on the Locator is used to find the address for a specified
+            geographic location.  The sample takes the location of a mapClick
+            and sends it to a service, when the service response
+            completes, the onLocationToAddressComplete() function adds a graphic
+            and an infoWindow with the address.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="myMap" mapClick="onMapClick(event)">
+        <esri:extent>
+            <esri:Extent xmin="-13042947" ymin="3856278" xmax="-13041347" ymax="3857116">
+                <esri:SpatialReference wkid="102100"/>
+            </esri:Extent>
+        </esri:extent>
+        <esri:infoWindowContent>
+            <s:TextArea id="textArea"
+                        borderVisible="false"
+                        editable="false"
+                        heightInLines="4"/>
+        </esri:infoWindowContent>
+        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+    </esri:Map>
+
+</s:Application>
