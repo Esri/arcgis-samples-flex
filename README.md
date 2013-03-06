@@ -1,4 +1,4 @@
-# arcgis-web-samples-flex
+# arcgis-samples-flex
 
 Basic API samples for the ArcGIS API for Flex.
 
