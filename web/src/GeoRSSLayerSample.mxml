@@ -82,7 +82,9 @@
     <fx:Declarations>
         <esri:PictureMarkerSymbol id="tsunamiPMS"
                                   width="32" height="32"
-                                  source="@Embed(source='assets/i_tsunami.png')"/>
+                                  source="@Embed(source='assets/i_tsunami.png')"
+                                  xoffset="2"
+                                  yoffset="16"/>
     </fx:Declarations>
 
     <s:controlBarContent>
