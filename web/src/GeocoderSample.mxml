@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Geocoder Component Sample">
+
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:WebMercatorExtent xmin="-20119163" ymin="1160734" xmax="-1333999" ymax="10416341"/>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer/>
+    </esri:Map>
+
+    <esri:Geocoder width="300" height="30"
+                   top="20"
+                   horizontalCenter="0"
+                   map="{map}"/>
+</s:Application>
