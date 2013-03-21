@@ -1,8 +1,8 @@
-# arcgis-web-samples-flex
+# arcgis-samples-flex
 
 Basic API samples for the ArcGIS API for Flex.
 
-This is the source code for all the [samples](http://resources.arcgis.com/en/help/flex-api/samples/) in the  [ArcGIS API for Flex resource center](http://resources.arcgis.com/en/help/flex-api/samples/).  This also part of the [Flex API Library download](http://links.esri.com/flex-api/latest-download).
+This is the source code for all the [samples](http://resources.arcgis.com/en/help/flex-api/samples/) in the  [ArcGIS API for Flex resource center](http://resources.arcgis.com/en/help/flex-api/).  This used to be part of the [Flex API Library download](http://links.esri.com/flex-api/latest-download) but is now available on GitHub.
 
 [View live samples here](http://resources.arcgis.com/en/help/flex-api/samples/)
 

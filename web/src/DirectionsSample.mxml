@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Directions component sample">
+
+    <s:layout>
+        <s:HorizontalLayout paddingLeft="2"/>
+    </s:layout>
+
+    <esri:Directions width="320" height="100%"
+                     map="{map}"
+                     url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/NetworkAnalysis/SanDiego/NAServer/Route"/>
+    <esri:Map id="map">
+        <esri:extent>
+            <esri:WebMercatorExtent xmin="-13055785" ymin="3848161" xmax="-13025898" ymax="3866239"
+                                    spatialReference="{new SpatialReference(102100)}"/>
+        </esri:extent>
+        <esri:ArcGISTiledMapServiceLayer/>
+    </esri:Map>
+
+</s:Application>

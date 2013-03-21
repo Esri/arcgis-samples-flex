@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Flex OAuth Sample"
+               preinitialize="application_preinitializeHandler(event)">
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+
+        s|Label
+        {
+            fontSize: 14;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.components.supportClasses.Credential;
+            import com.esri.ags.events.IdentityManagerEvent;
+            import com.esri.ags.events.PortalEvent;
+            import com.esri.ags.portal.supportClasses.PortalQueryParameters;
+            import com.esri.ags.portal.supportClasses.PortalQueryResult;
+            import com.esri.ags.portal.supportClasses.PortalUser;
+
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.events.CloseEvent;
+            import mx.events.FlexEvent;
+
+            private static const APP_ID:String = "bDKOrqYvsLUewvMD";
+
+            private static const ACCESS_TOKEN_KEY:String = "access_token";
+            private static const USERNAME_KEY:String = "username";
+            private static const EXPIRES_KEY:String = "expires";
+
+            private var _identityManager:IdentityManager;
+            private var _sharedObject:SharedObject;
+
+            private var _accessToken:String;
+            private var _username:String;
+
+            private function application_preinitializeHandler(event:FlexEvent):void
+            {
+                initSharedObject();
+                var expiresIn:Number; // number of seconds until the token expires
+
+                var hashParams:Object = getURLHashParameters();
+                if (hashParams[ACCESS_TOKEN_KEY]) // properties include: access_token, expires_in, username and persist
+                {
+                    // clear hash from the location URL
+                    ExternalInterface.call("function() { location.hash = '' }");
+
+                    // set token and username
+                    _accessToken = hashParams[ACCESS_TOKEN_KEY];
+                    _username = hashParams[USERNAME_KEY];
+
+                    expiresIn = hashParams.expires_in;
+
+                    if (hashParams.persist)
+                    {
+                        saveSharedObject(expiresIn);
+                    }
+                }
+                else if (_sharedObject && _sharedObject.data[ACCESS_TOKEN_KEY])
+                {
+                    var now:Date = new Date();
+                    var expires:Number = _sharedObject.data[EXPIRES_KEY];
+                    if (expires > now.time)
+                    {
+                        expiresIn = (expires - now.time) / 1000;
+                        if (expiresIn > 5 * 60) // use the token if it expires in more than 5 minutes from now
+                        {
+                            // set token and username
+                            _accessToken = _sharedObject.data[ACCESS_TOKEN_KEY];
+                            _username = _sharedObject.data[USERNAME_KEY];
+                        }
+                    }
+                }
+
+                if (_accessToken)
+                {
+                    // set up the IdentityManager
+                    _identityManager = IdentityManager.instance;
+                    _identityManager.enabled = true;
+                    _identityManager.addEventListener(IdentityManagerEvent.SHOW_SIGN_IN_WINDOW, identityManager_showSignInWindowHandler);
+
+                    // set a timeout for when the token expires
+                    if (expiresIn > 0)
+                    {
+                        setTimeout(tokenExpirationHandler, expiresIn * 1000);
+                    }
+
+                    // load the portal
+                    portal.signIn();
+                }
+                else
+                {
+                    sendToSignInPage();
+                }
+            }
+
+            private function getURLHashParameters():Object
+            {
+                var result:URLVariables = new URLVariables();
+
+                try
+                {
+                    if (ExternalInterface.available)
+                    {
+                        // Use JavaScript to get the hash string from the current browser location.
+                        // Use substring() to remove leading '#'.
+                        var hash:String = ExternalInterface.call("location.hash.substring", 1);
+                        if (hash && hash.length > 0)
+                        {
+                            try
+                            {
+                                result.decode(hash);
+                            }
+                            catch (error:Error)
+                            {
+                                trace(error);
+                            }
+                        }
+                    }
+                }
+                catch (error:Error)
+                {
+                    Alert.show(error.toString());
+                }
+
+                return result;
+            }
+
+            private function sendToSignInPage(noAlert:Boolean = false):void
+            {
+                if (noAlert)
+                {
+                    redirect();
+                }
+                else
+                {
+                    Alert.show("Sign In and view your ArcGIS Online items.", "Sign in", Alert.OK, null, redirect);
+                }
+
+                function redirect():void
+                {
+                    var params:URLVariables = new URLVariables();
+                    params.response_type = "token";
+                    params.expiration = 14 * 24 * 60; // 14 days in minutes (max allowed)
+                    params.client_id = APP_ID;
+                    params.redirect_uri = ExternalInterface.call(
+                        "function() { return (location.protocol + '//' + location.host + location.pathname) }");
+
+                    var request:URLRequest = new URLRequest("https://www.arcgis.com/sharing/oauth2/authorize");
+                    request.data = params;
+
+                    navigateToURL(request, "_self");
+                }
+            }
+
+            private function initSharedObject():void
+            {
+                try
+                {
+                    _sharedObject = SharedObject.getLocal("oauth");
+                }
+                catch (error:Error)
+                {
+                    trace(error);
+                }
+            }
+
+            private function saveSharedObject(expiresIn:Number):void
+            {
+                if (_sharedObject && expiresIn > 0)
+                {
+                    var now:Date = new Date();
+                    now.seconds += expiresIn;
+                    try
+                    {
+                        _sharedObject.data[ACCESS_TOKEN_KEY] = _accessToken;
+                        _sharedObject.data[USERNAME_KEY] = _username;
+                        _sharedObject.data[EXPIRES_KEY] = now.time;
+                        _sharedObject.flush();
+                    }
+                    catch (error:Error)
+                    {
+                        trace(error);
+                    }
+                }
+            }
+
+            private function signOut():void
+            {
+                if (_sharedObject)
+                {
+                    _sharedObject.clear();
+                }
+                sendToSignInPage();
+            }
+
+            private function identityManager_showSignInWindowHandler(event:IdentityManagerEvent):void
+            {
+                var server:String = _identityManager.currentSignInInfo.serverInfo.server;
+                if (server.indexOf("arcgis.com") != -1)
+                {
+                    // don't show the default sign in window
+                    event.preventDefault();
+
+                    // create and set a new credential using the OAuth token
+                    var credential:Credential = new Credential();
+                    credential.server = server;
+                    credential.token = _accessToken;
+                    credential.userId = _username;
+                    _identityManager.setCredentialForCurrentSignIn(credential);
+                }
+            }
+
+            private function tokenExpirationHandler():void
+            {
+                Alert.show("Sign in again.", "Session has expired", Alert.OK | Alert.NONMODAL, null,
+                           function(event:CloseEvent):void
+                           {
+                               sendToSignInPage(true);
+                           });
+            }
+
+            private function portal_loadHandler(event:PortalEvent):void
+            {
+                signOutButton.visible = true;
+
+                var user:PortalUser = portal.user;
+                helloLabel.text = "Welcome " + user.fullname;
+
+                var queryParams:PortalQueryParameters = new PortalQueryParameters(null, 20, "numViews", "desc");
+                queryParams.ofUser(user.username);
+                queryCallResponder.token = portal.queryItems(queryParams);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <esri:Portal id="portal" load="portal_loadHandler(event)"/>
+        <esri:CallResponder id="queryCallResponder"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:Label text="Flex OAuth Sample"/>
+        <s:Label id="helloLabel"
+                 width="100%"
+                 textAlign="end"/>
+        <s:Button id="signOutButton"
+                  click="signOut()"
+                  label="Sign Out"
+                  visible="false"/>
+    </s:controlBarContent>
+    <s:controlBarLayout>
+        <s:HorizontalLayout gap="10"
+                            paddingBottom="7"
+                            paddingLeft="10"
+                            paddingRight="10"
+                            paddingTop="7"
+                            verticalAlign="baseline"/>
+    </s:controlBarLayout>
+
+    <s:List left="0" right="0" top="0" bottom="0"
+            dataProvider="{new ArrayList((queryCallResponder.lastResult as PortalQueryResult).results)}">
+        <s:itemRenderer>
+            <fx:Component>
+                <s:ItemRenderer width="200" height="170"
+                                autoDrawBackground="false">
+                    <fx:Script>
+                        <![CDATA[
+                            import com.esri.ags.portal.supportClasses.PortalItem;
+
+                            [Bindable]
+                            private var portalItem:PortalItem;
+
+                            override public function set data(value:Object):void
+                            {
+                                super.data = value;
+                                this.portalItem = value as PortalItem;
+                            }
+                        ]]>
+                    </fx:Script>
+                    <s:Image width="200" height="133"
+                             enableLoadingState="true"
+                             source="{portalItem.thumbnailURL}"/>
+                    <s:Label left="0" right="0" top="139"
+                             maxDisplayedLines="2"
+                             showTruncationTip="true"
+                             text="{portalItem.title}"
+                             textAlign="center"/>
+                </s:ItemRenderer>
+            </fx:Component>
+        </s:itemRenderer>
+        <s:layout>
+            <s:TileLayout paddingBottom="6"
+                          paddingLeft="6"
+                          paddingRight="6"
+                          paddingTop="6"/>
+        </s:layout>
+    </s:List>
+
+</s:Application>

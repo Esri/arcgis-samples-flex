@@ -134,7 +134,7 @@
                 }
             }
 
-            protected function esriService_faultHandler(fault:Fault, asyncToken:AsyncToken):void
+            protected function esriService_faultHandler(fault:Fault, token:Object = null):void
             {
                 Alert.show("Error: " + fault.faultString, "Error code: " + fault.faultCode);
             }

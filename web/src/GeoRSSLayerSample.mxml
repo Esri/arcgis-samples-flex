@@ -67,11 +67,6 @@
 
             import mx.controls.Alert;
 
-            protected function geoRSSLayer_loadHandler(event:LayerEvent):void
-            {
-                FeatureLayer(geoRSSLayer.featureLayers[0]).renderer = new SimpleRenderer(tsunamiPMS);
-            }
-
             protected function geoRSSLayer_loadErrorHandler(event:LayerEvent):void
             {
                 Alert.show("Error: " + event.fault.faultString, "Error code: " + event.fault.faultCode);
@@ -82,7 +77,9 @@
     <fx:Declarations>
         <esri:PictureMarkerSymbol id="tsunamiPMS"
                                   width="32" height="32"
-                                  source="@Embed(source='assets/i_tsunami.png')"/>
+                                  source="@Embed(source='assets/i_tsunami.png')"
+                                  xoffset="2"
+                                  yoffset="16"/>
     </fx:Declarations>
 
     <s:controlBarContent>
@@ -104,8 +101,8 @@
         <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
         <esri:GeoRSSLayer id="geoRSSLayer"
                           copyright="NOAA, NWS, Pacific Region Headquarters"
-                          load="geoRSSLayer_loadHandler(event)"
                           loadError="geoRSSLayer_loadErrorHandler(event)"
+                          pointSymbol="{tsunamiPMS}"
                           url="http://www.prh.noaa.gov/ptwc/feeds/ptwc_rss_pacific.xml"/>
     </esri:Map>
 
