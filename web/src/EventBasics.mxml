@@ -182,6 +182,7 @@
               mouseWheel="logEvent(event)"
               panEnd="logEvent(event)"
               panStart="logEvent(event)"
+              resize="logEvent(event)"
               timeExtentChange="logEvent(event)"
               updateComplete="logEvent(event)"
               zoomEnd="logEvent(event)"
