@@ -1,25 +1,21 @@
-# Contributing to ArcGIS Viewer for Flex
+# Contributing to ArcGIS Flex API Samples
 
-There are many ways you can contribute to the [ArcGIS Viewer for Flex](http://links.esri.com/flexviewer).
+There are many ways you can contribute to the [ArcGIS Flex API Samples](https://github.com/Esri/arcgis-samples-flex).
 
-* Be active on the [forum](http://forums.arcgis.com/forums/111-ArcGIS-Viewer-for-Flex).
-* Suggest enhancements on [ArcGIS Ideas](http://ideas.arcgis.com/).
-* Create and share your own (custom) widgets.
+* Suggest enhancements on [forum](http://forums.arcgis.com/forums/18-ArcGIS-API-for-Flex) or as [GitHub issues](https://github.com/Esri/arcgis-samples-flex/issues/).
 * Report potential bugs to [Esri Support](http://support.esri.com/).
-* Contribute to the ArcGIS Viewer for Flex source code.
+* Contribute code, as pull requests, to the ArcGIS Flex API samples.
 
-This guide describes how you can contribute improvements to the ArcGIS Viewer for Flex source code.
-
-The [ArcGIS Viewer for Flex](http://links.esri.com/flexviewer) is built by the Flex Team at [Esri](http://www.esri.com) and contributors like you. We are excited that you are interested in improving the Flex Viewer source code. This guide will help make sure your contribution (pull request) will be accepted and easily merged.
+This guide describes how you can contribute code improvements to the ArcGIS Flex API samples.
 
 1. Make sure you have a [GitHub account](https://github.com/signup/free).
-2. [Fork](https://help.github.com/articles/fork-a-repo) the [Flex Viewer repo](https://github.com/Esri/arcgis-viewer-flex/) on GitHub.
+2. [Fork](https://help.github.com/articles/fork-a-repo) the [Flex API Samples repo](https://github.com/Esri/arcgis-samples-flex/) on GitHub.
 3. Clone it to your local machine.
-4. Checkout the [develop branch](https://github.com/Esri/arcgis-viewer-flex/tree/develop).
+4. Checkout the [develop branch](https://github.com/Esri/arcgis-samples-flex/tree/develop).
 5. Create a new feature branch on your local machine.
-    * The name of the branch doesn't matter, but as a best practice use a descriptive name like "fix-look-of-widgetgroup-hover-state".
+    * The name of the branch doesn't matter, but as a best practice use a descriptive name like "add-errorcheck-for-annotation-layers".
 6. Write code to add an enhancement or fix the problem.  
-    * Follow the coding conventions already used in the Flex Viewer source code (spaces instead of tabs, proper indentation, use [Flex Formatter](http://sourceforge.net/projects/flexformatter/files/) along with our [Flex Formatter settings](https://github.com/Esri/arcgis-viewer-flex/blob/develop/FlexFormatter.properties)).
+    * Follow the coding conventions already used in the samples (spaces instead of tabs, proper indentation, use [Flex Formatter](http://sourceforge.net/projects/flexformatter/files/) along with our [Flex Formatter settings](https://github.com/Esri/arcgis-viewer-flex/blob/develop/FlexFormatter.properties)).
     * Document your code.
     * Make commits of logical units.
     * Use [clear and descriptive commit messages](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
