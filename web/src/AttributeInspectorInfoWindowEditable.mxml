@@ -2,6 +2,7 @@
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
                xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:fieldClasses="com.esri.ags.skins.fieldClasses.*"
                pageTitle="Edit with AttributeInspector">
     <!--
     Description:
@@ -264,14 +265,14 @@
                                          label="PRODUCTION_OIL">
                         <esri:editor>
                             <fx:Component>
-                                <esri:ButtonBarField>
-                                    <esri:dataProvider>
+                                <fieldClasses:ButtonBarField>
+                                    <fieldClasses:dataProvider>
                                         <s:ArrayCollection>
                                             <fx:Object label="Yes" value="Yes"/>
                                             <fx:Object label="No" value="No"/>
                                         </s:ArrayCollection>
-                                    </esri:dataProvider>
-                                </esri:ButtonBarField>
+                                    </fieldClasses:dataProvider>
+                                </fieldClasses:ButtonBarField>
                             </fx:Component>
                         </esri:editor>
                     </esri:FieldInspector>
