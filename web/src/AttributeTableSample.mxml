@@ -164,6 +164,10 @@
                              width="100%" height="100%"
                              deleteFeatures="fdg_deleteFeaturesHandler(event)"
                              featureLayer="{myFeatureLayer}"
-                             updateFeature="fdg_updateFeatureHandler(event)"/>
+                             updateFeature="fdg_updateFeatureHandler(event)">
+            <esri:FieldInspector editor="com.esri.ags.samples.components.MyCalendarEditor"
+                                 featureLayer="{myFeatureLayer}"
+                                 fieldName="req_date"/>
+        </esri:AttributeTable>
     </s:BorderContainer>
 </s:Application>

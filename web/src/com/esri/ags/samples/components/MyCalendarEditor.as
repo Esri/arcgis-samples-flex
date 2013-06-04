@@ -1,21 +1,16 @@
 package com.esri.ags.samples.components
 {
 
-import com.esri.ags.components.AttributeInspector;
+import com.esri.ags.components.supportClasses.IFieldRenderer;
+import com.esri.ags.skins.fieldClasses.CalendarField;
 
-import flash.events.Event;
 import flash.events.MouseEvent;
 
 import mx.controls.Button;
-import mx.controls.DateField;
-import mx.core.mx_internal;
-import mx.events.CalendarLayoutChangeEvent;
 import mx.events.FlexEvent;
 import mx.events.PropertyChangeEvent;
 import mx.events.PropertyChangeEventKind;
 import mx.events.ValidationResultEvent;
-import mx.formatters.DateFormatter;
-import mx.validators.DateValidator;
 
 /**
  * Exemple class of a FieldInspector renderer
@@ -23,7 +18,7 @@ import mx.validators.DateValidator;
  * Display a String date into a DateField with
  * an extra button to set the date to today
  */
-public class MyCalendarEditor extends DateField
+public class MyCalendarEditor extends CalendarField implements IFieldRenderer
 {
 
     //--------------------------------------------------------------------------
@@ -39,18 +34,7 @@ public class MyCalendarEditor extends DateField
     public function MyCalendarEditor()
     {
         super();
-
-        yearNavigationEnabled = true;
-        addEventListener(CalendarLayoutChangeEvent.CHANGE, changeHandler, false, -1);
-
-        m_dateValidator.required = false;
-        m_dateValidator.source = this;
-        m_dateValidator.property = "text";
-        m_dateValidator.triggerEvent = CalendarLayoutChangeEvent.CHANGE;
-        m_dateValidator.addEventListener(ValidationResultEvent.VALID, dateValidator_validHandler);
-        m_dateValidator.addEventListener(ValidationResultEvent.INVALID, dateValidator_invalidHandler);
-
-        m_dateValidator.inputFormat = m_dateFormatter.formatString = formatString = "MM/DD/YYYY";
+        this.dateFormat = "MM/DD/YYYY";
     }
 
 
@@ -60,13 +44,7 @@ public class MyCalendarEditor extends DateField
     //
     //--------------------------------------------------------------------------
 
-    private var m_dateFormatter:DateFormatter = new DateFormatter();
-
-    private var m_dateValidator:DateValidator = new DateValidator();
-
     private var m_todayButton:Button;
-
-    private var m_isDateValid:Boolean;
 
     [Embed(source="/assets/TodayCalendarIcon.png")]
     private var m_todayButtonSkin:Class;
@@ -77,23 +55,23 @@ public class MyCalendarEditor extends DateField
     //
     //--------------------------------------------------------------------------
 
-    //----------------------------------
-    //  data
-    //----------------------------------
-
     private var m_oldDataValue:Object;
 
     override public function get data():Object
     {
-        return m_dateFormatter.format(super.selectedDate);
+        // CalendarField handles dates as time,
+        // so return the formatted date.
+        return formatToString(super.data);
     }
 
     override public function set data(value:Object):void
     {
-        m_oldDataValue = value;
-        // The date is a String
-        var date:Date = new Date(value);
-        super.selectedDate = date;
+        if (m_oldDataValue != value)
+        {
+            m_oldDataValue = value;
+            var date:Date = new Date(value);
+            super.data = date.time;
+        }
     }
 
     //--------------------------------------------------------------------------
@@ -119,11 +97,6 @@ public class MyCalendarEditor extends DateField
 
             addChild(m_todayButton);
         }
-
-        if (!this.textInput)
-        {
-            m_dateValidator.trigger = this.textInput;
-        }
     }
 
     override protected function measure():void
@@ -140,12 +113,6 @@ public class MyCalendarEditor extends DateField
 
     override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
     {
-        // Disable the calendar if the date isn't editable
-        if (mx_internal::downArrowButton)
-        {
-            mx_internal::downArrowButton.visible = enabled;
-        }
-
         var buttonWidth:Number = m_todayButton.getExplicitOrMeasuredWidth();
         var buttonHeight:Number = m_todayButton.getExplicitOrMeasuredHeight();
 
@@ -164,42 +131,35 @@ public class MyCalendarEditor extends DateField
     //
     //--------------------------------------------------------------------------
 
-    protected function todayButtonClickHandler(event:MouseEvent):void
+    /**
+     * @inheritDoc
+     */
+    override public function validate():void
     {
-        data = new Date();
-        m_dateValidator.validate();
-
-        var e:CalendarLayoutChangeEvent = new CalendarLayoutChangeEvent(CalendarLayoutChangeEvent.CHANGE);
-        e.newDate = selectedDate;
-        dispatchEvent(e);
-    }
-
-    private function dateValidator_invalidHandler(event:ValidationResultEvent):void
-    {
-        m_isDateValid = false;
-    }
-
-    private function dateValidator_validHandler(event:ValidationResultEvent):void
-    {
-        m_isDateValid = true;
-    }
-
-    protected function changeHandler(event:CalendarLayoutChangeEvent):void
-    {
-        if (m_isDateValid)
+        var event:ValidationResultEvent = requiredValidator.validate();
+        var currentData:Object = this.data;
+        if ((!event || !event.results || event.results.length == 0) && m_oldDataValue != currentData)
         {
-            // Update the Feature
             var pce:PropertyChangeEvent = new PropertyChangeEvent(PropertyChangeEvent.PROPERTY_CHANGE,
                                                                   true,
                                                                   false,
                                                                   PropertyChangeEventKind.UPDATE,
                                                                   "data",
                                                                   m_oldDataValue,
-                                                                  data,
+                                                                  currentData,
                                                                   this);
             dispatchEvent(pce);
+            m_oldDataValue = currentData;
         }
+        dispatchEvent(new FlexEvent(event.type, true));
     }
+
+
+    protected function todayButtonClickHandler(event:MouseEvent):void
+    {
+        data = formatToString(new Date());
+    }
+
 }
 
 }
