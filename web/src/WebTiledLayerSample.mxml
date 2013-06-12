@@ -59,11 +59,7 @@
                 var selectedItem:Object = DropDownList(event.currentTarget).selectedItem;
                 webTiledLayer.urlTemplate = selectedItem.urlTemplate;
                 webTiledLayer.copyright = selectedItem.copyright;
-
-                if (selectedItem.subDomains != null)
-                {
-                    webTiledLayer.subDomains = selectedItem.subDomains;
-                }
+                webTiledLayer.subDomains = selectedItem.subDomains;
             }
 
             protected function loadWebTiledLayerButton_clickHandler(event:MouseEvent):void
