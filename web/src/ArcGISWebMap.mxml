@@ -123,7 +123,11 @@
         <esri:WebMapUtil id="webMapUtil"
                          createMapByIdComplete="webMapUtil_createMapByIdCompleteHandler(event)"
                          fault="esriService_faultHandler(event)"
-                         portalURL="{portalURLTextInput.text ? portalURLTextInput.text : 'https://www.arcgis.com'}"/>
+                         portalURL="{portalURLTextInput.text ? portalURLTextInput.text : 'https://www.arcgis.com'}">
+            <esri:geometryService>
+                <esri:GeometryService url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+            </esri:geometryService>
+        </esri:WebMapUtil>
     </fx:Declarations>
 
     <s:controlBarLayout>
