@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Modified version of the default AttributeInspectorSkin to showcase new field classes at version 3.4.
+-->
+<!---
+    The default skin class for the AttributeInspector component.
+    <p><b>Since:</b> ArcGIS API for Flex 2.0</p>
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:mx="library://ns.adobe.com/flex/mx"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:fieldClasses="com.esri.ags.skins.fieldClasses.*">
+
+    <!-- host component -->
+    <fx:Metadata>
+        /**
+         * A strongly typed property that references the component to which this skin is applied.
+         */
+        [HostComponent("com.esri.ags.components.AttributeInspector")]
+    </fx:Metadata>
+
+    <fx:Declarations>
+        <fx:Component id="codedValueDomainField">
+            <fieldClasses:CodedValueDomainField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="dateField">
+            <!--
+            Display dates in local time, using a localized short date format. eg: for en_US: MM/DD/YYYY
+            See PopUpFieldFormat date formats or provide a custom one.
+            default value is "shortDate"
+            {PopUpFieldFormat.DAY_SHORT_MONTH_YEAR}
+            http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern%28%29
+            EEE MMM dd YYYY
+            -->
+            <fieldClasses:CalendarField width="100%"
+                                        dateFormat="EEE MMM DD, YYYY"
+                                        useUTC="false"/>
+
+        </fx:Component>
+        <fx:Component id="doubleField">
+            <!--
+            By default the maximum number of digits after de decimal separator is 16, but it's customizable.
+            -->
+            <fieldClasses:DoubleField fractionalDigits="2" minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="integerField">
+            <fieldClasses:IntegerField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="labelField">
+            <fieldClasses:LabelField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="memoField">
+            <fieldClasses:MemoField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="rangeDomainField">
+            <fieldClasses:RangeDomainField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="singleField">
+            <fieldClasses:DoubleField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="smallIntegerField">
+            <fieldClasses:IntegerField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="stringField">
+            <fieldClasses:StringField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="textField">
+            <fieldClasses:TextField minWidth="200"/>
+        </fx:Component>
+        <fx:Component id="typeField">
+            <fieldClasses:TypeField minWidth="200"/>
+        </fx:Component>
+    </fx:Declarations>
+
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="disabled"/>
+        <s:State name="invalid"/>
+    </s:states>
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="center" paddingBottom="10"/>
+    </s:layout>
+
+    <s:Group width="100%" height="20"
+             includeIn="invalid">
+        <s:Rect width="100%" height="100%">
+            <s:fill>
+                <s:SolidColor color="0xCE2929"/>
+            </s:fill>
+        </s:Rect>
+        <s:Label width="100%"
+                 color="0xFFFFFF"
+                 fontWeight="bold"
+                 text="Please correct the following errors."
+                 textAlign="center"
+                 verticalAlign="middle"
+                 verticalCenter="0"/>
+    </s:Group>
+
+    <s:HGroup gap="8"
+              includeInLayout="{hostComponent.numFeatures&gt;1}"
+              verticalAlign="middle"
+              visible="{hostComponent.numFeatures&gt;1}">
+        <!--- Button to go to the previous feature in the selection set. -->
+        <s:Button id="previousButton"
+                  enabled.disabled="false"
+                  skinClass="com.esri.ags.skins.AttributeInspectorPreviousButtonSkin"/>
+        <!--- Form to display the attributes of the active feature. -->
+        <s:Label width="100%"
+                 fontSize="14"
+                 fontWeight="bold"
+                 text="{hostComponent.activeFeatureIndex+1} {resourceManager.getString('ESRIMessages','attributeInspectorOf')} {hostComponent.numFeatures}"
+                 textAlign="center"/>
+        <!--- Button to go to the next feature in the selection set. -->
+        <s:Button id="nextButton"
+                  enabled.disabled="false"
+                  skinClass="com.esri.ags.skins.AttributeInspectorNextButtonSkin"/>
+    </s:HGroup>
+    <!--- @private -->
+    <s:List id="list"
+            width="100%" height="100%"
+            borderVisible="false"
+            enabled.disabled="false"
+            hasFocusableChildren="true"
+            horizontalScrollPolicy="auto"
+            itemRenderer="com.esri.ags.skins.supportClasses.AttributeInspectorRenderer"
+            useVirtualLayout="false"
+            verticalScrollPolicy="auto">
+        <s:layout>
+            <s:FormLayout gap="0"
+                          paddingBottom="10"
+                          paddingLeft="10"
+                          paddingRight="10"
+                          paddingTop="10"/>
+        </s:layout>
+    </s:List>
+    <!--- Label to show the edit summary. -->
+    <s:Label id="editSummaryLabel"
+             width="100%"
+             enabled.disabled="false"
+             fontStyle="italic"/>
+    <s:HGroup verticalAlign="middle">
+        <!--- Button to delete the active feature. -->
+        <s:Button id="deleteButton"
+                  buttonMode="true"
+                  enabled.disabled="false"
+                  label="{hostComponent.deleteButtonLabel}"
+                  skinClass="com.esri.ags.skins.AttributeInspectorDeleteButtonSkin"/>
+        <!--- Button to indicate completion of editing/viewing attributes -->
+        <s:Button id="okButton"
+                  enabled.disabled="false"
+                  label="{hostComponent.okButtonLabel}"/>
+    </s:HGroup>
+</s:Skin>
