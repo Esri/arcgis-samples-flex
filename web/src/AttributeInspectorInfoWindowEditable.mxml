@@ -33,6 +33,21 @@
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResults.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/Field.html
     -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace fieldClasses "com.esri.ags.skins.fieldClasses.*";
+        @namespace esri "http://www.esri.com/2008/ags";
+        
+        esri|AttributeInspector
+        {
+            /*
+            *   Custom skin that uses CalendarField with dateFormat and DoubleField with fractionalDigits.
+            *   @since 3.4
+            */
+            skinClass:ClassReference("com.esri.ags.samples.skins.AttributeInspectorValidatorSkin");
+        }
+    </fx:Style>
     <fx:Script>
         <![CDATA[
             import com.esri.ags.Graphic;
@@ -126,11 +141,11 @@
             private function attrInsp_saveFeatureHandler(event:AttributeInspectorEvent):void
             {
                 // save the changes when 'Ok' button is clicked
-                if (activeFeatureChangedAttributes.length)
+                if (activeFeatureChangedAttributes.length && attrInsp.isValid)
                 {
                     saveUnsavedAttributes(attrInsp.activeFeature, attrInsp.activeFeatureLayer);
+                    myMap.infoWindow.hide();
                 }
-                myMap.infoWindow.hide();
             }
 
             private function saveUnsavedAttributes(feature:Graphic, featureLayer:FeatureLayer):void
@@ -242,42 +257,42 @@
         <esri:ArcGISDynamicMapServiceLayer id="opsLayer" url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSFields/MapServer"/>
         <esri:FeatureLayer id="myFeatureLayer"
                            mode="selection"
-                           outFields="[activeprod, field_name, polydate, status, prod_oil]"
+                           outFields="[activeprod, field_name, polydate, status, cumm_oil, prod_oil]"
                            selectionComplete="myFeatureLayer_selectionCompleteHandler(event)"
                            url="http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSFields/FeatureServer/0"/>
         <esri:infoWindowContent>
-            <s:BorderContainer backgroundColor="0xFFFFFF">
-                <esri:AttributeInspector id="attrInsp"
-                                         deleteFeature="attrInsp_deleteFeatureHandler(event)"
-                                         saveFeature="attrInsp_saveFeatureHandler(event)"
-                                         updateFeature="attrInsp_updateFeatureHandler(event)">
+            <esri:AttributeInspector id="attrInsp"
+                                     deleteFeature="attrInsp_deleteFeatureHandler(event)"
+                                     saveFeature="attrInsp_saveFeatureHandler(event)"
+                                     updateFeature="attrInsp_updateFeatureHandler(event)">
 
-                    <esri:FieldInspector featureLayer="{myFeatureLayer}"
-                                         fieldName="activeprod"
-                                         label="ACTIVE_PRODUCTION"/>
+                <esri:FieldInspector featureLayer="{myFeatureLayer}" fieldName="activeprod"/>
 
-                    <esri:FieldInspector featureLayer="{myFeatureLayer}"
-                                         fieldName="field_name"
-                                         label="FIELDNAME"/>
+                <esri:FieldInspector featureLayer="{myFeatureLayer}" fieldName="field_name"/>
 
-                    <esri:FieldInspector featureLayer="{myFeatureLayer}"
-                                         fieldName="prod_oil"
-                                         label="PRODUCTION_OIL">
-                        <esri:editor>
-                            <fx:Component>
-                                <fieldClasses:ButtonBarField>
-                                    <fieldClasses:dataProvider>
-                                        <s:ArrayCollection>
-                                            <fx:Object label="Yes" value="Yes"/>
-                                            <fx:Object label="No" value="No"/>
-                                        </s:ArrayCollection>
-                                    </fieldClasses:dataProvider>
-                                </fieldClasses:ButtonBarField>
-                            </fx:Component>
-                        </esri:editor>
-                    </esri:FieldInspector>
-                </esri:AttributeInspector>
-            </s:BorderContainer>
+                <esri:FieldInspector featureLayer="{myFeatureLayer}" fieldName="polydate"/>
+
+                <esri:FieldInspector featureLayer="{myFeatureLayer}" fieldName="prod_oil">
+                    <esri:editor>
+                        <fx:Component>
+                            <!-- @since 3.4 new ButtonBarField field class-->
+                            <fieldClasses:ButtonBarField>
+                                <fieldClasses:dataProvider>
+                                    <s:ArrayCollection>
+                                        <fx:Object label="Yes" value="Yes"/>
+                                        <fx:Object label="No" value="No"/>
+                                    </s:ArrayCollection>
+                                </fieldClasses:dataProvider>
+                            </fieldClasses:ButtonBarField>
+                        </fx:Component>
+                    </esri:editor>
+                </esri:FieldInspector>
+
+                <!-- @since 3.4 new required property -->
+                <esri:FieldInspector featureLayer="{myFeatureLayer}"
+                                     fieldName="cumm_oil"
+                                     required="true"/>
+            </esri:AttributeInspector>
         </esri:infoWindowContent>
     </esri:Map>
 </s:Application>
