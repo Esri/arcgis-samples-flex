@@ -9,7 +9,12 @@ This folder contains the mobile samples for the ArcGIS API for Flex.
 3. Add the API Library to the project through Project.
     * Go to Project -> Properties -> Flex Build Path -> Library Path -> Add SWC (and locate the "agslib-#.#-YYYY-MM-DD.swc").
     * Alternatively, copy the swc library to the libs folder under the "BasicMap" project.
-4. Run the application using a simulator or on a physical device. Using the Run Configurations (Run > Run Configuration) you can add a Mobile application and define the Launch method as appropriate.
+4. Add the following libraries to build library path.
+    * ${PROJECT_FRAMEWORKS}/libs/mx/mx.swc
+        * e.g. /Users/Jack/Apache/Flex_SDKs/4.9.1_37/frameworks/libs/mx/mx.swc
+    * ${PROJECT_FRAMEWORKS}/libs/sparkskins.swc
+        * e.g. /Users/Jack/Apache/Flex_SDKs/4.9.1_37/frameworks/libs/sparkskins.swc
+5. Run the application using a simulator or on a physical device. Using the Run Configurations (Run > Run Configuration) you can add a Mobile application and define the Launch method as appropriate.
 
 **Notes about the "BasicMap" Run Configuration:**
     
