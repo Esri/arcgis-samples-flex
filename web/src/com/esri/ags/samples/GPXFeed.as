@@ -13,10 +13,13 @@ import com.esri.ags.utils.GraphicUtil;
 import com.esri.ags.utils.WebMercatorUtil;
 
 import flash.events.Event;
+import flash.events.HTTPStatusEvent;
 import flash.events.IOErrorEvent;
 import flash.events.SecurityErrorEvent;
 import flash.net.URLLoader;
 import flash.net.URLRequest;
+
+import mx.controls.Alert;
 
 public class GPXFeed
 {
@@ -30,6 +33,7 @@ public class GPXFeed
         _loader.addEventListener(Event.COMPLETE, loader_completeHandler);
         _loader.addEventListener(IOErrorEvent.IO_ERROR, loader_ioErrorHandler);
         _loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, loader_securityErrorHandler);
+        _loader.addEventListener(HTTPStatusEvent.HTTP_STATUS, loader_httpStatusHandler);
     }
 
     // variables
@@ -116,12 +120,20 @@ public class GPXFeed
 
     private function loader_ioErrorHandler(event:IOErrorEvent):void
     {
-        trace(event);
+        Alert.show(event.text, "Application IOError");
     }
 
     private function loader_securityErrorHandler(event:SecurityErrorEvent):void
     {
-        trace(event);
+        Alert.show(event.text, "Application Security Error");
+    }
+
+    protected function loader_httpStatusHandler(event:HTTPStatusEvent):void
+    {
+        if (event.status == 404)
+        {
+            Alert.show("Unable to load the following resource \n" + url, "http error");
+        }
     }
 }
 
