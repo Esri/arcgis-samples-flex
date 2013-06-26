@@ -5,7 +5,19 @@
                             applicationDPI="160"
                             creationComplete="creationCompleteHandler(event)"
                             firstView="views.LoadingWebmapsView">
+    <!--
+    For more information about Flex mobile:
 
+    https://github.com/Esri/arcgis-samples-flex/tree/develop/mobile
+    http://developers.arcgis.com/en/flex/guide/mobile-flex.htm
+    https://github.com/Esri/arcgis-viewer-builder-flex/wiki/Prepare-the-Apache-Flex-SDK
+    https://github.com/lheberlie/building-mobile-apps-flex
+
+    You may need to add the following libraries to your Flash Builder project:
+
+    ${PROJECT_FRAMEWORKS}/libs/mx/mx.swc
+    ${PROJECT_FRAMEWORKS}/libs/sparkskins.swc
+    -->
     <fx:Style source="defaults.css"/>
 
     <fx:Declarations>
