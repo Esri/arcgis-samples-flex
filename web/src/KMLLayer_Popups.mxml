@@ -26,7 +26,7 @@
     http://earthquake.usgs.gov/earthquakes/feed/v1.0/kml.php
 
     The contents of this file is the earthquakes of the past 7 days.
-    http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week_age_link.kml
+    http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week_age.kml
 
     Documentation:
     For more information, see the API documentation.
@@ -66,7 +66,7 @@
 
             protected function earthquakes_loadHandler(event:LayerEvent):void
             {
-                currentState = 'loadingState';
+                currentState = 'mainState';
             }
 
             protected function earthquakes_loadErrorHandler(event:LayerEvent):void
@@ -76,17 +76,8 @@
                     Alert.show(event.fault.faultDetail + "\n" + event.fault.faultString);
                 }
             }
-
-            protected function earthquakes_updateEndHandler(event:LayerEvent):void
-            {
-                currentState = 'mainState';
-            }
         ]]>
     </fx:Script>
-
-    <fx:Declarations>
-        <!-- Place non-visual elements (e.g., services, value objects) here -->
-    </fx:Declarations>
 
     <s:controlBarContent>
         <s:RichEditableText width="100%" editable="false">
@@ -109,8 +100,7 @@
         <esri:KMLLayer id="earthquakes" name="Latest earthquakes"
                        load="earthquakes_loadHandler(event)"
                        loadError="earthquakes_loadErrorHandler(event)"
-                       updateEnd="earthquakes_updateEndHandler(event)"
-                       url="http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week_age_link.kml"/>
+                       url="http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week_age.kml"/>
     </esri:Map>
 
     <s:ToggleButton height="40"
