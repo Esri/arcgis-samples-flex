@@ -140,12 +140,16 @@
 
             private function attrInsp_saveFeatureHandler(event:AttributeInspectorEvent):void
             {
+                if (!attrInsp.isValid)
+                {
+                    return;
+                }
                 // save the changes when 'Ok' button is clicked
-                if (activeFeatureChangedAttributes.length && attrInsp.isValid)
+                if (activeFeatureChangedAttributes.length)
                 {
                     saveUnsavedAttributes(attrInsp.activeFeature, attrInsp.activeFeatureLayer);
-                    myMap.infoWindow.hide();
                 }
+                myMap.infoWindow.hide();
             }
 
             private function saveUnsavedAttributes(feature:Graphic, featureLayer:FeatureLayer):void
