@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               pageTitle="Raster Function Templates with an ArcGISImageServiceLayer">
+    <!--
+    Description:
+    This sample demonstrates how to add an ArcGISImageServiceLayer and apply a rendering rule
+    to dynamically modify the display of the raster dataset. Rendering rules are created
+    using a pre-defined set of raster functions or raster function templates contained in the ArcGIS REST API.
+    This specific sample shows how to work with raster function templates.
+
+    Documentation:
+    For more information, see the API documentation.
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISImageServiceLayer.html#renderingRule
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISImageServiceLayer.html#rasterFunctionInfos
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunctionInfo.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html#arguments
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html#functionName
+
+    ArcGIS REST API documentation:
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?imageserver.html
+    http://resources.arcgis.com/en/help/rest/apiref/index.html?israsterfunctions.html
+
+    ArcGIS for Server documentation:
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Key_concepts_for_image_services/0154000003v2000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Image_service_parameters/015400000524000000/
+    http://resources.arcgis.com/en/help/main/10.1/index.html#/Server_side_processing_with_raster_functions/0154000003w6000000/
+    -->
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.layers.supportClasses.RasterFunction;
+            import com.esri.ags.layers.supportClasses.RasterFunctionInfo;
+
+            import mx.collections.ArrayList;
+            import mx.collections.IList;
+            import mx.controls.Alert;
+
+            import spark.events.IndexChangeEvent;
+
+            private var rasterFunctionInfos:Array = [];
+
+            protected function charlotteImageService_loadHandler(event:LayerEvent):void
+            {
+                rasterFunctionInfos = charlotteImageService.rasterFunctionInfos;
+                var rasterFunctionInfoDataProvider:IList = new ArrayList();
+                var rasterFunctionInfo:RasterFunctionInfo;
+
+                for (var i:int = 0; i < rasterFunctionInfos.length; i++)
+                {
+                    rasterFunctionInfo = rasterFunctionInfos[i];
+                    rasterFunctionInfoDataProvider.addItem({ data: rasterFunctionInfo.name, label: rasterFunctionInfo.name });
+                }
+
+                rasterFunctionTemplateDropDownList.dataProvider = rasterFunctionInfoDataProvider;
+            }
+
+            protected function charlotteImageService_loadErrorHandler(event:LayerEvent):void
+            {
+                Alert.show(event.layer.loadFault.faultString, "Layer failed to load");
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:RasterFunction id="rasterFunction" functionName="{rasterFunctionTemplateDropDownList.selectedItem.data}"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to add an ArcGISImageServiceLayer and apply a rendering rule
+            to dynamically modify the display of the raster dataset. Rendering rules are created
+            using a pre-defined set of raster functions or raster function templates contained in the ArcGIS REST API.
+            This specific sample shows how to work with raster function templates.
+            Choose one of the raster function templates below to apply a new function.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map" level="16">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-80.844638" lat="35.227414"/>
+        </esri:center>
+        <esri:ArcGISTiledMapServiceLayer/>
+        <esri:ArcGISImageServiceLayer id="charlotteImageService"
+                                      interpolation="RSP_BilinearInterpolation"
+                                      load="charlotteImageService_loadHandler(event)"
+                                      loadError="charlotteImageService_loadErrorHandler(event)"
+                                      renderingRule="{rasterFunction}"
+                                      url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/CharlotteLAS/ImageServer"/>
+    </esri:Map>
+
+    <s:Panel width="260"
+             right="20" top="20"
+             backgroundColor="0xEEEEEE"
+             title="Raster Function Templates">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingBottom="7"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="7"/>
+        </s:layout>
+        <s:Label width="100%" text="Choose a raster function template from the list below."/>
+        <s:DropDownList id="rasterFunctionTemplateDropDownList"
+                        width="100%"
+                        change="charlotteImageService.refresh()"
+                        requireSelection="true">
+            <s:ArrayList>
+                <fx:Object data="None" label="None"/>
+            </s:ArrayList>
+        </s:DropDownList>
+    </s:Panel>
+
+</s:Application>

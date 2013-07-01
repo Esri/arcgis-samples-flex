@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <application xmlns="http://ns.adobe.com/air/application/3.1">
 
-<!-- Adobe AIR Application Descriptor File Template.
+    <!-- Adobe AIR Application Descriptor File Template.
 
-    Specifies parameters for identifying, installing, and launching AIR applications.
+        Specifies parameters for identifying, installing, and launching AIR applications.
 
-    xmlns - The Adobe AIR namespace: http://ns.adobe.com/air/application/2.6
-            The last segment of the namespace specifies the version
-            of the AIR runtime required for this application to run.
+        xmlns - The Adobe AIR namespace: http://ns.adobe.com/air/application/2.6
+                The last segment of the namespace specifies the version
+                of the AIR runtime required for this application to run.
 
-    minimumPatchLevel - The minimum patch level of the AIR runtime required to run
-            the application. Optional.
--->
+        minimumPatchLevel - The minimum patch level of the AIR runtime required to run
+                the application. Optional.
+    -->
 
     <!-- A universally unique application identifier. Must be unique across all AIR applications.
     Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
@@ -48,7 +48,7 @@
     <initialWindow>
         <!-- The main SWF or HTML file of the application. Required. -->
         <!-- Note: In Flash Builder, the SWF reference is set automatically. -->
-		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
+        <content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
 
         <!-- The title of the main window. Optional. -->
         <!-- <title></title> -->
@@ -142,58 +142,60 @@
     <!-- Listing of file types for which the application can register. Optional. -->
     <!-- <fileTypes> -->
 
-        <!-- Defines one file type. Optional. -->
-        <!-- <fileType> -->
+    <!-- Defines one file type. Optional. -->
+    <!-- <fileType> -->
 
-            <!-- The name that the system displays for the registered file type. Required. -->
-            <!-- <name></name> -->
+    <!-- The name that the system displays for the registered file type. Required. -->
+    <!-- <name></name> -->
 
-            <!-- The extension to register. Required. -->
-            <!-- <extension></extension> -->
+    <!-- The extension to register. Required. -->
+    <!-- <extension></extension> -->
 
-            <!-- The description of the file type. Optional. -->
-            <!-- <description></description> -->
+    <!-- The description of the file type. Optional. -->
+    <!-- <description></description> -->
 
-            <!-- The MIME content type. -->
-            <!-- <contentType></contentType> -->
+    <!-- The MIME content type. -->
+    <!-- <contentType></contentType> -->
 
-            <!-- The icon to display for the file type. Optional. -->
-            <!-- <icon>
-                <image16x16></image16x16>
-                <image32x32></image32x32>
-                <image48x48></image48x48>
-                <image128x128></image128x128>
-            </icon> -->
+    <!-- The icon to display for the file type. Optional. -->
+    <!-- <icon>
+        <image16x16></image16x16>
+        <image32x32></image32x32>
+        <image48x48></image48x48>
+        <image128x128></image128x128>
+    </icon> -->
 
-        <!-- </fileType> -->
+    <!-- </fileType> -->
     <!-- </fileTypes> -->
 
     <!-- iOS specific capabilities -->
     <!-- <iPhone> -->
-        <!-- A list of plist key/value pairs to be added to the application Info.plist -->
-        <!-- <InfoAdditions>
-            <![CDATA[
-                <key>UIDeviceFamily</key>
-                <array>
-                    <string>1</string>
-                    <string>2</string>
-                </array>
-                <key>UIStatusBarStyle</key>
-                <string>UIStatusBarStyleBlackOpaque</string>
-                <key>UIRequiresPersistentWiFi</key>
-                <string>YES</string>
-            ]]>
-        </InfoAdditions> -->
-        <!-- <requestedDisplayResolution></requestedDisplayResolution> -->
-    <!-- </iPhone> -->
-    <iPhone>
-        <InfoAdditions><![CDATA[
+    <!-- A list of plist key/value pairs to be added to the application Info.plist -->
+    <!-- <InfoAdditions>
+        <![CDATA[
             <key>UIDeviceFamily</key>
             <array>
                 <string>1</string>
                 <string>2</string>
             </array>
-        ]]></InfoAdditions>
+            <key>UIStatusBarStyle</key>
+            <string>UIStatusBarStyleBlackOpaque</string>
+            <key>UIRequiresPersistentWiFi</key>
+            <string>YES</string>
+        ]]>
+    </InfoAdditions> -->
+    <!-- <requestedDisplayResolution></requestedDisplayResolution> -->
+    <!-- </iPhone> -->
+    <iPhone>
+        <InfoAdditions>
+            <![CDATA[
+            <key>UIDeviceFamily</key>
+            <array>
+                <string>1</string>
+                <string>2</string>
+            </array>
+        ]]>
+        </InfoAdditions>
         <requestedDisplayResolution>high</requestedDisplayResolution>
     </iPhone>
 
@@ -217,13 +219,14 @@
             </manifest>
         ]]>
         </manifestAdditions> -->
-        <!-- Color depth for the app (either "32bit" or "16bit"). Optional. Default 16bit before namespace 3.0, 32bit after -->
-        <!-- <colorDepth></colorDepth> -->
+    <!-- Color depth for the app (either "32bit" or "16bit"). Optional. Default 16bit before namespace 3.0, 32bit after -->
+    <!-- <colorDepth></colorDepth> -->
     <!-- </android> -->
     <!-- End of the schema for adding the android specific tags in AndroidManifest.xml file -->
     <android>
         <colorDepth>16bit</colorDepth>
-        <manifestAdditions><![CDATA[
+        <manifestAdditions>
+            <![CDATA[
             <manifest android:installLocation="auto">
                 <!--See the Adobe AIR documentation for more information about setting Google Android permissions-->
                 <!--Removing the permission android.permission.INTERNET will have the side effect
@@ -243,7 +246,8 @@
                 <!--<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>-->
                 <!--<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>-->
             </manifest>
-        ]]></manifestAdditions>
+        ]]>
+        </manifestAdditions>
     </android>
-    
+
 </application>
