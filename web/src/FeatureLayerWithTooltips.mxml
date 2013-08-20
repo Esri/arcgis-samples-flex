@@ -45,12 +45,15 @@
                 event.graphic.toolTip = event.graphic.attributes.Name + "\n";
                 event.graphic.toolTip += "Magnitude " + myOneDecimalFormatter.format(event.graphic.attributes.Magnitude) + " earthquake";
                 if (event.graphic.attributes.Num_Deaths)
-                {                    
-					if (event.graphic.attributes.Num_Deaths == 1) {
-					    event.graphic.toolTip += "\n(" + event.graphic.attributes.Num_Deaths + " person died)";
-					}
-					else
-					    event.graphic.toolTip += "\n(" + event.graphic.attributes.Num_Deaths + " people died)";
+                {
+                    if (event.graphic.attributes.Num_Deaths == 1)
+                    {
+                        event.graphic.toolTip += "\n(1 person died)";
+                    }
+                    else
+                    {
+                        event.graphic.toolTip += "\n(" + event.graphic.attributes.Num_Deaths + " people died)";
+                    }
                 }
             }
         ]]>
