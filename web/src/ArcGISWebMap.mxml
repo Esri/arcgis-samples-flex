@@ -27,6 +27,8 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.components.supportClasses.OAuthInfo;
+            import com.esri.ags.events.IdentityManagerEvent;
             import com.esri.ags.events.WebMapEvent;
 
             import mx.controls.Alert;
@@ -40,11 +42,16 @@
             {
                 IdentityManager.instance.enabled = true;
 
+                var oAuthInfo:OAuthInfo = new OAuthInfo("bDKOrqYvsLUewvMD");
+                IdentityManager.instance.registerOAuthInfos([ oAuthInfo ]);
+                IdentityManager.instance.addEventListener(IdentityManagerEvent.SIGN_IN, signInHandler);
+                IdentityManager.instance.addEventListener(IdentityManagerEvent.SIGN_OUT, signOutHandler);
+
                 var urlParams:Object = getURLParameters();
 
                 if (urlParams.hasOwnProperty('webmapid'))
                 {
-                    //http://somename.mycompany.com/samples/ArcGISWebMap.html?webmapid=12148d94ace9424d934a085abe58b088
+                    // http://somename.mycompany.com/samples/ArcGISWebMap.html?webmapid=12148d94ace9424d934a085abe58b088
                     var webmapidParam:String = urlParams['webmapid'] as String;
                     webMapIDTextInput.prompt = webmapidParam;
                     webMapUtil.createMapById(webmapidParam);
@@ -116,6 +123,16 @@
                 var errorString:String = "Unable to load webmap\n" + event.fault.faultString;
                 Alert.show(errorString, "WebMap Loading Errors");
             }
+
+            private function signInHandler(event:IdentityManagerEvent):void
+            {
+                signOutBtn.visible = true;
+            }
+
+            private function signOutHandler(event:IdentityManagerEvent):void
+            {
+                signOutBtn.visible = false;
+            }
         ]]>
     </fx:Script>
 
@@ -128,6 +145,10 @@
                 <esri:GeometryService url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
             </esri:geometryService>
         </esri:WebMapUtil>
+        <!-- Log ERROR level messages -->
+        <s:TraceTarget includeCategory="true"
+                       includeLevel="true"
+                       level="8"/>
     </fx:Declarations>
 
     <s:controlBarLayout>
@@ -150,6 +171,10 @@
                          width="300"
                          enter="webMapIDTextInput_enterHandler(event)"
                          prompt="http://companyorg.maps.arcgis.com"/>
+            <s:Button id="signOutBtn"
+                      click="IdentityManager.instance.signOut()"
+                      label="Sign Out"
+                      visible="false"/>
         </s:HGroup>
         <s:HGroup verticalAlign="baseline">
             <s:Label width="100" text="Web map ID:"/>
