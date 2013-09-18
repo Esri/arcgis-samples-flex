@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+///////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2008-2013 Esri. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+///////////////////////////////////////////////////////////////////////////
+-->
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          width="100%"
+          horizontalAlign="center"
+          includeInLayout="{msgVisible}"
+          verticalAlign="middle"
+          visible="{msgVisible}">
+
+    <fx:Script>
+        <![CDATA[
+            [Bindable]
+            [Embed(source="../../../../../assets/loader.swf")]
+            private var loader:Class;
+
+            [Bindable]
+            private var msgVisible:Boolean = false;
+
+            [Bindable]
+            public var textColor:uint = 0xFFFFFF;
+
+            /**
+             * @param msg
+             */
+            public function showMessage(msg:String, swfVisible:Boolean):void
+            {
+                txtMessage.text = msg;
+                swfMessage.visible = swfVisible;
+                msgVisible = true;
+            }
+
+            /**
+            * @param msg Message to display.
+            */
+            public function setMessage(msg:String):void
+            {
+                txtMessage.text = msg;
+            }
+
+            public function clearMessage():void
+            {
+                msgVisible = false;
+            }
+        ]]>
+    </fx:Script>
+
+    <!--- @private -->
+    <s:SWFLoader id="swfMessage"
+                 source="{loader}"
+                 visible="false"/>
+    <s:Label id="txtMessage"
+             width="90%"
+             color="{textColor}"
+             text=""/>
+</s:HGroup>

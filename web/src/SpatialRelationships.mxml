@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
                xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
-               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:components="com.esri.ags.samples.components.*"
+               initialize="application_initializeHandler(event)"
                pageTitle="Determine spatial relationships">
     <!--
     Description:
@@ -11,6 +13,11 @@
     a 2 minute drive time service area which will be used to query the census service
     for blockgroup points within the network service area.  The geometry service
     will then determine if the blockgroup points are 'within' the network service area.
+
+    Attention:
+    To use this sample locally, delete the following line 'proxyURL="https://developers.arcgis.com/sproxy/"'
+    from the '<esri:Geoprocessor id="gp"' task in the Declarations section.
+    Note: Requires an ArcGIS Online Organizational subscription.
 
     While the Query task can also calculate spatial relationships, the
     Geometry Service exposes more relationship types and can be used
@@ -48,10 +55,9 @@
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#relation()
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#submitJob()
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ParameterValue.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RelationParameters.html
@@ -83,12 +89,18 @@
     http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_ModelBuilder/00150000001t000000/
     A quick tour of creating tools with Python
     http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_Python/00150000002q000000/
+
+    ArcGIS Network Analyst:
+    Service Area Analysis
+    http://resources.arcgis.com/en/help/arcgis-rest-api/#/Service_Area_service_with_asynchronous_execution/02r3000000n0000000/
+    http://logistics.arcgis.com/arcgis/rest/directories/arcgisoutput/World/ServiceAreas_GPServer/World_ServiceAreas/GenerateServiceAreas.htm
     -->
 
     <fx:Script>
         <![CDATA[
             import com.esri.ags.FeatureSet;
             import com.esri.ags.Graphic;
+            import com.esri.ags.components.IdentityManager;
             import com.esri.ags.events.GeometryServiceEvent;
             import com.esri.ags.events.GeoprocessorEvent;
             import com.esri.ags.events.MapMouseEvent;
@@ -97,11 +109,13 @@
             import com.esri.ags.symbols.SimpleFillSymbol;
             import com.esri.ags.symbols.SimpleLineSymbol;
             import com.esri.ags.symbols.SimpleMarkerSymbol;
-            import com.esri.ags.tasks.supportClasses.ParameterValue;
+            import com.esri.ags.tasks.supportClasses.JobInfo;
             import com.esri.ags.tasks.supportClasses.RelationParameters;
 
             import mx.collections.ArrayCollection;
             import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
 
             [Bindable]
             public var driveTimeGeometries:Array = [];
@@ -109,8 +123,20 @@
             [Bindable]
             public var blockPointGeometries:Array = [];
 
-            private function onMapClick(event:MapMouseEvent):void
+            private var gpPending:Boolean = false;
+
+            protected function application_initializeHandler(event:FlexEvent):void
             {
+                IdentityManager.instance.enabled = true;
+            }
+
+            private function myMap_mapClickHandler(event:MapMouseEvent):void
+            {
+                if (gpPending)
+                {
+                    Alert.show("Please be patient while we determine your first analysis", "Drive Time");
+                    return; // a new gp request has been started
+                }
                 myMap.defaultGraphicsLayer.clear();
                 var mapPoint:MapPoint = event.mapPoint;
                 var graphic:Graphic = new Graphic(mapPoint);
@@ -128,42 +154,76 @@
                 featureSet.features = [ graphic ];
                 var params:Object =
                     {
-                        "Input_Location": featureSet,
-                        "Drive_Times": 2
+                        "Facilities": featureSet,
+                        "Break_Values": "2",
+                        "Break_Units": "Minutes"
                     };
 
-                // execute gp task to get the drive time polygon
-                geoprocessorTask.execute(params);
+                // submit gp task job to get the drive time polygon
+                gp.submitJob(params);
+                gpPending = true;
+                progressMessage.showMessage("Determining 2 minute drive time", true);
             }
 
-            private function onGPExecuteComplete(event:GeoprocessorEvent):void
+            protected function gp_faultHandler(event:FaultEvent):void
             {
-                // Note: As of version 2.0, the executeResult property name changed from 'parameterValues' to 'results'
-                var parameterValue:ParameterValue = event.executeResult.results[0];
-                var fset:FeatureSet = FeatureSet(parameterValue.value);
-                var drivetimeGraphic:Graphic = fset.features[0];
-                var symbol:SimpleFillSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, 0xFF0000, 0.1);
-                symbol.outline = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0xFF0000, 1.0, 2);
-                drivetimeGraphic.symbol = symbol;
-                myMap.defaultGraphicsLayer.add(drivetimeGraphic);
-
-                driveTimeGeometries = [];
-                // geometry to be used in finding spatial relationship
-                driveTimeGeometries.push(drivetimeGraphic.geometry);
-
-                //setting the extent of the map to the extent of returned drive time polygon
-                //Note: the zoomTo method was added at version 3.1
-                myMap.zoomTo(drivetimeGraphic.geometry.extent);
-
-                // query the map extent
-                query.geometry = myMap.extent;
-                queryTask.execute(query);
+                Alert.show("This service request an ArcGIS Organizational subscription\nYou can also try the example on the ArcGIS API for Flex Resource Center"
+                           + event.fault.faultString, "Drive Time");
+                progressMessage.clearMessage();
             }
 
-            private function onQueryExecuteComplete(event:QueryEvent):void
+            protected function gp_jobCompleteHandler(event:GeoprocessorEvent):void
+            {
+                if (event.jobInfo.jobStatus == JobInfo.STATUS_SUCCEEDED)
+                {
+                    var jobID:String = event.jobInfo.jobId;
+                    progressMessage.setMessage("Retrieving drive time");
+                    gp.getResultData(gp.submitJobLastResult.jobId, "Service_Areas");
+                }
+                else
+                {
+                    Alert.show(event.jobInfo.jobStatus, "Analysis Status");
+                }
+            }
+
+            protected function gp_getResultDataCompleteHandler(event:GeoprocessorEvent):void
+            {
+                /* The parameterValue property is set when the type is getResultDataComplete,
+                 * getInputComplete or getResultImageComplete.
+                 */
+                if (event.parameterValue)
+                {
+                    progressMessage.showMessage("Retrieving blockgroup points.", true);
+                    var serviceAreas:FeatureSet = event.parameterValue.value as FeatureSet;
+                    var drivetimeGraphic:Graphic = serviceAreas.features[0];
+                    var symbol:SimpleFillSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, 0xFF0000, 0.1);
+                    symbol.outline = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0xFF0000, 1.0, 2);
+                    drivetimeGraphic.symbol = symbol;
+                    myMap.defaultGraphicsLayer.add(drivetimeGraphic);
+
+                    driveTimeGeometries = [];
+                    // geometry to be used in finding spatial relationship
+                    driveTimeGeometries.push(drivetimeGraphic.geometry);
+
+                    //setting the extent of the map to the extent of returned drive time polygon
+                    //Note: the zoomTo method was added at version 3.1
+                    myMap.zoomTo(drivetimeGraphic.geometry.extent);
+
+                    // query the map extent
+                    query.geometry = myMap.extent;
+                    queryTask.execute(query);
+                }
+                else
+                {
+                    Alert.show("Service did not return any results", "Drive Time");
+                    gpPending = false;
+                }
+            }
+
+            private function queryTask_executeCompleteHandler(event:QueryEvent):void
             {
                 var symbol:SimpleMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_SQUARE, 8, 0xFFFF00, 0.5);
-                symbol.outline = new SimpleLineSymbol();
+                symbol.outline = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0xB3B3B3);
 
                 blockPointGeometries = [];
                 var blockpointsFeatureSet:FeatureSet = event.featureSet;
@@ -174,7 +234,7 @@
                     // get the features(geometries) within the current map extent
                     blockPointGeometries.push(blockpointsFeatureSet.features[i].geometry);
                 }
-
+                progressMessage.showMessage("Calculating the relationship between the drive time and blockgroups.", true);
                 calculateSpatialRelationship();
             }
 
@@ -190,7 +250,7 @@
                 geometryService.relation(relationParameters);
             }
 
-            private function relationCompleteHandler(event:GeometryServiceEvent):void
+            private function geometryService_relationCompleteHandler(event:GeometryServiceEvent):void
             {
                 var result:Array = event.result as Array;
                 var graphics:ArrayCollection = ArrayCollection(myMap.defaultGraphicsLayer.graphicProvider);
@@ -211,26 +271,42 @@
                         }
                     }
                 }
-                messages.text = "The total number of features within the drive time polygon are " + (event.result as Array).length + ".";
+                messages.text = "The total number of features within the drive time area are " + (event.result as Array).length + ".";
+                progressMessage.clearMessage();
+                gpPending = false;
+            }
+
+            protected function geometryService_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString, 'GeometryService error');
+                progressMessage.clearMessage();
+                gpPending = false;
+            }
+
+            protected function queryTask_faultHandler(event:FaultEvent):void
+            {
+                Alert.show(event.fault.faultString, 'Census query error');
+                progressMessage.clearMessage();
+                gpPending = false;
             }
         ]]>
     </fx:Script>
 
     <fx:Declarations>
-        <esri:Geoprocessor id="geoprocessorTask"
-                           concurrency="last"
-                           executeComplete="onGPExecuteComplete(event)"
+        <esri:Geoprocessor id="gp"
+                           fault="gp_faultHandler(event)"
+                           getResultDataComplete="gp_getResultDataCompleteHandler(event)"
+                           jobComplete="gp_jobCompleteHandler(event)"
                            outSpatialReference="{myMap.spatialReference}"
-                           showBusyCursor="true"
-                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Network/ESRI_DriveTime_US/GPServer/CreateDriveTimePolygons"
-                           useAMF="false"/>
+                           proxyURL="https://developers.arcgis.com/sproxy/"
+                           url="https://logistics.arcgis.com/arcgis/rest/services/World/ServiceAreas/GPServer/GenerateServiceAreas"/>
 
         <esri:QueryTask id="queryTask"
                         concurrency="last"
-                        executeComplete="onQueryExecuteComplete(event)"
+                        executeComplete="queryTask_executeCompleteHandler(event)"
+                        fault="queryTask_faultHandler(event)"
                         showBusyCursor="true"
-                        url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/0"
-                        useAMF="false"/>
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/0"/>
 
         <esri:Query id="query"
                     outSpatialReference="{myMap.spatialReference}"
@@ -241,8 +317,8 @@
         </esri:Query>
 
         <esri:GeometryService id="geometryService"
-                              fault="Alert.show(event.fault.faultString, 'GeometryService Error')"
-                              relationComplete="relationCompleteHandler(event)"
+                              fault="geometryService_faultHandler(event)"
+                              relationComplete="geometryService_relationCompleteHandler(event)"
                               showBusyCursor="true"
                               url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
 
@@ -274,7 +350,7 @@
                  fontWeight="bold"/>
     </s:controlBarContent>
 
-    <esri:Map id="myMap" mapClick="onMapClick(event)">
+    <esri:Map id="myMap" mapClick="myMap_mapClickHandler(event)">
         <esri:extent>
             <esri:Extent xmin="-10605000" ymin="4712000" xmax="-10601000" ymax="4718000">
                 <esri:SpatialReference wkid="102100"/>
@@ -282,4 +358,42 @@
         </esri:extent>
         <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
     </esri:Map>
+
+    <s:BorderContainer id="driveTime"
+                       backgroundAlpha="0.5"
+                       backgroundColor="0x353930"
+                       borderColor="0x353930"
+                       cornerRadius="5"
+                       horizontalCenter="0"
+                       verticalCenter="0"
+                       visible="{progressMessage.visible}">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <components:ProgressMessage id="progressMessage" textColor="0xE6E6E6"/>
+    </s:BorderContainer>
+
+    <s:BorderContainer id="Search"
+                       width="250"
+                       right="20" top="20"
+                       backgroundAlpha="0.5"
+                       backgroundColor="0x353930"
+                       borderColor="0x353930"
+                       cornerRadius="5">
+        <s:layout>
+            <s:HorizontalLayout horizontalAlign="center"
+                                paddingBottom="5"
+                                paddingLeft="5"
+                                paddingRight="5"
+                                paddingTop="5"/>
+        </s:layout>
+
+        <esri:Geocoder width="100%"
+                       map="{myMap}"
+                       prompt="Where do you want to go?"/>
+    </s:BorderContainer>
 </s:Application>

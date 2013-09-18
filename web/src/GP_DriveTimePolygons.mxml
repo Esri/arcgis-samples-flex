@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
-               xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               initialize="application_initializeHandler(event)"
                pageTitle="Service Area">
     <!--
     Description:
-    This sample demonstrates how you can use a geoprocessing service to expose
-    ArcGIS Network Analyst for Server functionality, specifically service area analysis.
+    This sample demonstrates how you can use an ArcGIS Online geoprocessing service
+    to determines network service areas around facilities, specifically service area analysis.
+
+    Attention:
+    To use this sample locally, delete the following line 'proxyURL="https://developers.arcgis.com/sproxy/"'
+    from the '<esri:Geoprocessor id="gp"' task in the Declarations section.
+    Note: Requires an ArcGIS Online Organizational subscription.
+
     This sample is setup so that computeServiceArea function is called
     when the map is clicked.
     <esri:Map click="computeServiceArea(event)">
@@ -35,8 +43,7 @@
     For more information, see the API documentation.
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#submitJob()
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ParameterValue.html
 
     ArcGIS REST API documentation:
@@ -66,28 +73,43 @@
 
     ArcGIS Network Analyst:
     Service Area Analysis
-    http://resources.arcgis.com/en/help/main/10.1/index.html#/Service_area_analysis/004700000048000000/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/#/Service_Area_service_with_asynchronous_execution/02r3000000n0000000/
+    http://logistics.arcgis.com/arcgis/rest/directories/arcgisoutput/World/ServiceAreas_GPServer/World_ServiceAreas/GenerateServiceAreas.htm
     -->
 
     <fx:Script>
         <![CDATA[
             import com.esri.ags.FeatureSet;
             import com.esri.ags.Graphic;
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.events.GeoprocessorEvent;
             import com.esri.ags.events.MapMouseEvent;
             import com.esri.ags.geometry.MapPoint;
-            import com.esri.ags.tasks.supportClasses.ExecuteResult;
-            import com.esri.ags.tasks.supportClasses.ParameterValue;
+            import com.esri.ags.symbols.SimpleLineSymbol;
+            import com.esri.ags.symbols.SimpleMarkerSymbol;
+            import com.esri.ags.tasks.supportClasses.JobInfo;
 
             import mx.controls.Alert;
-            import mx.rpc.AsyncResponder;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
 
             private var driveTimes:String = "1 2 3";
+            private var driveTimeUnits:Array = [ "Seconds", "Minutes", "Hours", "Days",
+                                                 "Meters", "Kilometers", "Feet", "Yards",
+                                                 "Miles", "Nautical Miles" ];
+
+            protected function application_initializeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+            }
 
             private function computeServiceArea(mapPoint:MapPoint):void
             {
                 graphicsLayer.clear();
 
-                var graphic:Graphic = new Graphic(mapPoint, sms_circleAlphaSizeOutline);
+                var graphic:Graphic = new Graphic(mapPoint);
+                graphic.symbol = new SimpleMarkerSymbol("cross", 10, 0, 1, 0, 0, 0, new SimpleLineSymbol("solid", 0, 1, 2));
+                graphic.attributes = { Name: "My Facility" };
 
                 graphicsLayer.add(graphic);
 
@@ -95,46 +117,78 @@
 
                 var params:Object =
                     {
-                        "Input_Location": featureSet,
-                        "Drive_Times": driveTimes
+                        "Facilities": featureSet,
+                        "Break_Values": driveTimes,
+                        "Break_Units": driveTimeUnits[1]
                     };
 
-                gp.execute(params, new AsyncResponder(onResult, onFault));
+                gp.submitJob(params);
+            }
 
-                function onResult(gpResult:ExecuteResult, token:Object = null):void
+            private function myMap_mapClickHandler(event:MapMouseEvent):void
+            {
+                progressMessage.showMessage("Determining drive times", true);
+                computeServiceArea(event.mapPoint);
+            }
+
+            protected function gp_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("This service request an ArcGIS Organizational subscription\nYou can also try the example on the ArcGIS API for Flex Resource Center"
+                           + event.fault.faultString, "Drive Time Message");
+                progressMessage.clearMessage();
+            }
+
+            protected function gp_jobCompleteHandler(event:GeoprocessorEvent):void
+            {
+                if (event.jobInfo.jobStatus == JobInfo.STATUS_SUCCEEDED)
                 {
-                    var pv:ParameterValue = gpResult.results[0];
-                    var fs:FeatureSet = pv.value as FeatureSet;
-                    graphicsLayer.graphicProvider = fs.features;
+                    var jobID:String = event.jobInfo.jobId;
+                    progressMessage.setMessage("Retrieving drive times");
+                    gp.getResultData(gp.submitJobLastResult.jobId, "Service_Areas");
                 }
-                function onFault(info:Object, token:Object = null):void
+                else
                 {
-                    Alert.show(info.toString());
+                    Alert.show(event.jobInfo.jobStatus, "Analysis Status");
                 }
             }
 
-            private function mapClickHandler(event:MapMouseEvent):void
+            protected function gp_getResultDataCompleteHandler(event:GeoprocessorEvent):void
             {
-                computeServiceArea(event.mapPoint);
+                /* The parameterValue property is set when the type is getResultDataComplete,
+                 * getInputComplete or getResultImageComplete.
+                 */
+                if (event.parameterValue)
+                {
+                    var serviceAreas:FeatureSet = event.parameterValue.value as FeatureSet;
+                    graphicsLayer.graphicProvider = serviceAreas.features;
+                    //Note: the zoomTo method was added at version 3.1
+                    myMap.zoomTo(serviceAreas.features[0].geometry.extent);
+                    progressMessage.clearMessage();
+                }
+                else
+                {
+                    Alert.show("Service did not return any results", "Drive times message");
+                }
             }
         ]]>
     </fx:Script>
 
     <fx:Declarations>
-        <esri:SimpleMarkerSymbol id="sms_circleAlphaSizeOutline"
-                                 alpha="0.5"
-                                 size="15"
-                                 style="circle"/>
-
         <esri:SimpleFillSymbol id="rFill"
                                alpha="0.5"
-                               color="0xFF0000"/>
+                               color="0xCA0013">
+            <esri:SimpleLineSymbol color="0xB3B3B3"/>
+        </esri:SimpleFillSymbol>
         <esri:SimpleFillSymbol id="gFill"
                                alpha="0.5"
-                               color="0x00FF00"/>
+                               color="0x008000">
+            <esri:SimpleLineSymbol color="0xB3B3B3"/>
+        </esri:SimpleFillSymbol>
         <esri:SimpleFillSymbol id="bFill"
                                alpha="0.5"
-                               color="0x0000FF"/>
+                               color="0x0080FF">
+            <esri:SimpleLineSymbol color="0xB3B3B3"/>
+        </esri:SimpleFillSymbol>
 
         <esri:UniqueValueRenderer id="uniqueValueRenderer" field="ToBreak">
             <esri:UniqueValueInfo symbol="{rFill}" value="1"/>
@@ -143,28 +197,65 @@
         </esri:UniqueValueRenderer>
 
         <esri:Geoprocessor id="gp"
+                           fault="gp_faultHandler(event)"
+                           getResultDataComplete="gp_getResultDataCompleteHandler(event)"
+                           jobComplete="gp_jobCompleteHandler(event)"
                            outSpatialReference="{myMap.spatialReference}"
-                           showBusyCursor="true"
-                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Network/ESRI_DriveTime_US/GPServer/CreateDriveTimePolygons"
-                           useAMF="false"/>
+                           proxyURL="https://developers.arcgis.com/sproxy/"
+                           url="https://logistics.arcgis.com/arcgis/rest/services/World/ServiceAreas/GPServer/GenerateServiceAreas"/>
     </fx:Declarations>
 
     <s:controlBarContent>
         <s:RichText width="100%">
-            This sample demonstrates how you can use a geoprocessing service to expose
-            ArcGIS Network Analyst for Server functionality, specifically service area analysis.
+            This sample demonstrates how you can use an ArcGIS Online geoprocessing service 
+            to determines network service areas around facilities, specifically service area analysis.
             Click anywhere on the map to calculate a 1, 2, and 3 minute drive time from the click location.
         </s:RichText>
     </s:controlBarContent>
 
-    <esri:Map id="myMap" mapClick="mapClickHandler(event)">
+    <esri:Map id="myMap" mapClick="myMap_mapClickHandler(event)">
         <esri:extent>
-            <esri:Extent xmin="-10621000" ymin="4701000" xmax="-10586000" ymax="4731000">
-                <esri:SpatialReference wkid="102100"/>
-            </esri:Extent>
+            <esri:WebMercatorExtent minlon="-122.515953" minlat="37.160194" maxlon="-121.595848" maxlat="37.704346"/>
         </esri:extent>
         <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
         <esri:GraphicsLayer id="graphicsLayer" renderer="{uniqueValueRenderer}"/>
     </esri:Map>
+    <s:BorderContainer id="driveTime"
+                       backgroundAlpha="0.5"
+                       backgroundColor="0x353930"
+                       borderColor="0x353930"
+                       cornerRadius="5"
+                       horizontalCenter="0"
+                       verticalCenter="0"
+                       visible="{progressMessage.visible}">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
 
+        <components:ProgressMessage id="progressMessage" textColor="0xE6E6E6"/>
+    </s:BorderContainer>
+
+    <s:BorderContainer id="Search"
+                       width="250"
+                       right="20" top="20"
+                       backgroundAlpha="0.5"
+                       backgroundColor="0x353930"
+                       borderColor="0x353930"
+                       cornerRadius="5">
+        <s:layout>
+            <s:HorizontalLayout horizontalAlign="center"
+                                paddingBottom="5"
+                                paddingLeft="5"
+                                paddingRight="5"
+                                paddingTop="5"/>
+        </s:layout>
+
+        <esri:Geocoder width="100%"
+                       map="{myMap}"
+                       prompt="Where do you want to go?"/>
+    </s:BorderContainer>
 </s:Application>
