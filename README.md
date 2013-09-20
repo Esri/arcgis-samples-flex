@@ -17,6 +17,10 @@ This is the source code for all the [samples](https://developers.arcgis.com/en/f
 * [Flex API forum](http://forums.arcgis.com/forums/18-ArcGIS-API-for-Flex)
 * [ArcGIS Blog](http://blogs.esri.com/esri/arcgis/tag/flex/)
 
+## Contributing
+
+Anyone and everyone is welcome to [contribute](CONTRIBUTING.md).
+
 ## License
 Copyright 2012-2013 Esri
 
