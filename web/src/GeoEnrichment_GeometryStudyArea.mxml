@@ -1,0 +1,801 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               initialize="application_initializeHandler(event)"
+               pageTitle="Enriching a location">
+
+    <!--
+    Description:
+    This sample demonstrates how the GeoEnrichment service uses the concept of a study area to define
+    the location of a point or area that you want to enrich with additional information.  The service
+    will create a 1-mile ring buffer by default around the point to collect and append enrichment data.
+
+    How this sample works:
+    First, sample countries within the GeoEnrichment service coverage area are loaded from a json file
+    in the assets folder (these were randomly generated, they are just within the coverage area).
+    Next, when a user selects one of those countries from the list; it is geocoded using the world locator
+    service.  Then that location is used to intersect the GeoEnrichment service to determine the countryId
+    for that location. (e.g., You select a country in Austria, it should find and set the countryId to AT).
+    After the countryId has been determined, it is used to retrieve the datasets for the current country
+    (geoEnrichmentTask.getStandardGeographyCountries(_countryId)) and the data collections for the current
+    country (geoEnrichmentTask.getDataCollections(_countryId)).  Currently most countries only have one dataset,
+    but in the United States there are multiple datasets.  The data collections contain all the variables that can
+    be used to enrich the geography.
+    Finally, once the variables are selected and the user clicks the 'Enrich' button the variableIds are used
+    as input to the EnrichParameters.  The enrich request is sent to determine the information to append to
+    the location using data and information from the GeoEnrichment service.
+
+    Note:
+    To use this sample locally, delete the following line 'proxyURL="https://developers.arcgis.com/sproxy/"'
+    from the '<esri:GeoEnrichmentTask' component.
+    Removing the proxyURL will force the IdentityManager to prompt for credentials to access the services.
+
+    Attention:
+    GeoEnrichment is a subscription based service available through ArcGIS Online.
+    Log-in credentials are always required when executing a GeoEnrichment task.
+    For demo purposes, this sample uses a proxy to bypass the login credentials.
+
+    Documentation:
+    For more information, see the API documentation.
+   https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/IdentityManager.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Geometry.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/WebMercatorMapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/Field.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/PopUpRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpFieldFormat.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpFieldInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeoEnrichmentTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/StandardGeographyQueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/Country.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/DataCollection.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/EnrichResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/EnrichVariable.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyQuery.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyCountry.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyDataset.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyQueryBase.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/SubGeographyQuery.html
+
+    ArcGIS Developers documentation:
+    https://developers.arcgis.com/en/features/geo-enrichment/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/GeoEnrichment_Service_Overview/02r30000021r000000/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/Input_XY_locations/02r300000006000000/
+
+    This sample also uses the following files:
+    com\esri\ags\samples\skins\GeoEnrichmentPopUpRendererSkin.mxml
+    com\esri\ags\samples\skins\SimpleNavigationSkin.mxml
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace esri "http://www.esri.com/2008/ags";
+        
+        s|BorderContainer
+        {
+            dropShadowVisible: true;
+            borderVisible: false;
+            backgroundColor: #F9F9F9;
+            backgroundAlpha: 0.8;
+        }
+        s|List
+        {
+            selectionColor: #EEEEEE;
+            focusColor: #D3D1D1;
+            borderColor: #D3D1D1;
+            rollOverColor: #EEEEEE;
+        }
+        mx|ToolTip
+        {
+            fontSize: 12;
+            color: #000000;
+            backgroundColor: #F9F9F9;
+            paddingLeft: 10; 
+            paddingRight: 10; 
+            paddingTop: 10;
+            paddingBottom: 10;
+        }
+        esri|ContentNavigator
+        {
+            headerBackgroundAlpha: 0;
+            headerColor: #000000;
+        }
+        esri|InfoWindow
+        {
+            border-thickness: 1;
+            borderColor: #666666;
+            background-color: #F9F9F9;
+            backgroundAlpha: 1;
+            font-size: 12;
+            upper-left-radius: 5;
+            upper-right-radius: 0;
+            info-placement: left;
+            info-offset-y: 20;
+            shadowAlpha: 0.6;
+            shadowDistance: 10;
+        }
+        esri|PopUpRenderer
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.GeoEnrichmentPopUpRendererSkin");
+        }
+        esri|Navigation
+        {
+            skinClass:ClassReference("com.esri.ags.samples.skins.SimpleNavigationSkin");
+        }
+        
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.components.ContentNavigator;
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.events.GeoEnrichmentEvent;
+            import com.esri.ags.events.LocatorEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.supportClasses.Field;
+            import com.esri.ags.portal.PopUpRenderer;
+            import com.esri.ags.portal.supportClasses.PopUpFieldFormat;
+            import com.esri.ags.portal.supportClasses.PopUpFieldInfo;
+            import com.esri.ags.portal.supportClasses.PopUpInfo;
+            import com.esri.ags.tasks.geoEnrichmentClasses.DataCollection;
+            import com.esri.ags.tasks.geoEnrichmentClasses.EnrichParameters;
+            import com.esri.ags.tasks.geoEnrichmentClasses.EnrichResult;
+            import com.esri.ags.tasks.geoEnrichmentClasses.EnrichVariable;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeographyCountry;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeographyDataset;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeometryStudyArea;
+            import com.esri.ags.tasks.supportClasses.AddressCandidate;
+            import com.esri.ags.tasks.supportClasses.AddressToLocationsParameters;
+            import com.esri.ags.utils.JSONUtil;
+            import com.esri.ags.utils.WebMercatorUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.collections.ArrayList;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.events.FaultEvent;
+            import mx.rpc.events.ResultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            private var geographiesArrayList:ArrayList = new ArrayList();
+
+            [Bindable]
+            private var sourceCountryDisplayName:String = "";
+            private var selectedGeography:Object = {};
+            [Bindable]
+            private var standardGeographiesReady:Boolean = false;
+            [Bindable]
+            private var dataCollectionsReady:Boolean = false;
+            private var geoEnrichmentInProgress:Boolean = false;
+
+            private var infoWindowHiddenFields:Array = [ "areaType", "bufferRadii", "bufferUnits", "ID", "sourceCountry", "OBJECTID", "ObjectId" ];
+
+            protected function application_initializeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+                generateDataService.send();
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  GeoEnrichment service calls
+            //
+            //--------------------------------------------------------------------------
+            protected function calculateIntersectingCountries():void
+            {
+                var findCountryGeometryStudyArea:GeometryStudyArea = new GeometryStudyArea();
+                findCountryGeometryStudyArea.geometry = selectedGeography['mapPoint'] as MapPoint;
+                var enrichParameters:EnrichParameters = new EnrichParameters();
+                enrichParameters.variableIds = [ "GlobalIntersect.*" ];
+                enrichParameters.studyAreas = [ findCountryGeometryStudyArea ];
+                enrichParameters.forStorage = false;
+
+                geoEnrichmentTask.enrich(enrichParameters, new AsyncResponder(getIntersectingCountriesCompleteHandler, getIntersectingCountriesFaultHandler));
+
+                progressMessage.showMessage("Determining the country identifier", true);
+
+                function getIntersectingCountriesCompleteHandler(enrichResult:EnrichResult, token:Object = null):void
+                {
+
+                    var countries:Array = [];
+                    var features:Array = enrichResult.featureSets[0].features;
+                    for (var i:int = 0, n:int = features.length; i < n; i++) {
+                        var countryId:String = features[i].attributes["sourceCountry"];
+                        if (countries.indexOf(countries, countryId) < 0) {
+                            countries.push(countryId);
+                        }
+                    }
+                    if (countries.length > 0)
+                    {
+                        var _countryId:String = countries[0];
+                        selectedGeography['countryId'] = _countryId;
+
+                        progressMessage.showMessage("Retrieving datasets for " + sourceCountryDisplayName, true);
+                        //make the service calls
+                        geoEnrichmentTask.getStandardGeographyCountries(_countryId);
+                        geoEnrichmentTask.getDataCollections(_countryId);
+                    }
+                    else
+                    {
+                        Alert.show("Currently the geoenrichment service doesn't have data for " + sourceCountryDisplayName, "GeoEnrichment Service error");
+                        progressMessage.clearMessage();
+                    }
+                }
+
+                function getIntersectingCountriesFaultHandler(error:Object, token:Object = null):void
+                {
+                    //e.g., Error ID 110004. Invalid value (KE) for usedata.SourceCountry. Parameter:'usedata'.
+                    if (error.faultCode == 110004)
+                    {
+                        Alert.show("Currently the geoenrichment service doesn't have data for " + sourceCountryDisplayName, "GeoEnrichment Service error");
+                    }
+                    else
+                    {
+                        Alert.show("Something bad happened when determining the country identifier." + "\n" + error.faultString, "GeoEnrichment Service error");
+                    }
+                    progressMessage.clearMessage();
+                }
+
+            }
+
+            protected function geoEnrichmentTask_getStandardGeographyCountriesCompleteHandler(event:GeoEnrichmentEvent):void
+            {
+                progressMessage.showMessage("Determining standard geographies for " + sourceCountryDisplayName, true);
+                var geographyCountryArray:Array = event.standardGeographyCountries as Array;
+                if (geographyCountryArray.length > 0)
+                {
+                    //assume that we're at a level where there is only one Geography Country returned
+                    var geographyCountry:GeographyCountry = geographyCountryArray[0] as GeographyCountry;
+                    //currently only Canada and the US have multiple datasets
+                    var _countryName:String = geographyCountry.name.toLowerCase();
+                    if (_countryName == "united states")
+                    {
+                        var geographyDataset:GeographyDataset;
+                        for (var i:int = 0; i < geographyCountry.datasets.length; i++)
+                        {
+                            geographyDataset = geographyCountry.datasets[i] as GeographyDataset;
+                            //get this specific dataset for the US (LANDSCAPE,USA_ESRI_2013,USA_ESRI_BSDB_2013,USA_ESRI_RMP_2013)
+                            if (String(geographyDataset.datasetId).toLocaleLowerCase() == "usa_esri_2013" && _countryName == "united states")
+                            {
+                                //datasetId - String and geographyLayers - array of GeographyLayer
+                                selectedGeography['geographyDataset'] = geographyDataset;
+                                break;
+                            }
+                        }
+                        selectedGeography['isCountryUnitedStates'] = true;
+                    }
+                    else
+                    {
+                        selectedGeography['geographyDataset'] = geographyCountry.datasets[0];
+                        selectedGeography['isCountryUnitedStates'] = false;
+                    }
+                    standardGeographiesReady = true;
+                }
+                if (dataCollectionsReady && standardGeographiesReady)
+                {
+                    progressMessage.clearMessage();
+                }
+            }
+
+            protected function geoEnrichmentTask_getDataCollectionsCompleteHandler(event:GeoEnrichmentEvent):void
+            {
+                progressMessage.showMessage("Determining data collection information for " + sourceCountryDisplayName, true);
+                var dataCollectionsArray:Array = event.dataCollections;
+                if (dataCollectionsArray.length > 0)
+                {
+                    var analysisVariablesArray:Array = [];
+                    var analysisVariablesChoicesArray:Array = [];
+
+                    var dataCollection:DataCollection;
+                    for (var i:int = 0; i < dataCollectionsArray.length; i++)
+                    {
+                        var dataCollectionId:String = DataCollection(dataCollectionsArray[i]).id;
+                        var dataCollectionTitle:String = DataCollection(dataCollectionsArray[i]).metadata.title;
+                        dataCollection = DataCollection(dataCollectionsArray[i]);
+                        for (var j:int = 0; j < dataCollection.variables.length; j++)
+                        {
+                            //fields array of type field : name,type,alias
+                            analysisVariablesArray.push(dataCollectionId + "." + EnrichVariable(dataCollection.variables[j]).id);
+                            analysisVariablesChoicesArray.push(
+                                { data: DataCollection(dataCollectionsArray[i]).id + "." + EnrichVariable(dataCollection.variables[j]).id,
+                                    labelPre: EnrichVariable(dataCollection.variables[j]).alias,
+                                    labelPost: "(" + dataCollectionTitle + ")",
+                                    category: dataCollectionId });
+
+                        }
+                    }
+                    selectedGeography['analysisVariablesArray'] = analysisVariablesArray;
+                    dataCollectionsReady = true;
+                    enrichmentParametersAnalysisVariablesList.dataProvider = new ArrayCollection(analysisVariablesChoicesArray);
+                }
+                if (dataCollectionsReady && standardGeographiesReady)
+                {
+                    progressMessage.clearMessage();
+                }
+            }
+
+            protected function geoEnrichButton_clickHandler(event:MouseEvent):void
+            {
+                if (enrichmentParametersAnalysisVariablesList.selectedItems.length > 5)
+                {
+                    var msg:String = "Please limit the number of variables to five or less.";
+                    msg += "\nYou have selected: (" + enrichmentParametersAnalysisVariablesList.selectedItems.length + ") variables";
+                    Alert.show(msg, "GeoEnrichment Sample Warning");
+                    return;
+                }
+                if (enrichmentParametersAnalysisVariablesList.selectedItems.length == 0)
+                {
+                    Alert.show("Please select at least one variable", "GeoEnrichment Sample Warning");
+                    return;
+                }
+                var enrichParameters:EnrichParameters = new EnrichParameters();
+                var geometryStudyArea:GeometryStudyArea = new GeometryStudyArea(selectedGeography['mapPoint']);
+                geometryStudyArea.returnGeometry = true;
+                geometryStudyArea.comparisonGeographyLevels = [ GeographyDataset(selectedGeography['geographyDataset']).geographyLayers ];
+
+                enrichParameters.countryId = selectedGeography['countryId'];
+
+                /*
+                 * Since the US has multiple datasets, and variables can span multiple datasets
+                 * just don't set the dataset id for the US.
+                 * So, if the country isn't the United States then actually set the datasetId.
+                 * If someone selects variables from to different US datasets the request will succeed.
+                 */
+                if (!selectedGeography['isCountryUnitedStates'])
+                {
+                    enrichParameters.datasetId = GeographyDataset(selectedGeography['geographyDataset']).datasetId;
+                }
+                enrichParameters.inSpatialReference = MapPoint(selectedGeography['mapPoint']).spatialReference;
+                enrichParameters.studyAreas = [ geometryStudyArea ];
+                enrichParameters.outSpatialReference = map.spatialReference;
+
+                if (enrichmentParametersAnalysisVariablesList.selectedItems.length > 0)
+                {
+                    var selectedUserVariables:Array = [];
+                    var selectedItems:Vector.<Object> = enrichmentParametersAnalysisVariablesList.selectedItems as Vector.<Object>;
+                    for each (var value:Object in selectedItems)
+                    {
+                        if (value)
+                        {
+                            //e.g., KeyGlobalFacts.AVGHHSZ
+                            selectedUserVariables.push(value.data);
+                        }
+                    }
+                    enrichParameters.variableIds = selectedUserVariables;
+                }
+                else
+                {
+                    enrichParameters.variableIds = selectedGeography['analysisVariablesArray'];
+                }
+                if (!geoEnrichmentInProgress)
+                {
+                    progressMessage.showMessage("Enriching the " + selectedGeography['searchDisplayResult'] + " study area", true);
+                    geoEnrichmentInProgress = true;
+                    geoEnrichmentTask.enrich(enrichParameters);
+                }
+            }
+
+            protected function geoEnrichmentTask_enrichCompleteHandler(event:GeoEnrichmentEvent):void
+            {
+                map.infoWindow.hide();
+                graphicsLayer.clear();
+                geoEnrichmentInProgress = false;
+                var enrichResult:EnrichResult = event.enrichResult;
+                if (enrichResult.featureSets.length > 0)
+                {
+                    var contentNavigator:ContentNavigator = map.infoWindow.content as ContentNavigator;
+                    if (!contentNavigator)
+                    {
+                        contentNavigator = new ContentNavigator();
+                        map.infoWindow.content = contentNavigator;
+                    }
+
+                    var enrichResultFeatureSet:FeatureSet = enrichResult.featureSets[0];
+                    var geoEnrichGraphic:Graphic = new Graphic(enrichResultFeatureSet.features[0].geometry, geoEnrichSFS, enrichResultFeatureSet.features[0].attributes);
+                    if (geoEnrichGraphic.geometry)
+                    {
+
+                        geoEnrichGraphic.infoWindowRenderer = createInfoWindowRenderer(enrichResultFeatureSet.fields, "", selectedGeography['searchDisplayResult']);
+                        contentNavigator.dataProvider = new ArrayList([ geoEnrichGraphic ]);
+                        graphicsLayer.add(geoEnrichGraphic);
+
+                        var locationCentroid:MapPoint = new MapPoint();
+                        (geoEnrichGraphic.geometry is MapPoint ? locationCentroid = geoEnrichGraphic.geometry as MapPoint : locationCentroid = geoEnrichGraphic.geometry.extent.center)
+
+                        map.infoWindow.show(geoEnrichGraphic.geometry is MapPoint ? geoEnrichGraphic.geometry as MapPoint : geoEnrichGraphic.geometry.extent.center);
+                    }
+                }
+                progressMessage.clearMessage();
+            }
+
+            protected function geoEnrichmentTask_faultHandler(event:FaultEvent):void
+            {
+                if (event.fault.faultCode == "110004")
+                {
+                    Alert.show("Currently the geoenrichment service doesn't have data for " + sourceCountryDisplayName, "GeoEnrichment Service error");
+                }
+                else
+                {
+                    Alert.show("Something bad happened when determining the country identifier." + "\n" + event.fault.faultString, "GeoEnrichment Service error");
+                }
+                standardGeographiesReady = false;
+                dataCollectionsReady = false;
+                geoEnrichmentInProgress = false;
+                progressMessage.clearMessage();
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  World locator service calls
+            //
+            //--------------------------------------------------------------------------
+            protected function worldLocator_addressToLocationsCompleteHandler(event:LocatorEvent):void
+            {
+                var resultAddresses:Array = event.addressCandidates as Array;
+                if (resultAddresses.length > 0)
+                {
+                    standardGeographiesReady = false;
+                    dataCollectionsReady = false;
+
+                    map.infoWindow.visible = false;
+                    map.defaultGraphicsLayer.clear();
+                    graphicsLayer.clear();
+
+                    var addressCandidate:AddressCandidate = resultAddresses[0] as AddressCandidate;
+                    var resultGeographicExtent:Extent = new Extent(addressCandidate.attributes['Xmin'], addressCandidate.attributes['Ymin'], addressCandidate.attributes['Xmax'], addressCandidate.attributes['Ymax'], new SpatialReference(4326));
+                    var resultExtent:Extent = WebMercatorUtil.geographicToWebMercator(resultGeographicExtent) as Extent;
+                    map.extent = resultExtent;
+                    sourceCountryDisplayName = addressCandidate.address as String;
+                    selectedGeography['searchDisplayResult'] = addressCandidate.address as String;
+                    var mapPoint:MapPoint = addressCandidate.location as MapPoint;
+                    selectedGeography['mapPoint'] = mapPoint;
+                    var graphic:Graphic = new Graphic(mapPoint, cs);
+
+                    map.defaultGraphicsLayer.add(graphic);
+                    offsetMap(mapPoint);
+                    //make the service call
+                    calculateIntersectingCountries();
+                }
+            }
+
+            protected function worldLocator_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Something bad happened when determining the geography you selected." + "\n" + event.fault.faultString, "World Locator Service error");
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  UI event handlers
+            //
+            //--------------------------------------------------------------------------
+            protected function geographyDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedGeography:Object = DropDownList(event.currentTarget).selectedItem.data;
+                selectedGeography['selectedCountry'] = selectedGeography;
+                var searchString:String = "";
+                if (String(selectedGeography['COUNTRY']).toLowerCase() == "united states")
+                {
+                    searchString = selectedGeography['CITY'] + ', ' + selectedGeography['REGION'];
+                }
+                else if (String(selectedGeography['COUNTRY']).toLowerCase() == "canada")
+                {
+                    searchString = selectedGeography['CITY'] + ', ' + selectedGeography['REGION'];
+                }
+                else
+                {
+                    searchString = selectedGeography['CITY'];
+                }
+
+                var selectedAddress:AddressToLocationsParameters = new AddressToLocationsParameters();
+                selectedAddress.sourceCountry = selectedGeography['COUNTRY'];
+                selectedAddress.address = { "SingleLine": searchString };
+                selectedAddress.outFields = [ "Ymax", "Ymin", "Xmax", "Xmin" ];
+                selectedAddress.searchExtent = locatorExtent;
+                progressMessage.showMessage("Searching for " + searchString, true);
+                worldLocator.addressToLocations(selectedAddress);
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  Load psuedo data calls
+            //
+            //--------------------------------------------------------------------------
+            protected function generateDataService_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Unable to load json from sample dataset", "GeoEnrichment sample countries");
+            }
+
+            protected function generateDataService_resultHandler(event:ResultEvent):void
+            {
+                var data:String = event.result as String;
+                var dataArray:Array = JSONUtil.decode(data) as Array;
+                dataArray.sortOn('COUNTRY');
+                //JSON data object representing the structure in the json file.
+                var dataObject:Object;
+                for (var i:int = 0; i < dataArray.length; i++)
+                {
+                    dataObject = dataArray[i] as Object;
+                    if (String(dataObject['COUNTRY']).toLowerCase() == "united states" || String(dataObject['COUNTRY']).toLowerCase() == "canada")
+                    {
+                        geographiesArrayList.addItem({ data: dataObject, label: dataObject['CITY'] + ', ' + dataObject['REGION'] + ', ' + dataObject['COUNTRY'],
+                                                         labelPre: dataObject['CITY'] + ', ' + dataObject['REGION'], labelPost: dataObject['COUNTRY']});
+                    }
+                    else
+                    {
+                        geographiesArrayList.addItem({ data: dataObject, label: dataObject['CITY'] + ', ' + dataObject['COUNTRY'],
+                                                         labelPre: dataObject['CITY'], labelPost: dataObject['COUNTRY']});
+                    }
+                }
+                geographyDropDownList.dataProvider = geographiesArrayList;
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  Helper function to create popup content
+            //
+            //--------------------------------------------------------------------------
+            protected function createInfoWindowRenderer(infoWindowFields:Array, infoWindowTitleField:String = "", infoWindowTitle:String = ""):ClassFactory
+            {
+                var popUpFieldInfosArray:Array = [];
+
+                var titleFieldName:String = "sourceCountry";
+                var popUpFieldFormat:PopUpFieldFormat = new PopUpFieldFormat();
+
+                for (var i:int = 0; i < infoWindowFields.length; i++)
+                {
+                    var field:Field = infoWindowFields[i] as Field;
+
+                    if (field.name.toLowerCase() == infoWindowTitleField.toLowerCase())
+                    {
+                        titleFieldName = field.name;
+                    }
+                    if (infoWindowHiddenFields.indexOf(field.name) < 0)
+                    {
+                        // Create the pop-up field infos for each field you want in the pop-up
+                        var popUpFieldInfo:PopUpFieldInfo = new PopUpFieldInfo();
+                        popUpFieldInfo.fieldName = field.name;
+                        popUpFieldInfo.label = field.alias;
+                        popUpFieldInfo.format = popUpFieldFormat;
+                        popUpFieldInfo.visible = true;
+
+                        popUpFieldInfosArray.push(popUpFieldInfo);
+                    }
+                }
+
+                // Create the pop-up info
+                var popUpInfo:PopUpInfo = new PopUpInfo();
+                // Tell the pop-up info about the field name template
+                if (infoWindowTitleField != "")
+                {
+                    popUpInfo.title = "{" + titleFieldName + "}";
+                }
+                else
+                {
+                    popUpInfo.title = infoWindowTitle;
+                }
+                popUpInfo.popUpFieldInfos = popUpFieldInfosArray;
+                popUpInfo.showZoomToButton = false;
+
+                // Create the class factory 
+                var popUpRenderer:ClassFactory = new ClassFactory(PopUpRenderer);
+                // Set the "popUpInfo" key
+                popUpRenderer.properties = { "popUpInfo": popUpInfo, "width": 300, "maxHeight": 500 };
+
+                return popUpRenderer;
+            }
+
+            protected function offsetMap(currentLocation:MapPoint):void
+            {
+                var newX:Number = (map.extent.xmax + currentLocation.x) * 0.5;
+                var offsetMapPoint:MapPoint = new MapPoint(newX, currentLocation.y);
+                map.centerAt(offsetMapPoint);
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <s:HTTPService id="generateDataService"
+                       fault="generateDataService_faultHandler(event)"
+                       result="generateDataService_resultHandler(event)"
+                       showBusyCursor="true"
+                       url="assets/geography_data.json"/>
+
+        <esri:GeoEnrichmentTask id="geoEnrichmentTask"
+                                enrichComplete="geoEnrichmentTask_enrichCompleteHandler(event)"
+                                fault="geoEnrichmentTask_faultHandler(event)"
+                                getDataCollectionsComplete="geoEnrichmentTask_getDataCollectionsCompleteHandler(event)"
+                                getStandardGeographyCountriesComplete="geoEnrichmentTask_getStandardGeographyCountriesCompleteHandler(event)"
+                                proxyURL="https://developers.arcgis.com/sproxy"/>
+
+        <esri:Locator id="worldLocator"
+                      addressToLocationsComplete="worldLocator_addressToLocationsCompleteHandler(event)"
+                      fault="worldLocator_faultHandler(event)"
+                      outSpatialReference="{map.spatialReference}"
+                      url="http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"/>
+
+        <!-- Tell the World Locator to always search using the extent of the world. -->
+        <esri:Extent id="locatorExtent"
+                     xmin="-27137807.614208" ymin="-15910742.567338" xmax="25304108.751672" ymax="23146744.397698">
+            <esri:SpatialReference wkid="3857"/>
+        </esri:Extent>
+
+        <esri:CompositeSymbol id="cs">
+            <esri:SimpleMarkerSymbol alpha="0.5"
+                                     color="0xCCCCCC"
+                                     size="35"
+                                     style="circle">
+                <esri:outline>
+                    <esri:SimpleLineSymbol width="2" color="0x8A8A8A"/>
+                </esri:outline>
+            </esri:SimpleMarkerSymbol>
+            <esri:SimpleMarkerSymbol alpha="0.5"
+                                     color="0x999999"
+                                     size="20"
+                                     style="circle">
+                <esri:outline>
+                    <esri:SimpleLineSymbol width="2" color="0x7F7F7F"/>
+                </esri:outline>
+            </esri:SimpleMarkerSymbol>
+            <esri:SimpleMarkerSymbol angle="45"
+                                     color="0xE6E6E6"
+                                     size="8"
+                                     style="cross">
+                <esri:SimpleLineSymbol width="2" color="0xE6E6E6"/>
+            </esri:SimpleMarkerSymbol>
+        </esri:CompositeSymbol>
+
+        <esri:SimpleFillSymbol id="geoEnrichSFS"
+                               alpha="0.2"
+                               color="0x999999">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="2" color="0x7F7F7F"/>
+            </esri:outline>
+        </esri:SimpleFillSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how the GeoEnrichment service uses the concept of a study area to define
+            the location of a point or area that you want to enrich with additional information.  The service
+            will create a 1-mile ring buffer by default around the point to collect and append enrichment data.
+            Select a geography from the list.  Next, select up to five variables to enrich the location.  
+            Finally, click the "Enrich 'location'" button.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              infoWindowRendererHighlightColor="NaN"
+              level="3"
+              scaleBarVisible="false"
+              wrapAround180="true">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-22.474480" lat="29.442643"/>
+        </esri:center>
+        <esri:ArcGISTiledMapServiceLayer/>
+        <esri:GraphicsLayer id="graphicsLayer"/>
+    </esri:Map>
+
+    <s:BorderContainer id="Search"
+                       width="300"
+                       right="20" top="20">
+        <s:layout>
+            <s:VerticalLayout gap="20"
+                              horizontalAlign="contentJustify"
+                              paddingBottom="20"
+                              paddingLeft="20"
+                              paddingRight="20"
+                              paddingTop="20"/>
+        </s:layout>
+
+        <s:DropDownList id="geographyDropDownList"
+                        width="60%"
+                        change="geographyDropDownList_changeHandler(event)"
+                        prompt="Select a geography">
+            <s:itemRenderer>
+                <fx:Component>
+                    <s:ItemRenderer>
+                        <s:states>
+                            <s:State name="normal"/>
+                            <s:State name="hovered"/>
+                            <s:State name="selected"/>
+                        </s:states>
+                        <s:Label width="100%" height="20"
+                                 left="5"
+                                 color="0x000000"
+                                 fontWeight.selected="bold"
+                                 text="{data.labelPre}"
+                                 verticalAlign="middle"/>
+                        <s:Label height="20"
+                                 right="5"
+                                 color="0x000000"
+                                 fontWeight.selected="bold"
+                                 text="{data.labelPost}"
+                                 verticalAlign="middle"/>
+                    </s:ItemRenderer>
+                </fx:Component>
+            </s:itemRenderer>
+        </s:DropDownList>
+
+    </s:BorderContainer>
+
+    <s:BorderContainer width="475" height="280"
+                       right="20" top="103"
+                       visible="{dataCollectionsReady &#38;&#38; standardGeographiesReady}">
+        <s:layout>
+            <s:VerticalLayout gap="20"
+                              horizontalAlign="contentJustify"
+                              paddingBottom="20"
+                              paddingLeft="20"
+                              paddingRight="20"
+                              paddingTop="20"/>
+        </s:layout>
+        <s:Label width="100%"
+                 fontSize="14"
+                 fontWeight="bold"
+                 text="Select up to five variables to enrich this geography"/>
+        <s:List id="enrichmentParametersAnalysisVariablesList"
+                width="100%" height="100%"
+                allowMultipleSelection="true">
+            <s:itemRenderer>
+                <fx:Component>
+                    <s:ItemRenderer>
+                        <s:states>
+                            <s:State name="normal"/>
+                            <s:State name="hovered"/>
+                            <s:State name="selected"/>
+                        </s:states>
+                        <s:Label width="100%" height="20"
+                                 left="5"
+                                 color="0x000000"
+                                 fontWeight.selected="bold"
+                                 text="{data.labelPre}"
+                                 verticalAlign="middle"/>
+                        <s:Label height="20"
+                                 right="5"
+                                 color="0x000000"
+                                 fontWeight.selected="bold"
+                                 text="{data.labelPost}"
+                                 verticalAlign="middle"/>
+                    </s:ItemRenderer>
+                </fx:Component>
+            </s:itemRenderer>
+        </s:List>
+
+        <s:Button id="geoEnrichButton"
+                  width="100%"
+                  click="geoEnrichButton_clickHandler(event)"
+                  enabled="{dataCollectionsReady}"
+                  fontSize="14"
+                  label="Enrich {sourceCountryDisplayName}"
+                  visible="{standardGeographiesReady}"/>
+    </s:BorderContainer>
+
+    <s:BorderContainer cornerRadius="5"
+                       horizontalCenter="0"
+                       verticalCenter="0"
+                       visible="{progressMessage.visible}">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <components:ProgressMessage id="progressMessage" textColor="0x000000"/>
+    </s:BorderContainer>
+
+</s:Application>
