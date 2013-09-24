@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
+        alpha.disabled="0.5"
+        initialize="initializeHandler(event)">
+
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.samples.components.ExpandableInfoWindowContent")]
+    </fx:Metadata>
+    <fx:Script>
+        <![CDATA[
+            import mx.events.FlexEvent;
+
+            protected function initializeHandler(event:FlexEvent):void
+            {
+                var bitmapData:BitmapData = new BitmapData(4, 4, true, 0x00999999);
+                bitmapData.lock();
+                bitmapData.setPixel32(0, 0, 0xFFCCCCCC);
+                bitmapData.setPixel32(1, 0, 0xFFEFEFEF);
+                bitmapData.setPixel32(1, 1, 0xFFEFEFEF);
+                bitmapData.setPixel32(0, 1, 0xFFEFEFEF);
+                bitmapData.unlock();
+                fill.source = bitmapData;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:states>
+        <s:State name="disabled"/>
+        <s:State name="normal"/>
+        <s:State name="expanded"/>
+    </s:states>
+
+    <s:layout>
+        <s:VerticalLayout horizontalAlign="contentJustify"/>
+    </s:layout>
+
+    <s:HGroup id="draggableGroup" gap="10">
+        <s:Rect width="100%" height="16">
+            <s:fill>
+               <s:BitmapFill id="fill" fillMode="repeat"/>
+            </s:fill>
+        </s:Rect>
+        <s:Image id="expandButton"
+                 width="16" height="16"
+                 right="0"
+                 buttonMode="true"
+                 source.expanded="@Embed('../../../../../assets/skins/minimize.png')"
+                 source.normal="@Embed('../../../../../assets/skins/maximize.png')"/>
+    </s:HGroup>
+
+    <s:Group id="contentGroup"
+             left="0" right="0" top="0" bottom="0"
+             minHeight="0"
+             minWidth="0">
+        <s:layout>
+            <s:BasicLayout/>
+        </s:layout>
+    </s:Group>
+
+</s:Skin>
