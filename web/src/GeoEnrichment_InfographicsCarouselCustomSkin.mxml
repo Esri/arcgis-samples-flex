@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               xmlns:geoEnrichmentClasses="com.esri.ags.tasks.geoEnrichmentClasses.*"
+               applicationComplete="application_completeHandler(event)"
+               pageTitle="InfographicsCarousel custom skin">
+    <!--
+    Description:
+    This sample demonstrates how to apply custom skins to the InfographicCarousel.
+
+    The InfographicCarousel component requests information from the GeoEnrichment service
+    to enhance the data of a given location, and presents this information through
+    a collection of data visualizations.  This sample allows users to click any location on the map
+    and returns the GeoEnrichment data of a 1-mile ring buffer area.
+    Use the "previous" and "next" button to switch between different infographics.
+
+    Note:
+    To use this sample locally, delete the following line 'proxyURL="https://developers.arcgis.com/sproxy/"'
+    from the '<esri:InfographicsCarousel' component.
+    Removing the proxyURL will force the IdentityManager to prompt for credentials to access the services.
+
+    Attention:
+    GeoEnrichment is a subscription based service available through ArcGIS Online.
+    Log-in credentials are always required when executing a GeoEnrichment task.
+    For demo purposes, this sample uses a proxy to bypass the login credentials.
+
+    Documentation:
+    For more information, see the API documentation.
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Infographic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/IdentityManager.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/InfographicsCarousel.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/InfographicEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/MapMouseEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyLevel.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeometryStudyArea.html
+
+    ArcGIS Developers documentation:
+    https://developers.arcgis.com/en/features/geo-enrichment/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/GeoEnrichment_Service_Overview/02r30000021r000000/
+
+    This sample also uses the following files:
+    com\esri\ags\samples\components\GeoEnrichmentBufferOptions.mxml
+    com\esri\ags\samples\skins\SimpleNavigationSkin.mxml
+    com\esri\ags\samples\skins\SmallInfographicCarouselSkin.mxml
+    com\esri\ags\samples\skins\geoEnrichmentClasses\SmallOneVarSkin.mxml
+    com\esri\ags\samples\skins\geoEnrichmentClasses\SmallRelatedVariablesSkin.mxml
+    com\esri\ags\samples\skins\geoEnrichmentClasses\SmallTapestrySkin.mxml
+    -->
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace esri "http://www.esri.com/2008/ags";
+        
+        global
+        {
+            color: #5d5d5d;
+        }
+        s|DropDownList
+        {
+            selectionColor: #EEEEEE;
+            focusColor: #D3D1D1;
+            borderColor: #D3D1D1;
+            rollOverColor: #EEEEEE;
+            color: #666666;
+        }
+        s|NumericStepper
+        {
+           color: #666666;
+        }
+        mx|ToolTip
+        {
+            fontSize: 12;
+            color: #000000;
+            backgroundColor: #F9F9F9;
+            paddingLeft: 10; 
+            paddingRight: 10; 
+            paddingTop: 10;
+            paddingBottom: 10;
+        }
+        esri|InfoWindow
+        {
+            lowerLeftRadius: 0;
+            lowerRightRadius: 0;
+            upperLeftRadius: 0;
+            upperRightRadius: 0;
+            shadowDistance: 1;
+            shadowAngle: 90;
+            shadowAlpha: 0.5;
+            paddingBottom: 10;
+            paddingRight: 10;
+            paddingLeft: 10;
+            paddingTop: 10;
+            headerPaddingBottom: -17;
+        }
+        esri|Navigation
+        {
+            skinClass:ClassReference("com.esri.ags.samples.skins.SimpleNavigationSkin");
+            left: 20; 
+            top: 286;
+        }
+        
+        /*************************************************
+         * 
+         *  Define the skins for the carousel and
+         *  its infographics.
+         *  The carousel will use those skins if we set
+         *  the styleName property to 'small'.
+         *
+         *************************************************/
+        esri|InfographicsCarousel.small
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.SmallInfographicCarouselSkin");
+        }
+        /* The Infographic of type OneVar in the small InfographicsCarousel */
+        esri|InfographicsCarousel.small esri|Infographic.OneVar
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.geoEnrichmentClasses.SmallOneVarSkin");
+        }
+        /* The Infographic of type RelatedVariables in the small InfographicsCarousel */
+        esri|InfographicsCarousel.small esri|Infographic.RelatedVariables
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.geoEnrichmentClasses.SmallRelatedVariablesSkin");
+        }
+        /* The Infographic of type Tapestry in the small InfographicsCarousel */
+        esri|InfographicsCarousel.small esri|Infographic.Tapestry
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.geoEnrichmentClasses.SmallTapestrySkin");
+        }
+        esri|InfographicsCarousel.small esri|Infographic.Tapestry #percentageLabel
+        {
+            fontSize: 26px;
+        }
+        esri|InfographicsCarousel.small esri|Infographic.Tapestry #nameLabel
+        {
+            fontSize: 12px;
+        }
+        
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.events.InfographicEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeometryStudyArea;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            //--------------------------------------------------------------------------
+            //
+            //  Properties
+            //
+            //--------------------------------------------------------------------------
+
+            [Bindable]
+            /**
+             * The MapPoint clicked by the user.
+             */
+            public var inputGeometry:MapPoint;
+
+            [Bindable]
+            /**
+             * The geometry from the enrich result.
+             */
+            public var resultGeometry:Geometry;
+
+            //--------------------------------------------------------------------------
+            //
+            //  Event Handlers
+            //
+            //--------------------------------------------------------------------------
+
+            /**
+             * Handler called when the user click on the
+             * expand/collapse button of the ExpandableInfoWindowContent.
+             */
+            private function infoWindowContentChangeHandler(event:Event):void
+            {
+                //
+                //  Set the carousel's styleName depending on the container state.
+                //
+                if (infoWindowContent.expanded)
+                {
+                    // The container is 'expanded' so the carousel uses its default skin.
+                    carousel.styleName = null;
+                }
+                else
+                {
+                    // The container is 'colapsed' so the carousel uses the custom skin.
+                    carousel.styleName = 'small';
+                }
+            }
+
+            private function application_completeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+                map.infoWindowContent = infoWindowContent;
+            }
+
+            private function map_clickHandler(event:MapMouseEvent):void
+            {
+                inputGeometry = event.mapPoint;
+                map.infoWindow.show(inputGeometry);
+                map.infoWindow.closeButtonVisible = false;
+
+                //
+                // The carousel will find the infographics to create
+                // for this inputGeometry, then display the first one.
+                // The results will depend on the country.
+                //
+                carousel.load();
+            }
+
+            private function carousel_enrichCompleteHandler(event:InfographicEvent):void
+            {
+                // zoom on the geometry
+                resultGeometry = event.studyAreaGraphics[0].geometry;
+                map.extent = resultGeometry.extent;
+                map.level -= 2;
+            }
+
+            private function carousel_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Something bad happened when attemping to enrich the location." + "\n" + event.fault.faultString, "GeoEnrichment Service error");
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+
+        <!--
+            // The ExpandableInfoWindowContent is a container with a expand/collapse button.
+        -->
+        <components:ExpandableInfoWindowContent id="infoWindowContent"
+                                                change="infoWindowContentChangeHandler(event)"
+                                                skinClass="com.esri.ags.samples.skins.ExpandableInfoWindowContentSkin">
+            <!--
+                // The carousel component.
+                // Note: remove or change the proxyURL if you use arcgis.com authentication.
+            -->
+            <esri:InfographicsCarousel id="carousel"
+                                       complete="carousel_enrichCompleteHandler(event)"
+                                       fault="carousel_faultHandler(event)"
+                                       proxyURL="https://developers.arcgis.com/sproxy"
+                                       styleName="small">
+                <!--
+                    // We use a GeometryStudyArea to send a user input geometry as the study area.
+                -->
+                <geoEnrichmentClasses:GeometryStudyArea id="geometryStudyArea"
+                                                        geometry="{inputGeometry}"
+                                                        options="{bufferOptions.studyAreaOptions}"
+                                                        returnGeometry="true">
+                    <!--
+                        //  Each country has its own standard geography levels
+                        //  The AdminLevels are aliases that correspond to various levels of
+                        //  geography for each individual country
+                        //
+                        //  US: Admin3 (US.Counties), Admin2 (US.States), Admin1 (US.WholeUSA)
+                    -->
+                    <geoEnrichmentClasses:comparisonGeographyLevels>
+                        <geoEnrichmentClasses:GeographyLevel layerId="Admin3"/>
+                        <geoEnrichmentClasses:GeographyLevel layerId="Admin2"/>
+                        <geoEnrichmentClasses:GeographyLevel layerId="Admin1"/>
+                    </geoEnrichmentClasses:comparisonGeographyLevels>
+                </geoEnrichmentClasses:GeometryStudyArea>
+            </esri:InfographicsCarousel>
+        </components:ExpandableInfoWindowContent>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to apply custom skins to the InfographicsCarousel.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              level="13"
+              mapClick="map_clickHandler(event)"
+              scaleBarVisible="false"
+              wrapAround180="true">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-122.45" lat="37.75"/>
+        </esri:center>
+
+        <!--
+            //
+            //      LAYERS
+            //
+        -->
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+
+        <!-- Draw the World Street Map layer only under the result geometry using a mask -->
+        <esri:ArcGISTiledMapServiceLayer mask="{maskLayer}" url="http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+        <esri:GraphicsLayer id="maskLayer" alpha="1">
+            <esri:Graphic geometry="{resultGeometry}">
+                <esri:symbol>
+                    <esri:SimpleFillSymbol alpha="1" color="#FF0000"/>
+                </esri:symbol>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+
+        <!-- Displays the result geometry -->
+        <esri:GraphicsLayer id="resultsGraphicsLayer" alpha="0.5">
+            <esri:Graphic geometry="{resultGeometry}">
+                <esri:symbol>
+                    <esri:CompositeSymbol>
+                        <esri:SimpleFillSymbol alpha="0.25" color="#FF0000"/>
+                        <esri:SimpleFillSymbol alpha="1"
+                                               color="#CC0000"
+                                               style="forwarddiagonal">
+                            <esri:SimpleLineSymbol width="4" color="#CC0000"/>
+                        </esri:SimpleFillSymbol>
+                    </esri:CompositeSymbol>
+                </esri:symbol>
+            </esri:Graphic>
+        </esri:GraphicsLayer>
+
+        <!-- Display the input geometry -->
+        <esri:GraphicsLayer>
+            <esri:symbol>
+                <esri:SimpleMarkerSymbol color="#80B1D3" size="10">
+                    <esri:SimpleLineSymbol width="2" color="#1F78B4"/>
+                </esri:SimpleMarkerSymbol>
+            </esri:symbol>
+            <esri:Graphic geometry="{inputGeometry}"/>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+    <s:BorderContainer left="10" top="10"
+                       backgroundAlpha="0.75"
+                       borderVisible="false"
+                       dropShadowVisible="true">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              paddingBottom="10"
+                              paddingLeft="10"
+                              paddingRight="0"
+                              paddingTop="10"/>
+        </s:layout>
+        <s:Label color="#1F78B4"
+                 fontSize="20"
+                 fontWeight="bold"
+                 text="1. Buffer options"/>
+
+        <!--
+            // Component to set options on the study area.
+        -->
+        <components:GeoEnrichmentBufferOptions id="bufferOptions">
+            <components:layout>
+                <s:FormLayout gap="0"
+                              paddingBottom="-10"
+                              paddingLeft="-10"
+                              paddingRight="-10"
+                              paddingTop="-10"/>
+            </components:layout>
+        </components:GeoEnrichmentBufferOptions>
+        <s:Label color="#1F78B4"
+                 fontSize="20"
+                 fontWeight="bold"
+                 text="2. Click on the map"/>
+    </s:BorderContainer>
+
+</s:Application>
