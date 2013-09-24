@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               initialize="application_initializeHandler(event)"
+               pageTitle="Infographic">
+    <!--
+    Description:
+    The Infographic component requests information from the GeoEnrichment service
+    to enhance the data of a given location, and presents this information through
+    data visualization.  This sample allows users to click any location on the map
+    and returns the GeoEnrichment data of a 1-mile ring buffer area.
+
+    Note:
+    To use this sample locally, delete the following line 'proxyURL="https://developers.arcgis.com/sproxy/"'
+    from the '<esri:Infographic' component.
+    Removing the proxyURL will force the IdentityManager to prompt for credentials to access the services.
+
+    Attention:
+    GeoEnrichment is a subscription based service available through ArcGIS Online.
+    Log-in credentials are always required when executing a GeoEnrichment task.
+    For demo purposes, this sample uses a proxy to bypass the login credentials.
+
+    Documentation:
+    For more information, see the API documentation.
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Infographic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/IdentityManager.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/InfographicEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/MapMouseEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyLevel.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeometryStudyArea.html
+
+    ArcGIS Developers documentation:
+    https://developers.arcgis.com/en/features/geo-enrichment/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/GeoEnrichment_Service_Overview/02r30000021r000000/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/Data_collections/02r30000021t000000/
+
+    This sample also uses the following files:
+    com\esri\ags\samples\components\GeoEnrichmentBufferOptions.mxml
+    com\esri\ags\samples\skins\SimpleNavigationSkin.mxml
+    -->
+
+    <s:states>
+        <!-- Normal application state: map without infographic -->
+        <s:State name="normal"/>
+        <!-- Second application state: show the map with the infographic -->
+        <s:State name="withInfographic"/>
+    </s:states>
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace esri "http://www.esri.com/2008/ags";
+        
+        s|BorderContainer
+        {
+            dropShadowVisible: true;
+            borderVisible: false;
+            backgroundColor: #F9F9F9;
+            backgroundAlpha: 0.8;
+        }
+        s|DataGrid
+        {
+            rollOverColor: #EEEEEE;
+            selectionColor: #EEEEEE;
+        }
+        s|DropDownList
+        {
+            selectionColor: #EEEEEE;
+            focusColor: #D3D1D1;
+            borderColor: #D3D1D1;
+            rollOverColor: #EEEEEE;
+            color: #666666;
+        }
+        s|NumericStepper
+        {
+           color: #666666;
+        }
+        mx|ToolTip
+        {
+            fontSize: 12;
+            color: #000000;
+            backgroundColor: #F9F9F9;
+            paddingLeft: 10; 
+            paddingRight: 10; 
+            paddingTop: 10;
+            paddingBottom: 10;
+        }
+        esri|Navigation
+        {
+            skinClass:ClassReference("com.esri.ags.samples.skins.SimpleNavigationSkin");
+            left: 20; 
+            top: 286;
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.Graphic;
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.events.InfographicEvent;
+            import com.esri.ags.events.MapMouseEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeographyLevel;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeometryStudyArea;
+
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
+
+            private var geoEnrichmentInProgress:Boolean = false;
+            [Bindable]
+            private var mapPoint:MapPoint;
+
+            protected function application_initializeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+            }
+
+            protected function map_mapClickHandler(event:MapMouseEvent):void
+            {
+                if (!geoEnrichmentInProgress)
+                {
+                    geoEnrichmentInProgress = true;
+
+                    graphicsLayer.clear();
+
+                    var mapPoint:MapPoint = event.mapPoint as MapPoint;
+                    var graphic:Graphic = new Graphic(event.mapPoint, clickLocationCompositeSymbol);
+                    graphicsLayer.add(graphic);
+
+                    var studyArea:GeometryStudyArea = new GeometryStudyArea();
+                    studyArea.geometry = mapPoint;
+                    studyArea.options = bufferOptions.studyAreaOptions;
+                    //--------------------------------------------------------------------------
+                    //
+                    //  Each country has its own standard geography levels
+                    //  The AdminLevels are aliases that correspond to various levels of
+                    //  geography for each individual country
+                    //
+                    //  US: Admin3 (US.Counties), Admin2 (US.States), Admin1 (US.WholeUSA)
+                    //
+                    //--------------------------------------------------------------------------
+                    studyArea.comparisonGeographyLevels = [
+                        new GeographyLevel(null, null, "Admin3"),
+                        new GeographyLevel(null, null, "Admin2"),
+                        new GeographyLevel(null, null, "Admin1")
+                        ];
+                    studyArea.returnGeometry = true;
+                    infoGraphic.studyArea = studyArea;
+                    currentState = "withInfographic";
+                    infoGraphic.load();
+                }
+            }
+
+            protected function infoGraphic_completeHandler(event:InfographicEvent):void
+            {
+                geoEnrichmentInProgress = false;
+
+                if (event.studyAreaGraphics.length > 0)
+                {
+                    var resultGraphic:Graphic = event.studyAreaGraphics[0];
+                    resultGraphic.symbol = geoEnrichSFS;
+                    map.zoomTo(resultGraphic.geometry);
+                    graphicsLayer.add(resultGraphic);
+                    var locationCentroid:MapPoint = resultGraphic.geometry.extent.center as MapPoint;
+                    var newY:Number = (map.extent.ymax + locationCentroid.y) * 0.5;
+                    var offsetMapPoint:MapPoint = new MapPoint(locationCentroid.x, newY);
+                    map.centerAt(offsetMapPoint);
+                }
+            }
+
+            protected function infoGraphic_faultHandler(event:FaultEvent):void
+            {
+                Alert.show("Something bad happened when attemping to enrich the location." + "\n" + event.fault.faultString, "GeoEnrichment Service error");
+                geoEnrichmentInProgress = false;
+                currentState = "normal";
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+        <esri:CompositeSymbol id="clickLocationCompositeSymbol">
+            <esri:SimpleMarkerSymbol alpha="0.5"
+                                     color="0xCCCCCC"
+                                     size="35"
+                                     style="circle">
+                <esri:outline>
+                    <esri:SimpleLineSymbol width="2" color="0x8A8A8A"/>
+                </esri:outline>
+            </esri:SimpleMarkerSymbol>
+            <esri:SimpleMarkerSymbol alpha="0.5"
+                                     color="0x999999"
+                                     size="20"
+                                     style="circle">
+                <esri:outline>
+                    <esri:SimpleLineSymbol width="2" color="0x7F7F7F"/>
+                </esri:outline>
+            </esri:SimpleMarkerSymbol>
+            <esri:SimpleMarkerSymbol angle="45"
+                                     color="0xE6E6E6"
+                                     size="8"
+                                     style="cross">
+                <esri:SimpleLineSymbol width="2" color="0xE6E6E6"/>
+            </esri:SimpleMarkerSymbol>
+        </esri:CompositeSymbol>
+
+        <esri:SimpleFillSymbol id="geoEnrichSFS"
+                               alpha="0.2"
+                               color="0x999999">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="2" color="0x7F7F7F"/>
+            </esri:outline>
+        </esri:SimpleFillSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            The Infographic component requests information from the GeoEnrichment service 
+            to enhance the data of a given location, and presents this information through
+            data visualization.  This sample allows users to click any location on the map 
+            and returns the GeoEnrichment data of a 1-mile ring buffer area.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              level="12"
+              mapClick="map_mapClickHandler(event)"
+              scaleBarVisible="false">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-118.307981" lat="34.042434"/>
+        </esri:center>
+        <esri:ArcGISTiledMapServiceLayer/>
+        <esri:GraphicsLayer id="graphicsLayer"/>
+    </esri:Map>
+
+    <s:BorderContainer left="20" top="20">
+        <s:layout>
+            <s:VerticalLayout gap="20"
+                              horizontalAlign="contentJustify"
+                              paddingBottom="20"
+                              paddingLeft="20"
+                              paddingRight="20"
+                              paddingTop="20"/>
+        </s:layout>
+
+        <esri:Geocoder id="geocoder"
+                       map="{map}"
+                       prompt="Where do you want to go?"/>
+
+        <s:Label color="#1F78B4"
+                 fontSize="20"
+                 fontWeight="bold"
+                 text="1. Buffer options"/>
+        <components:GeoEnrichmentBufferOptions id="bufferOptions">
+            <components:layout>
+                <s:FormLayout gap="0"
+                              paddingBottom="-10"
+                              paddingLeft="-10"
+                              paddingRight="-10"
+                              paddingTop="-10"/>
+            </components:layout>
+        </components:GeoEnrichmentBufferOptions>
+        <s:Label color="#1F78B4"
+                 fontSize="20"
+                 fontWeight="bold"
+                 text="2. Click on the map"/>
+    </s:BorderContainer>
+
+    <s:BorderContainer width="527" height="260"
+                       right="20" top="20"
+                       includeInLayout="false"
+                       includeInLayout.withInfographic="true"
+                       visible="false"
+                       visible.withInfographic="true">
+        <s:layout>
+            <s:VerticalLayout gap="20"
+                              horizontalAlign="contentJustify"
+                              paddingBottom="20"
+                              paddingLeft="20"
+                              paddingRight="20"
+                              paddingTop="20"/>
+        </s:layout>
+        <esri:Infographic id="infoGraphic"
+                          complete="infoGraphic_completeHandler(event)"
+                          countryId="US"
+                          fault="infoGraphic_faultHandler(event)"
+                          proxyURL="https://developers.arcgis.com/sproxy"
+                          type="OneVar"
+                          variableIds="['KeyUSFacts.AVGHHSZ_CY']"/>
+
+    </s:BorderContainer>
+
+</s:Application>
