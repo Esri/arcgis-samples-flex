@@ -113,11 +113,11 @@
             import com.esri.ags.geometry.Geometry;
             import com.esri.ags.geometry.MapPoint;
             import com.esri.ags.tasks.geoEnrichmentClasses.GeometryStudyArea;
-            
+
             import mx.controls.Alert;
             import mx.events.FlexEvent;
             import mx.rpc.events.FaultEvent;
-            
+
             import spark.events.IndexChangeEvent;
 
             //--------------------------------------------------------------------------
@@ -182,10 +182,10 @@
                 {
                     inputGraphicsLayer.clear();
                 }
-                
+
                 // put the result geometry on the graphics layer.
                 resultGeometry = event.studyAreaGraphics[0].geometry;
-                
+
                 // zoom on the geometry
                 map.extent = resultGeometry.extent;
                 map.level--;
@@ -311,7 +311,7 @@
         <esri:center>
             <esri:WebMercatorMapPoint lon="-122.45" lat="37.75"/>
         </esri:center>
-        
+
         <!--
             //
             //      LAYERS
@@ -365,7 +365,7 @@
         <!--
             // Component to set options on the study area.
         -->
-        <components:GeoEnrichmentBufferOptions id="bufferOptions">
+        <components:GeoEnrichmentBufferOptions id="bufferOptions" visible.withCarousel="false">
             <components:layout>
                 <s:FormLayout gap="0"
                               paddingBottom="-10"
