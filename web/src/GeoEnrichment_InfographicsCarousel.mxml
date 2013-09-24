@@ -192,7 +192,7 @@
                 offsetCenter();
 
                 hasEnrichResult = true;
-                infoGraphicCarouselToggleButton.selected = false;
+                infographicCarouselToggleButton.selected = false;
             }
 
             private function carousel_faultHandler(event:FaultEvent):void
@@ -439,10 +439,10 @@
     <!--
         // Button to show/hide the carousel.
     -->
-    <s:ToggleButton id="infoGraphicCarouselToggleButton"
+    <s:ToggleButton id="infographicCarouselToggleButton"
                     right="20" top="20"
-                    click="{infoGraphicCarouselToggleButton.selected ? currentState='normal' : currentState='withCarousel'}"
-                    label="{infoGraphicCarouselToggleButton.selected ? 'Show Carousel' : 'Hide Carousel'}"
+                    click="{infographicCarouselToggleButton.selected ? currentState='normal' : currentState='withCarousel'}"
+                    label="{infographicCarouselToggleButton.selected ? 'Show Carousel' : 'Hide Carousel'}"
                     visible="{hasEnrichResult}"/>
 
 </s:Application>

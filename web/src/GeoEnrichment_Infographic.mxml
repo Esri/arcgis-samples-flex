@@ -151,13 +151,13 @@
                         new GeographyLevel(null, null, "Admin1")
                         ];
                     studyArea.returnGeometry = true;
-                    infoGraphic.studyArea = studyArea;
+                    infographic.studyArea = studyArea;
                     currentState = "withInfographic";
-                    infoGraphic.load();
+                    infographic.load();
                 }
             }
 
-            protected function infoGraphic_completeHandler(event:InfographicEvent):void
+            private function infographic_completeHandler(event:InfographicEvent):void
             {
                 geoEnrichmentInProgress = false;
 
@@ -174,7 +174,7 @@
                 }
             }
 
-            protected function infoGraphic_faultHandler(event:FaultEvent):void
+            private function infographic_faultHandler(event:FaultEvent):void
             {
                 Alert.show("Something bad happened when attemping to enrich the location." + "\n" + event.fault.faultString, "GeoEnrichment Service error");
                 geoEnrichmentInProgress = false;
@@ -286,10 +286,10 @@
                               paddingRight="20"
                               paddingTop="20"/>
         </s:layout>
-        <esri:Infographic id="infoGraphic"
-                          complete="infoGraphic_completeHandler(event)"
+        <esri:Infographic id="infographic"
+                          complete="infographic_completeHandler(event)"
                           countryId="US"
-                          fault="infoGraphic_faultHandler(event)"
+                          fault="infographic_faultHandler(event)"
                           proxyURL="https://developers.arcgis.com/sproxy"
                           type="OneVar"
                           variableIds="['KeyUSFacts.AVGHHSZ_CY']"/>
