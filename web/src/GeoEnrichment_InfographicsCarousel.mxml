@@ -349,7 +349,8 @@
         <esri:GraphicsLayer id="inputGraphicsLayer"/>
     </esri:Map>
 
-    <s:BorderContainer left="20" top="20">
+    <s:BorderContainer left="20" top="20"
+                       visible.withCarousel="false">
         <s:layout>
             <s:VerticalLayout gap="10"
                               paddingBottom="10"
@@ -365,7 +366,7 @@
         <!--
             // Component to set options on the study area.
         -->
-        <components:GeoEnrichmentBufferOptions id="bufferOptions" visible.withCarousel="false">
+        <components:GeoEnrichmentBufferOptions id="bufferOptions">
             <components:layout>
                 <s:FormLayout gap="0"
                               paddingBottom="-10"
@@ -411,7 +412,7 @@
         <esri:InfographicsCarousel id="carousel"
                                    complete="carousel_enrichCompleteHandler(event)"
                                    fault="carousel_faultHandler(event)"
-                                   proxyURL="https://developers.arcgis.com/sproxy/">
+                                   proxyURL="https://developers.arcgis.com/sproxy">
 
             <!--
                 // We use a GeometryStudyArea to send a user input geometry as the study area.
