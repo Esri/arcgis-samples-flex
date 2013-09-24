@@ -328,7 +328,7 @@
                               countryId="US"
                               fault="infographic_faultHandler(event)"
                               outSpatialReference="{map.spatialReference}"
-                              proxyURL="https://developers.arcgis.com/sproxy"
+                              proxyURL="https://developers.arcgis.com/sproxy/"
                               studyArea="{studyArea}"
                               type="Tapestry"
                               variableIds="[Tapestry.*]">
@@ -344,7 +344,7 @@
                               countryId="US"
                               fault="infographic_faultHandler(event)"
                               outSpatialReference="{map.spatialReference}"
-                              proxyURL="https://developers.arcgis.com/sproxy"
+                              proxyURL="https://developers.arcgis.com/sproxy/"
                               studyArea="{studyAreaNoGeometry}"
                               type="RelatedVariables"
                               variableIds="[HouseholdsByIncome.*]">
@@ -360,7 +360,7 @@
                               countryId="US"
                               fault="infographic_faultHandler(event)"
                               outSpatialReference="{map.spatialReference}"
-                              proxyURL="https://developers.arcgis.com/sproxy"
+                              proxyURL="https://developers.arcgis.com/sproxy/"
                               studyArea="{studyAreaNoGeometry}"
                               type="OneVar"
                               variableIds="[KeyUSFacts.AVGHHSZ_CY]">

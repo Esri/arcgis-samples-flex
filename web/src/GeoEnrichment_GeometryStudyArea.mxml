@@ -619,7 +619,7 @@
                                 fault="geoEnrichmentTask_faultHandler(event)"
                                 getDataCollectionsComplete="geoEnrichmentTask_getDataCollectionsCompleteHandler(event)"
                                 getStandardGeographyCountriesComplete="geoEnrichmentTask_getStandardGeographyCountriesCompleteHandler(event)"
-                                proxyURL="https://developers.arcgis.com/sproxy"/>
+                                proxyURL="https://developers.arcgis.com/sproxy/"/>
 
         <esri:Locator id="worldLocator"
                       addressToLocationsComplete="worldLocator_addressToLocationsCompleteHandler(event)"

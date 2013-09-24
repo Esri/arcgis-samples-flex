@@ -290,7 +290,7 @@
                           complete="infographic_completeHandler(event)"
                           countryId="US"
                           fault="infographic_faultHandler(event)"
-                          proxyURL="https://developers.arcgis.com/sproxy"
+                          proxyURL="https://developers.arcgis.com/sproxy/"
                           type="OneVar"
                           variableIds="['KeyUSFacts.AVGHHSZ_CY']"/>
 

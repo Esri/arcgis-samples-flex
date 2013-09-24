@@ -396,12 +396,12 @@
                                 fault="geoEnrichmentTask_faultHandler(event)"
                                 getDataCollectionsComplete="geoEnrichmentTask_getDataCollectionsCompleteHandler(event)"
                                 getStandardGeographyCountriesComplete="geoEnrichmentTask_getStandardGeographyCountriesCompleteHandler(event)"
-                                proxyURL="https://developers.arcgis.com/sproxy"/>
+                                proxyURL="https://developers.arcgis.com/sproxy/"/>
 
         <!-- Task URL defaults to geoenrich.arcgis.com -->
         <esri:StandardGeographyQueryTask id="standardGeograpyQueryTask"
                                          fault="standardGeograpyQueryTask_faultHandler(event)"
-                                         proxyURL="https://developers.arcgis.com/sproxy"
+                                         proxyURL="https://developers.arcgis.com/sproxy/"
                                          standardGeographyQueryComplete="standardGeograpyQueryTask_standardGeographyQueryCompleteHandler(event)"/>
 
         <esri:GeographyQueryBase id="geographyQuery"

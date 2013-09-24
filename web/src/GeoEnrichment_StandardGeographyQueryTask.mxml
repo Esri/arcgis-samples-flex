@@ -321,7 +321,7 @@
     <fx:Declarations>
         <!-- Task URL defaults to geoenrich.arcgis.com -->
         <esri:StandardGeographyQueryTask id="standardGeographyQueryTask"
-                                         proxyURL="https://developers.arcgis.com/sproxy"
+                                         proxyURL="https://developers.arcgis.com/sproxy/"
                                          showBusyCursor="true"/>
 
         <esri:SimpleFillSymbol id="geoEnrichSFS"
