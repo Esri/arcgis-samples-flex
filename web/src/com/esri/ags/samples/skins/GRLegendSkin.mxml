@@ -55,7 +55,7 @@ The default skin class for a Legend component.
             private var _itemRenderer:GRLegendGroupItemRenderer = new GRLegendGroupItemRenderer;
 
             [Bindable]
-            [Embed(source="../../../../../assets/skins/loader.swf")]
+            [Embed(source="../../../../../assets/loader.swf")]
             private var loader:Class;
 
             private function sparkskin1_initializeHandler(event:FlexEvent):void

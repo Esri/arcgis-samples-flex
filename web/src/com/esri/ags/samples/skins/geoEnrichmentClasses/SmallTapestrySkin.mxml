@@ -43,7 +43,7 @@
             import spark.components.gridClasses.GridColumn;
 
             [Bindable]
-            [Embed(source="../../../../../../assets/skins/loader.swf")]
+            [Embed(source="../../../../../../assets/loader_tail.swf")]
             private var loader:Class;
 
             private var fields:Array = [

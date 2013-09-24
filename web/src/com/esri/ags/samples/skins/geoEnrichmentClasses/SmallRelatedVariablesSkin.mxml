@@ -48,7 +48,7 @@
             import spark.events.IndexChangeEvent;
 
             [Bindable]
-            [Embed(source="../../../../../../assets/skins/loader.swf")]
+            [Embed(source="../../../../../../assets/loader_tail.swf")]
             private var loader:Class;
 
             [Bindable]
