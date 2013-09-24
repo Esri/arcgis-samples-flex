@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2013 ESRI
+
+    All rights reserved under the copyright laws of the United States
+    and applicable international laws, treaties, and conventions.
+
+    You may freely redistribute and use this sample code, with or
+    without modification, provided you include the original copyright
+    notice and use restrictions.
+
+    See use restrictions in use_restrictions.txt.
+-->
+<!---
+    @private
+
+    The skin class for the Infograhic component which displays a tapestry.
+    <p><b>Since:</b> ArcGIS API for Flex 3.5</p>
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:geoEnrichmentClasses="com.esri.ags.samples.skins.geoEnrichmentClasses.*"
+        enabled.noData="false">
+
+    <!-- host component -->
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.components.Infographic")]
+    </fx:Metadata>
+
+    <s:states>
+        <s:State name="noData"/>
+        <s:State name="loading"/>
+        <s:State name="hasData"/>
+    </s:states>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.components.geoEnrichmentClasses.InfographicData;
+
+            import mx.formatters.IFormatter;
+            import mx.utils.ObjectProxy;
+
+            import spark.components.gridClasses.GridColumn;
+
+            [Bindable]
+            [Embed(source="../../../../../../assets/skins/loader.swf")]
+            private var loader:Class;
+
+            private var fields:Array = [
+                "CODE",
+                "NAME",
+                "VALUE",
+                "PRC",
+                "TYPE",
+                "AGE",
+                "INCOME",
+                "EMP",
+                "EDU",
+                "RSD",
+                "RACE"
+                ];
+
+            [Bindable]
+            private var top1Data:ObjectProxy;
+
+            [Bindable]
+            private var top2Data:ObjectProxy;
+
+            [Bindable]
+            private var top3Data:ObjectProxy;
+
+            [Bindable]
+            private var selectedData:ObjectProxy;
+
+            [Bindable]
+            private var selectedStyleName:Object;
+
+            [Bindable]
+            private var labelTitleVisible:Boolean = true;
+
+            /**
+             *  @private
+             */
+            override public function styleChanged(styleProp:String):void
+            {
+                var allStyles:Boolean = !styleProp || styleProp == "styleName";
+
+                super.styleChanged(styleProp);
+
+                if (allStyles || styleProp == "showTitleLabel")
+                {
+                    labelTitleVisible = getStyle("showTitleLabel") as Boolean;
+                }
+            }
+
+            /**
+             *  @private
+             */
+            override protected function commitProperties():void
+            {
+                super.commitProperties();
+
+                if (currentState == "hasData")
+                {
+                    var data:InfographicData = hostComponent.infographicData;
+                    if (data)
+                    {
+                        var studiedRow:Array = data.rows.getItemAt(0) as Array;
+                        var columns:Array = data.columns.toArray();
+                        top1Data = createRow(columns, studiedRow, 1);
+                        top2Data = createRow(columns, studiedRow, 2);
+                        top3Data = createRow(columns, studiedRow, 3);
+                        selectedData = null;
+                        list.visible = list.includeInLayout = true;
+                        details.visible = details.includeInLayout = false;
+                    }
+                    else
+                    {
+                        top1Data = top2Data = top3Data = selectedData = null;
+                    }
+                }
+            }
+
+            private function createRow(columns:Array, row:Array, top:int):ObjectProxy
+            {
+                var fieldName:String;
+                var rowData:ObjectProxy = new ObjectProxy();
+                for (var i:int = 0; i < fields.length; i++)
+                {
+                    fieldName = getFieldName(top, fields[i]);
+
+                    rowData[fields[i]] = new ObjectProxy({
+                                                             value: getFieldValue(row, fieldName),
+                                                             formatter: getFieldFormatter(columns, fieldName)
+                                                         });
+                }
+                return rowData;
+            }
+
+            private function getFieldName(top:int, name:String):String
+            {
+                return "TOP" + top + name;
+            }
+
+            private function getFieldValue(row:Array, fieldName:String):*
+            {
+                return row[fieldName];
+            }
+
+            private function getFieldFormatter(columns:Array, name:String):IFormatter
+            {
+                var column:GridColumn;
+                var formatter:IFormatter;
+                for (var i:int = 0; i < columns.length; i++)
+                {
+                    column = columns[i] as GridColumn;
+                    if (column.dataField == name)
+                    {
+                        formatter = column.formatter;
+                    }
+                }
+                return formatter;
+            }
+
+            protected function selectedHandler(event:Event):void
+            {
+                selectedData = (event.target as TapestryListItem).data as ObjectProxy;
+                selectedStyleName = (event.target as TapestryListItem).styleName;
+                list.visible = list.includeInLayout = false;
+                details.visible = details.includeInLayout = true;
+            }
+
+            protected function backHandler(event:Event):void
+            {
+                selectedData = null;
+                list.visible = list.includeInLayout = true;
+                details.visible = details.includeInLayout = false;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:VGroup width="100%" height="100%">
+        <s:Label fontWeight="bold"
+                 includeInLayout="{labelTitleVisible}"
+                 text="{hostComponent.title}"
+                 visible="{labelTitleVisible}"/>
+        <s:Group width="100%" height="100%"
+                 visible="false"
+                 visible.hasData="true">
+
+            <s:Group id="list"
+                     width="100%" height="100%">
+
+                <s:layout>
+                    <s:VerticalLayout gap="0" horizontalAlign="contentJustify"/>
+                </s:layout>
+
+                <geoEnrichmentClasses:TapestryListItem id="top1"
+                                                       height="33%"
+                                                       data="{top1Data}"
+                                                       enabled="{top1Data.NAME.value != ''}"
+                                                       selected="selectedHandler(event)"
+                                                       styleName="top1"/>
+                <geoEnrichmentClasses:TapestryListItem id="top2"
+                                                       height="33%"
+                                                       data="{top2Data}"
+                                                       enabled="{top2Data.NAME.value != ''}"
+                                                       selected="selectedHandler(event)"
+                                                       styleName="top2"/>
+                <geoEnrichmentClasses:TapestryListItem id="top3"
+                                                       height="33%"
+                                                       data="{top3Data}"
+                                                       enabled="{top3Data.NAME.value != ''}"
+                                                       selected="selectedHandler(event)"
+                                                       styleName="top3"/>
+            </s:Group>
+
+            <geoEnrichmentClasses:TapestryDetails id="details"
+                                                  width="100%"
+                                                  height="100%"
+                                                  back="backHandler(event)"
+                                                  data="{selectedData}"
+                                                  styleName="{selectedStyleName}"/>
+
+        </s:Group>
+    </s:VGroup>
+
+    <s:Group left="0" right="0" top="0" bottom="0"
+             includeIn="loading">
+        <s:SWFLoader width="15" height="15"
+                     horizontalCenter="0"
+                     source="{loader}"
+                     verticalCenter="0"/>
+    </s:Group>
+
+</s:Skin>
