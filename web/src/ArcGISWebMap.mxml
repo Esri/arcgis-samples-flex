@@ -21,7 +21,7 @@
     Registration is only needed if you want to test secure web maps on ArcGIS.com.
 
     Steps to set up for OAuth
-    -------------------------
+    =========================
     #1 Obtain app id
         See http://resources.arcgis.com/en/help/arcgisonline/index.html#/Adding_applications/010q00000077000000/ including "Registering your app"
 
