@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    //  This sample component supports the GeoEnrichment samples
+-->
+<s:Form xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        currentState="ring">
+
+    <fx:Metadata>
+        [Event(name="change", type="flash.events.Event")]
+    </fx:Metadata>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.tasks.geoEnrichmentClasses.DriveBuffer;
+            import com.esri.ags.tasks.geoEnrichmentClasses.RingBuffer;
+            import com.esri.ags.tasks.geoEnrichmentClasses.StudyAreaOptions;
+
+            import mx.events.FlexEvent;
+
+            [Bindable]
+            private var m_ringValue:int = 1;
+
+            [Bindable]
+            private var m_ringUnitSelectedIndex:int = 0;
+
+            [Bindable]
+            private var m_driveTimesValue:int = 5;
+
+            [Bindable]
+            private var m_driveDistanceValue:int = 1;
+
+            [Bindable]
+            private var m_driveDistanceUnitSelectedIndex:int = 0;
+
+            private var m_studyAreaOptions:StudyAreaOptions = new RingBuffer([ 1 ], "esriMiles");
+
+            [Bindable("studyAreaOptionsChanged")]
+
+            public function get studyAreaOptions():StudyAreaOptions
+            {
+                return m_studyAreaOptions;
+            }
+
+            private var m_type:String;
+
+            [Inspectable(enumeration="ring,driveTimes,driveDistance")]
+
+            public function get type():String
+            {
+                return optionTypeList.selectedItem ? optionTypeList.selectedItem.value : null;
+            }
+
+            public function set type(value:String):void
+            {
+                if (m_type !== value)
+                {
+                    if (value == "ring")
+                    {
+                        optionTypeList.selectedIndex = 0;
+                    }
+                    else if (value == "driveTimes")
+                    {
+                        optionTypeList.selectedIndex = 2;
+                    }
+                    else if (value == "driveDistance")
+                    {
+                        optionTypeList.selectedIndex = 2;
+                    }
+                    else
+                    {
+                        optionTypeList.selectedIndex = 0;
+                    }
+                }
+            }
+
+
+            private function optionTypeChangeHandler(event:FlexEvent):void
+            {
+                if (!optionTypeList.selectedItem)
+                {
+                    return;
+                }
+
+                var value:String = optionTypeList.selectedItem.value;
+                if (value == "ring")
+                {
+                    m_ringValue = 1;
+                    m_ringUnitSelectedIndex = 0;
+                    m_studyAreaOptions = new RingBuffer([ 1 ], RingBuffer.MILES);
+                    updateRing();
+                    currentState = "ring";
+                }
+                else if (value == "driveTimes")
+                {
+                    m_driveTimesValue = 5;
+                    m_studyAreaOptions = new DriveBuffer([ 5 ], DriveBuffer.MINUTES);
+                    updateDriveTimes();
+                    currentState = "driveTimes";
+                }
+                else if (value == "driveDistance")
+                {
+                    m_driveDistanceValue = 1;
+                    m_driveDistanceUnitSelectedIndex = 0;
+                    m_studyAreaOptions = new DriveBuffer([ 1 ], DriveBuffer.MILES);
+                    updateDriveDistance();
+                    currentState = "driveDistance";
+                }
+                dispatchEvent(new Event("studyAreaOptionsChanged"));
+            }
+
+            private function updateRing():void
+            {
+                (m_studyAreaOptions as RingBuffer).radii = [ m_ringValue ];
+                (m_studyAreaOptions as RingBuffer).units = ringUnits.getItemAt(m_ringUnitSelectedIndex).value;
+            }
+
+            private function updateDriveTimes():void
+            {
+                (m_studyAreaOptions as DriveBuffer).radii = [ m_driveTimesValue ];
+            }
+
+            private function updateDriveDistance():void
+            {
+                (m_studyAreaOptions as DriveBuffer).radii = [ m_driveDistanceValue ];
+                (m_studyAreaOptions as DriveBuffer).units = distanceUnits.getItemAt(m_driveDistanceUnitSelectedIndex).value;
+            }
+        ]]>
+    </fx:Script>
+    <fx:Declarations>
+
+        <s:ArrayList id="ringUnits">
+            <fx:Object label="miles" value="esriMiles"/>
+            <fx:Object label="kilometers" value="esriKilometers"/>
+            <fx:Object label="feet" value="esriFeet"/>
+            <fx:Object label="meters" value="esriMeters"/>
+        </s:ArrayList>
+
+        <s:ArrayList id="distanceUnits">
+            <fx:Object label="miles" value="esriMiles"/>
+            <fx:Object label="kilometers" value="esriKilometers"/>
+            <fx:Object label="feet" value="esriFeet"/>
+            <fx:Object label="meters" value="esriMeters"/>
+        </s:ArrayList>
+    </fx:Declarations>
+
+    <s:states>
+        <s:State name="ring"/>
+        <s:State name="driveTimes"/>
+        <s:State name="driveDistance"/>
+    </s:states>
+
+    <s:FormItem label="Show data for:">
+        <s:DropDownList id="optionTypeList"
+                        requireSelection="true"
+                        selectedIndex="0"
+                        valueCommit="optionTypeChangeHandler(event)">
+            <s:typicalItem>
+                <fx:Object label="Drive Distance" value="driveDistance"/>
+            </s:typicalItem>
+            <s:ArrayList id="typeList">
+                <fx:Object label="Ring" value="ring"/>
+                <fx:Object label="Drive Times" value="driveTimes"/>
+                <fx:Object label="Drive Distance" value="driveDistance"/>
+            </s:ArrayList>
+        </s:DropDownList>
+    </s:FormItem>
+
+    <s:FormItem includeIn="ring" label="Radius:">
+        <s:HGroup verticalAlign="baseline">
+            <s:NumericStepper id="ring"
+                              change="updateRing()"
+                              maximum="100"
+                              minimum="1"
+                              value="@{m_ringValue}"/>
+            <s:DropDownList change="updateRing()"
+                            dataProvider="{ringUnits}"
+                            selectedIndex="@{m_ringUnitSelectedIndex}"/>
+        </s:HGroup>
+    </s:FormItem>
+
+    <s:FormItem includeIn="driveTimes">
+        <s:HGroup verticalAlign="baseline">
+            <s:NumericStepper id="driveTimes"
+                              change="updateDriveTimes()"
+                              maximum="100"
+                              minimum="1"
+                              value="@{m_driveTimesValue}"/>
+            <s:Label text="minutes"/>
+        </s:HGroup>
+    </s:FormItem>
+
+    <s:FormItem includeIn="driveDistance">
+        <s:HGroup verticalAlign="baseline">
+            <s:NumericStepper id="driveDistance"
+                              change="updateDriveDistance()"
+                              maximum="100"
+                              minimum="1"
+                              value="@{m_driveDistanceValue}"/>
+            <s:DropDownList change="updateDriveDistance()"
+                            dataProvider="{distanceUnits}"
+                            selectedIndex="@{m_driveDistanceUnitSelectedIndex}"/>
+        </s:HGroup>
+    </s:FormItem>
+
+</s:Form>

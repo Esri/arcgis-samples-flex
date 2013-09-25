@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2013 ESRI
+
+    All rights reserved under the copyright laws of the United States
+    and applicable international laws, treaties, and conventions.
+
+    You may freely redistribute and use this sample code, with or
+    without modification, provided you include the original copyright
+    notice and use restrictions.
+
+    See use restrictions in use_restrictions.txt.
+-->
+<!---
+    The default skin class for the InfographicsCarousel component.
+    <p><b>Since:</b> ArcGIS API 3.5 for Flex</p>
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="280" height="225"
+        alpha.disabled="0.5">
+
+    <!-- host component -->
+    <fx:Metadata>
+        /**
+         * A strongly typed property that references the component to which this skin is applied.
+         */
+		[HostComponent("com.esri.ags.components.InfographicsCarousel")]
+	</fx:Metadata>
+
+    <s:states>
+        <s:State name="noData" stateGroups="noDataGroup"/>
+        <s:State name="noDataAndNoNavigation" stateGroups="noDataGroup,noNavigationGroup"/>
+        <s:State name="noDataAndLoading" stateGroups="noDataGroup,loadingGroup"/>
+        <s:State name="noDataAndNoNavigationAndLoading" stateGroups="noDataGroup,noNavigationGroup,loadingGroup"/>
+        <s:State name="noDataForSelectedArea" stateGroups="noDataForSelectedAreaGroup"/>
+        <s:State name="noDataForSelectedAreaAndNoNavigation" stateGroups="noDataForSelectedAreaGroup,noNavigationGroup"/>
+        <s:State name="noDataForSelectedAreaAndLoading" stateGroups="noDataForSelectedAreaGroup,loadingGroup"/>
+        <s:State name="noDataForSelectedAreaAndNoNavigationAndLoading" stateGroups="noDataForSelectedAreaGroup,noNavigationGroup,loadingGroup"/>
+        <s:State name="hasData" stateGroups="hasDataGroup"/>
+        <s:State name="hasDataAndNoNavigation" stateGroups="hasDataGroup,noNavigationGroup"/>
+        <s:State name="hasDataAndLoading" stateGroups="hasDataGroup,loadingGroup"/>
+        <s:State name="hasDataAndNoNavigationAndLoading" stateGroups="hasDataGroup,noNavigationGroup,loadingGroup"/>
+        <s:State name="disabled"/>
+    </s:states>
+
+    <fx:Script>
+        <![CDATA[
+            /**
+             * @private
+             */
+            [Bindable]
+            [Embed(source="../../../../../assets/loader_tail.swf")]
+            private var loader:Class;
+        ]]>
+    </fx:Script>
+
+    <s:HGroup width="100%" height="100%"
+              alpha.loadingGroup="0.5"
+              gap="5"
+              mouseChildren.loadingGroup="false"
+              mouseEnabled.loadingGroup="false"
+              verticalAlign="middle">
+
+        <s:Button id="previousButton"
+                  width="12" height="12"
+                  buttonMode="true"
+                  icon="@Embed('../../../../../assets/skins/geoenrichment/InfographicsCarouselPreviousButton.png')"
+                  skinClass="com.esri.ags.skins.supportClasses.IconButtonSkin"
+                  visible.noData="false"
+                  visible.noNavigationGroup="false"/>
+
+        <s:VGroup width="100%" height="100%"
+                  gap="5"
+                  paddingBottom="5"
+                  paddingLeft="5"
+                  paddingRight="5"
+                  paddingTop="5">
+            <s:Label id="infographicsLabel"
+                     includeIn="noNavigationGroup"
+                     visible.noData="false"
+                     visible.noDataForSelectedAreaGroup="false"/>
+            <s:DropDownList id="infographicsDropDownList"
+                            excludeFrom="noNavigationGroup"
+                            labelField="title"
+                            requireSelection="true"
+                            visible.noData="false"
+                            visible.noDataForSelectedAreaGroup="false"/>
+            <s:Label id="subtitleLabel"
+                     visible.noData="false"
+                     visible.noDataForSelectedAreaGroup="false"/>
+            <s:Label width="100%" height="100%"
+                     includeIn="noDataForSelectedAreaGroup"
+                     text="@Resource(bundle='ESRIMessages', key='geoenrichment_InfographicCarousel_noDataForSelectedArea')"
+                     textAlign="center"
+                     verticalAlign="middle"/>
+            <s:Group id="contentGroup"
+                     width="100%" height="100%"
+                     clipAndEnableScrolling="true"
+                     excludeFrom="noDataForSelectedAreaGroup"/>
+        </s:VGroup>
+
+        <s:Button id="nextButton"
+                  width="12" height="12"
+                  buttonMode="true"
+                  icon="@Embed('../../../../../assets/skins/geoenrichment/InfographicsCarouselNextButton.png')"
+                  skinClass="com.esri.ags.skins.supportClasses.IconButtonSkin"
+                  visible.noData="false"
+                  visible.noNavigationGroup="false"/>
+    </s:HGroup>
+
+    <s:SWFLoader width="15" height="15"
+                 horizontalCenter="0"
+                 includeIn="loadingGroup"
+                 source="{loader}"
+                 verticalCenter="0"/>
+
+</s:Skin>

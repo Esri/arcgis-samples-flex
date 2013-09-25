@@ -27,7 +27,7 @@
     <fx:Script>
         <![CDATA[
             [Bindable]
-            [Embed(source="../../../../../assets/loader.swf")]
+            [Embed(source="../../../../../assets/loader_tail.swf")]
             private var loader:Class;
 
             [Bindable]

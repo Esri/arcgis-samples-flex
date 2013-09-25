@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2013 ESRI
+
+    All rights reserved under the copyright laws of the United States
+    and applicable international laws, treaties, and conventions.
+
+    You may freely redistribute and use this sample code, with or
+    without modification, provided you include the original copyright
+    notice and use restrictions.
+
+    See use restrictions in use_restrictions.txt.
+-->
+<!---
+    @private
+
+    The skin class for the Infograhic component which displays related variables.
+    <p><b>Since:</b> ArcGIS API for Flex 3.5</p>
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        enabled.noData="false">
+
+    <!-- host component -->
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.components.Infographic")]
+    </fx:Metadata>
+
+    <s:states>
+        <s:State name="noData"/>
+        <s:State name="loading"/>
+        <s:State name="hasData"/>
+    </s:states>
+
+    <fx:Declarations>
+        <s:ArrayCollection id="rowList"/>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.components.geoEnrichmentClasses.InfographicData;
+            import com.esri.ags.skins.geoEnrichmentClasses.ChartItemGridRenderer;
+
+            import mx.collections.ArrayCollection;
+            import mx.collections.ArrayList;
+
+            import spark.components.gridClasses.GridColumn;
+            import spark.events.IndexChangeEvent;
+
+            [Bindable]
+            [Embed(source="../../../../../../assets/loader_tail.swf")]
+            private var loader:Class;
+
+            [Bindable]
+            private var labelTitleVisible:Boolean = true;
+
+            /**
+             *  @private
+             */
+            override public function styleChanged(styleProp:String):void
+            {
+                var allStyles:Boolean = !styleProp || styleProp == "styleName";
+
+                super.styleChanged(styleProp);
+
+                if (allStyles || styleProp == "showTitleLabel")
+                {
+                    labelTitleVisible = getStyle("showTitleLabel") as Boolean;
+                }
+            }
+
+            /**
+             *  @private
+             */
+            override protected function commitProperties():void
+            {
+                super.commitProperties();
+
+                if (currentState == "hasData")
+                {
+                    rowList.removeAll();
+
+                    var data:InfographicData = hostComponent.infographicData;
+                    if (data)
+                    {
+                        var vars:Object = calculate(data);
+                        var dataColumn:GridColumn = data.columns.getItemAt(1) as GridColumn;
+                        valueColumn.formatter = dataColumn.formatter;
+                        grid.dataProvider = new ArrayCollection(vars.rows);
+                        grid.sortByColumns(new <int>[ 0 ], false);
+                    }
+                }
+            }
+
+            private function calculate(data:InfographicData):Object
+            {
+                var highColumnIndex:int, lowColumnIndex:int;
+                var highestValue:Number = Number.NEGATIVE_INFINITY,
+                    lowestValue:Number = Number.POSITIVE_INFINITY;
+                var rows:Array = [];
+                var indexes:Array = getNumericFields(data);
+                for (var i:int = 0, n:int = indexes.length; i < n; i++)
+                {
+                    var dataColumn:GridColumn = data.columns.getItemAt(indexes[i]) as GridColumn;
+                    var value:Number = data.rows.getItemAt(0)[dataColumn.dataField];
+                    var row:Object = {
+                            index: i,
+                            indicator: dataColumn.headerText,
+                            value: value
+                        };
+                    rows.push(row);
+
+                    if (value > highestValue)
+                    {
+                        highestValue = value;
+                        highColumnIndex = indexes[i];
+                    }
+                    if (value < lowestValue)
+                    {
+                        lowestValue = value;
+                        lowColumnIndex = indexes[i];
+                    }
+                }
+
+                for (i = 0, n = rows.length; i < n; i++)
+                {
+                    rows[i].highestValue = highestValue;
+                    rows[i].lowestValue = lowestValue;
+                }
+
+                return {
+                        rows: rows,
+                        indexes: indexes
+                    };
+            }
+
+            private function getNumericFields(data:InfographicData):Array
+            {
+                var indexes:Array = [];
+                for (var i:int = 0, n:int = data.columns.length; i < n; i++)
+                {
+                    var dataCol:GridColumn = data.columns.getItemAt(i) as GridColumn;
+                    if (dataCol.dataField == "NAME")
+                    {
+                        continue;
+                    }
+                    indexes.push(i);
+                }
+                return indexes;
+            }
+
+            /**
+             * @private
+             * Find the typical item in a dataProvider.
+             *
+             * @param dataProvider The array of objects to look into.
+             * @param labelField The field in an object to compare with.
+             */
+            private function getTypicalItem(dataProvider:Array, labelField:String):Object
+            {
+                if (!dataProvider)
+                {
+                    return null;
+                }
+                var typicalItem:Object;
+                var object:Object;
+                for (var i:int = 0; i < dataProvider.length; i++)
+                {
+                    object = dataProvider[i];
+                    if (!typicalItem && object.hasOwnProperty(labelField))
+                    {
+                        typicalItem = object;
+                    }
+                    else
+                    {
+                        if (object.hasOwnProperty(labelField) && typicalItem.hasOwnProperty(labelField))
+                        {
+                            typicalItem = object[labelField].toString().length > typicalItem[labelField].toString().length ? object : typicalItem;
+                        }
+                    }
+                }
+                return typicalItem;
+            }
+
+            private function indicatorSortFunction(obj1:Object, obj2:Object, column:GridColumn):int
+            {
+                if (obj1.index < obj2.index)
+                {
+                    return -1;
+                }
+                if (obj1.index > obj2.index)
+                {
+                    return 1;
+                }
+                return 0;
+            }
+        ]]>
+    </fx:Script>
+
+    <s:VGroup width="100%" height="100%"
+              gap="5"
+              horizontalAlign="contentJustify">
+        <s:Label fontWeight="bold"
+                 includeInLayout="{labelTitleVisible}"
+                 text="{hostComponent.title}"
+                 visible="{labelTitleVisible}"/>
+        <s:DataGrid id="grid"
+                    width="100%" height="100%"
+                    alternatingRowColors="[0xFFFFFF, 0xEAEAEA]"
+                    dataProvider="{rowList}"
+                    selectionMode="none"
+                    sortableColumns="true"
+                    visible="false"
+                    visible.hasData="true">
+            <s:columns>
+                <s:ArrayList>
+                    <s:GridColumn dataField="index" visible="false"/>
+                    <s:GridColumn id="indicatorColumn"
+                                  dataField="indicator"
+                                  headerText="@Resource(bundle='ESRIMessages', key='geoenrichment_RelatedVariables_indicatorCol')"
+                                  sortCompareFunction="indicatorSortFunction"
+                                  sortable="true"/>
+                    <s:GridColumn id="valueColumn"
+                                  dataField="value"
+                                  headerText="@Resource(bundle='ESRIMessages', key='geoenrichment_RelatedVariables_valueCol')"
+                                  sortable="true">
+                        <s:itemRenderer>
+                            <fx:Component>
+                                <s:GridItemRenderer clipAndEnableScrolling="true">
+                                    <fx:Script>
+                                        <![CDATA[
+                                            override public function prepare(hasBeenRecycled:Boolean):void
+                                            {
+                                                if (!data)
+                                                {
+                                                    return;
+                                                }
+
+                                                var value:Number = data[column.dataField];
+                                                var highestValue:Number = data.highestValue;
+                                                var lowestValue:Number = data.lowestValue;
+
+                                                lblData.text = column.formatter ? column.formatter.format(value) : value.toString();
+                                                if (value == highestValue || value == lowestValue)
+                                                {
+                                                    bgRect.visible = true;
+                                                    if (value == highestValue)
+                                                    {
+                                                        bgColor.color = 0x6def37;
+                                                    }
+                                                    else
+                                                    {
+                                                        bgColor.color = 0x7bbdff;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    bgRect.visible = false;
+                                                }
+                                            }
+                                        ]]>
+                                    </fx:Script>
+                                    <s:Rect id="bgRect"
+                                            left="0" right="0" top="0" bottom="0"
+                                            visible="false">
+                                        <s:fill>
+                                            <s:SolidColor id="bgColor"/>
+                                        </s:fill>
+                                    </s:Rect>
+                                    <s:Label id="lblData"
+                                             left="7" top="9"/>
+                                </s:GridItemRenderer>
+                            </fx:Component>
+                        </s:itemRenderer>
+                    </s:GridColumn>
+                </s:ArrayList>
+            </s:columns>
+        </s:DataGrid>
+    </s:VGroup>
+
+
+    <s:Group left="0" right="0" top="0" bottom="0"
+             includeIn="loading">
+        <s:SWFLoader width="15" height="15"
+                     horizontalCenter="0"
+                     source="{loader}"
+                     verticalCenter="0"/>
+    </s:Group>
+
+</s:Skin>

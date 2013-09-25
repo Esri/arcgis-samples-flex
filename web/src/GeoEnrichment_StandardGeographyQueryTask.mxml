@@ -1,0 +1,677 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               initialize="application_initializeHandler(event)"
+               pageTitle="StandardGeographyQueryTask">
+    <!--
+    Description:
+    This sample demonstrates how to use the GeoEnrichment service helper method for obtaining geography IDs
+    and features for the supported geographic levels.  These IDs can then be used together with other information
+    (parameters) to specify a study area and enrich a geographic region or area.
+
+    Note:
+    To use this sample locally, delete the following line 'proxyURL="https://developers.arcgis.com/sproxy/"'
+    from the '<esri:StandardGeographyQueryTask' component.
+    Removing the proxyURL will force the IdentityManager to prompt for credentials to access the services.
+
+    Attention:
+    GeoEnrichment is a subscription based service available through ArcGIS Online.
+    Log-in credentials are always required when executing a GeoEnrichment task.
+    For demo purposes, this sample uses a proxy to bypass the login credentials.
+
+    Documentation:
+    For more information, see the API documentation.
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/IdentityManager.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Geometry.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/WebMercatorMapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/Field.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/PopUpRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpFieldFormat.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpFieldInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/StandardGeographyQueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/EnrichResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyQuery.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/SubGeographyQuery.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/GraphicUtil.html
+
+    ArcGIS Developers documentation:
+    https://developers.arcgis.com/en/features/geo-enrichment/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/GeoEnrichment_Service_Overview/02r30000021r000000/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/Standard_Geography_Query/02r30000000q000000/
+    Core Based Statistical Areas: (Metropolitan and Micropolitan Statistical Areas)
+    http://resources.arcgis.com/en/help/main/10.2/#/CBSAs/000z0000012t000000/
+
+
+    This sample also uses the following files:
+    com\esri\ags\samples\skins\GeoEnrichmentPopUpRendererSkin.mxml
+    com\esri\ags\samples\skins\SimpleNavigationSkin.mxml
+    -->
+
+    <s:states>
+        <!-- Normal application state -->
+        <s:State name="normal"/>
+        <!-- Second application state: show the progess message -->
+        <s:State name="withProgressMessage"/>
+    </s:states>
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace esri "http://www.esri.com/2008/ags";
+        
+        s|BorderContainer
+        {
+            dropShadowVisible: true;
+            borderVisible: false;
+            backgroundColor: #F9F9F9;
+            backgroundAlpha: 0.8;
+        }
+        s|List
+        {
+            selectionColor: #EEEEEE;
+            focusColor: #D3D1D1;
+            borderColor: #D3D1D1;
+            rollOverColor: #EEEEEE;
+        }
+        mx|ToolTip
+        {
+            fontSize: 12;
+            color: #000000;
+            backgroundColor: #F9F9F9;
+            paddingLeft: 10; 
+            paddingRight: 10; 
+            paddingTop: 10;
+            paddingBottom: 10;
+        }
+        esri|ContentNavigator
+        {
+            headerBackgroundAlpha: 0;
+            headerColor: #000000;
+        }
+        esri|InfoWindow
+        {
+            border-thickness: 1;
+            borderColor: #666666;
+            background-color: #F9F9F9;
+            backgroundAlpha: 1;
+            font-size: 12;
+            upper-left-radius: 5;
+            upper-right-radius: 0;
+            info-placement: left;
+            info-offset-y: 20;
+            shadowAlpha: 0.6;
+            shadowDistance: 10;
+        }
+        esri|Navigation
+        {
+            skinClass:ClassReference("com.esri.ags.samples.skins.SimpleNavigationSkin");
+        }
+        esri|PopUpRenderer
+        {
+            skinClass: ClassReference("com.esri.ags.samples.skins.GeoEnrichmentPopUpRendererSkin");
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.components.ContentNavigator;
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.layers.supportClasses.Field;
+            import com.esri.ags.portal.PopUpRenderer;
+            import com.esri.ags.portal.supportClasses.PopUpFieldFormat;
+            import com.esri.ags.portal.supportClasses.PopUpFieldInfo;
+            import com.esri.ags.portal.supportClasses.PopUpInfo;
+            import com.esri.ags.tasks.geoEnrichmentClasses.EnrichResult;
+            import com.esri.ags.utils.GraphicUtil;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.AsyncResponder;
+
+            import spark.events.IndexChangeEvent;
+
+            private var infoWindowHiddenFields:Array = [ "OBJECTID", "ObjectId" ];
+            private var graphicFieldsArray:Array = [];
+
+            [Bindable]
+            private var standardGeographyQueryResultsAC:ArrayCollection = new ArrayCollection();
+
+            protected function application_initializeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  GeoEnrichment service calls
+            //
+            //--------------------------------------------------------------------------
+            protected function standardGeographyQueryDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                graphicsLayer.clear();
+                map.infoWindow.hide();
+                standardGeographyQueryResultsAC.removeAll();
+
+                progressMessage.showMessage("Determining geography levels", true);
+                currentState = 'withProgressMessage';
+                standardGeographyQueryTask.execute(DropDownList(event.currentTarget).selectedItem.data,
+                                                   new AsyncResponder(standardGeographyQueryExecuteCompleteHandler, standardGeographyQueryExecuteFaultHandler));
+
+                function standardGeographyQueryExecuteCompleteHandler(result:Object, token:Object = null):void
+                {
+                    standardGeographyQueryResultsAC.removeAll();
+                    currentState = 'normal';
+
+                    var enrichResult:EnrichResult = result as EnrichResult;
+                    var resultFeatureSetsArr:Array = enrichResult.featureSets;
+                    var resultFeatureSet:FeatureSet;
+                    var geometryType:String = Geometry.POLYGON;
+                    var graphicsArray:Array = [];
+
+                    for (var i:int = 0; i < resultFeatureSetsArr.length; i++)
+                    {
+                        resultFeatureSet = resultFeatureSetsArr[i] as FeatureSet;
+                        if (resultFeatureSet.features.length > 0)
+                        {
+
+                            for (var j:int = 0; j < resultFeatureSet.features.length; j++)
+                            {
+                                if (j == 0)
+                                {
+                                    geometryType = Graphic(resultFeatureSet.features[j]).geometry.type;
+                                    graphicFieldsArray = resultFeatureSet.fields;
+                                }
+                                graphicsLayer.add(resultFeatureSet.features[j]);
+                                graphicsArray.push(resultFeatureSet.features[j]);
+                            }
+                            graphicsLayer.infoWindowRenderer = createInfoWindowRenderer(graphicFieldsArray.sortOn("name"), "", "Standard Geography Details");
+                        }
+                        else
+                        {
+                            Alert.show("No features found.", "Standard Geography Query Result");
+                        }
+                    }
+
+                    standardGeographyQueryResultsAC.source = graphicsArray;
+
+                    if (graphicsArray.length > 0)
+                    {
+                        map.extent = GraphicUtil.getGraphicsExtent(graphicsArray);
+                    }
+
+                    switch (geometryType)
+                    {
+                        case Geometry.MAPPOINT:
+                        {
+                            graphicsLayer.symbol = geoEnrichSMS;
+                            break;
+                        }
+
+                        default:
+                        {
+                            graphicsLayer.symbol = geoEnrichSFS;
+                            break;
+                        }
+                    }
+                }
+
+                function standardGeographyQueryExecuteFaultHandler(error:Object, token:Object = null):void
+                {
+                    Alert.show("Something bad happened when attemping to enrich the location." + "\n" + error.faultString, "GeoEnrichment Service error");
+                    currentState = 'normal';
+                }
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  UI event handlers
+            //
+            //--------------------------------------------------------------------------
+            protected function standardGeographyQueryResultsList_changeHandler(event:IndexChangeEvent):void
+            {
+                map.infoWindow.hide();
+                var currentGraphic:Graphic = List(event.currentTarget).selectedItem as Graphic;
+
+                var contentNavigator:ContentNavigator = map.infoWindowContent as ContentNavigator;
+                if (!contentNavigator)
+                {
+                    contentNavigator = new ContentNavigator();
+                    map.infoWindow.content = contentNavigator;
+                }
+
+                contentNavigator.dataProvider = new ArrayList([ currentGraphic ]);
+                map.zoomTo(currentGraphic.geometry);
+                if (map.level < 6)
+                {
+                    map.level = 6;
+                }
+                map.infoWindow.show(currentGraphic.geometry is MapPoint ? currentGraphic.geometry as MapPoint : currentGraphic.geometry.extent.center);
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  Helper function to create popup content
+            //
+            //--------------------------------------------------------------------------
+            protected function createInfoWindowRenderer(infoWindowFields:Array, infoWindowTitleField:String = "", infoWindowTitle:String = ""):ClassFactory
+            {
+                var popUpFieldInfosArray:Array = [];
+
+                var titleFieldName:String = "sourceCountry";
+                var popUpFieldFormat:PopUpFieldFormat = new PopUpFieldFormat();
+
+                for (var i:int = 0; i < infoWindowFields.length; i++)
+                {
+                    var field:Field = infoWindowFields[i] as Field;
+
+                    if (field.name.toLowerCase() == infoWindowTitleField.toLowerCase())
+                    {
+                        titleFieldName = field.name;
+                    }
+                    if (infoWindowHiddenFields.indexOf(field.name) < 0)
+                    {
+                        // Create the pop-up field infos for each field you want in the pop-up
+                        var popUpFieldInfo:PopUpFieldInfo = new PopUpFieldInfo();
+                        popUpFieldInfo.fieldName = field.name;
+                        popUpFieldInfo.label = field.alias;
+                        popUpFieldInfo.format = popUpFieldFormat;
+                        popUpFieldInfo.visible = true;
+
+                        popUpFieldInfosArray.push(popUpFieldInfo);
+                    }
+                }
+
+                // Create the pop-up info
+                var popUpInfo:PopUpInfo = new PopUpInfo();
+                // Tell the pop-up info about the field name template
+                if (infoWindowTitleField != "")
+                {
+                    popUpInfo.title = "{" + titleFieldName + "}";
+                }
+                else
+                {
+                    popUpInfo.title = infoWindowTitle;
+                }
+                popUpInfo.popUpFieldInfos = popUpFieldInfosArray;
+                popUpInfo.showZoomToButton = false;
+
+                // Create the class factory 
+                var popUpRenderer:ClassFactory = new ClassFactory(PopUpRenderer);
+                // Set the "popUpInfo" key
+                popUpRenderer.properties = { "popUpInfo": popUpInfo, "width": 300, "maxHeight": 500 };
+
+                return popUpRenderer;
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Task URL defaults to geoenrich.arcgis.com -->
+        <esri:StandardGeographyQueryTask id="standardGeographyQueryTask"
+                                         proxyURL="https://developers.arcgis.com/sproxy/"
+                                         showBusyCursor="true"/>
+
+        <esri:SimpleFillSymbol id="geoEnrichSFS"
+                               alpha="0.2"
+                               color="0x999999">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="2" color="0x7F7F7F"/>
+            </esri:outline>
+        </esri:SimpleFillSymbol>
+
+        <esri:SimpleMarkerSymbol id="geoEnrichSMS"
+                                 alpha="0.2"
+                                 color="0x999999">
+            <esri:outline>
+                <esri:SimpleLineSymbol width="2" color="0x7F7F7F"/>
+            </esri:outline>
+        </esri:SimpleMarkerSymbol>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            This sample demonstrates how to use the GeoEnrichment service helper method for obtaining geography IDs
+            and features for the supported geographic levels.  These IDs can then be used together with other information
+            (parameters) to specify a study area and enrich a geographic region or area.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              infoWindowRendererHighlightColor="NaN"
+              level="3"
+              scaleBarVisible="false"
+              wrapAround180="true">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-22.474480" lat="29.442643"/>
+        </esri:center>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer alpha="0.7" url="http://geoenrich.arcgis.com/arcgis/rest/services/GECoverage/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer"/>
+        <esri:GraphicsLayer id="graphicsLayer"/>
+    </esri:Map>
+
+    <s:BorderContainer width="350"
+                       right="20" top="20">
+        <s:layout>
+            <s:VerticalLayout gap="20"
+                              horizontalAlign="contentJustify"
+                              paddingBottom="20"
+                              paddingLeft="20"
+                              paddingRight="20"
+                              paddingTop="20"/>
+        </s:layout>
+
+        <s:DropDownList id="standardGeographyQueryDropDownList"
+                        width="90%"
+                        change="standardGeographyQueryDropDownList_changeHandler(event)"
+                        prompt="Select a standard geography query.">
+            <s:dataProvider>
+                <s:ArrayList>
+                    <!-- Perugia, Italy -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="IT"
+                                                 datasetId="ITALY"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="IT.Comuni"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="Perugia"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>Perugia, Italy</fx:label>
+                    </fx:Object>
+                    <!-- Dublin, Ireland -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="IE"
+                                                 datasetId="IRELAND"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="IE.RegionalAuthority"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="Dublin"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>Dublin, Ireland</fx:label>
+                    </fx:Object>
+                    <!-- Montauban, France -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="FR"
+                                                 datasetId="FRANCE"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="[FR.Country,FR.Postcode2,FR.Departement,FR.Arrondissement,FR.Canton,FR.Postcode5,FR.Commune]"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="Montauban"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>Montauban, France</fx:label>
+                    </fx:Object>
+                    <!-- Lund, Sweden -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="SE"
+                                                 datasetId="SWEDEN"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="[SE.Riksomraden,SE.Regioner,SE.Postcode5,SE.Postcode2,SE.Postcode1,SE.Landsdelar,SE.Laen,SE.Kommuner,SE.Country]"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="Lund"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>Lund, Sweden</fx:label>
+                    </fx:Object>
+                    <!-- Return the province of Ontario in Canada by its Census ID. -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="CA"
+                                                 datasetId="CANADA_ESRI_2012"
+                                                 generalizationLevel="6"
+                                                 geographyIds="[35]"
+                                                 geographyLayerIds="CAN.PR"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>Province of Ontario, Canada</fx:label>
+                    </fx:Object>
+                    <!-- Return two U.S. ZIP Codes and return the polygon geometry for each feature. -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="US"
+                                                 datasetId="USA_ESRI_2013"
+                                                 generalizationLevel="6"
+                                                 geographyIds="[92129,92126]"
+                                                 geographyLayerIds="US.ZIP5"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>San Diego, California, US ZipCodes</fx:label>
+                    </fx:Object>
+                    <!-- Return all the Census Tracts as centroids that are within Orange County, CA. -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:SubGeographyQuery countryId="US"
+                                                    datasetId="USA_ESRI_2013"
+                                                    filterGeographyIds="[06059]"
+                                                    filterGeographyLayerIds="US.Counties"
+                                                    generalizationLevel="6"
+                                                    outSpatialReference="{map.spatialReference}"
+                                                    returnCentroids="true"
+                                                    returnGeometry="true"
+                                                    subGeographyLayerId="US.Tracts"/>
+                        </fx:data>
+                        <fx:type>SubGeographyQuery</fx:type>
+                        <fx:label>Orange County, CA, US (Census Tracts) centroids</fx:label>
+                    </fx:Object>
+                    <!-- Return all the U.S. counties that contain the term “Orange”. -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="US"
+                                                 datasetId="USA_ESRI_2013"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="US.Counties"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="orange"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>US Counties that contain term "Orange"</fx:label>
+                    </fx:Object>
+                    <!-- Return all the U.S. counties and cities that contain the term “Orange”. -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="US"
+                                                 datasetId="USA_ESRI_2013"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="[US.Counties,US.Places]"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="orange"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>US Counties and Cities that contain term "Orange"</fx:label>
+                    </fx:Object>
+                    <!-- Return all the U.S. counties that contain the term “San”. -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="US"
+                                                 datasetId="USA_ESRI_2013"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="[US.Counties]"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="San"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>US Counties that contain term "San"</fx:label>
+                    </fx:Object>
+                    <!-- Return all the U.S. counties that contain the term “Orange County” and “CA” using the query syntax. -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="US"
+                                                 datasetId="USA_ESRI_2013"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="[US.Counties]"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="Name:'Orange County' AND MajorSubdivisionAbbr:CA"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>US Counties terms “Orange County” and “CA”</fx:label>
+                    </fx:Object>
+                    <!-- Demonstrate the fuzzy matching capabilities with a misspelled state name. -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="US"
+                                                 datasetId="USA_ESRI_2013"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="[US.States]"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 useFuzzySearch="true"
+                                                 where="Kalifornia"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>US States Fuzzy Search: Kalifornia</fx:label>
+                    </fx:Object>
+                    <!-- Core Based Statistical Areas: Riverside-San Bernardino-Ontario, CA -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:GeographyQuery countryId="US"
+                                                 datasetId="USA_ESRI_2013"
+                                                 generalizationLevel="6"
+                                                 geographyLayerIds="US.CBSA"
+                                                 outSpatialReference="{map.spatialReference}"
+                                                 returnGeometry="true"
+                                                 where="40140"/>
+                        </fx:data>
+                        <fx:type>GeographyQuery</fx:type>
+                        <fx:label>CBSA: Riverside-San Bernardino-Ontario, CA</fx:label>
+                    </fx:Object>
+                    <!-- Counties within California, United States -->
+                    <fx:Object>
+                        <fx:data>
+                            <esri:SubGeographyQuery countryId="US"
+                                                    datasetId="USA_ESRI_2013"
+                                                    filterGeographyLayerIds="US.States"
+                                                    filterGeographyWhere="California"
+                                                    generalizationLevel="6"
+                                                    outSpatialReference="{map.spatialReference}"
+                                                    returnGeometry="true"
+                                                    subGeographyLayerId="US.Counties"/>
+                        </fx:data>
+                        <fx:type>SubGeographyQuery</fx:type>
+                        <fx:label>Counties within California, United States</fx:label>
+                    </fx:Object>
+                </s:ArrayList>
+            </s:dataProvider>
+            <s:itemRenderer>
+                <fx:Component>
+                    <s:ItemRenderer>
+                        <s:states>
+                            <s:State name="normal"/>
+                            <s:State name="hovered"/>
+                            <s:State name="selected"/>
+                        </s:states>
+                        <s:Label width="100%" height="20"
+                                 left="5" right="5"
+                                 color="0x000000"
+                                 fontWeight.selected="bold"
+                                 text="{data.label}"
+                                 toolTip="{data.type}"
+                                 verticalAlign="middle"/>
+                    </s:ItemRenderer>
+                </fx:Component>
+            </s:itemRenderer>
+        </s:DropDownList>
+    </s:BorderContainer>
+
+    <s:BorderContainer width="350" height="200"
+                       right="20" top="105"
+                       visible="{standardGeographyQueryResultsAC.length > 0}">
+        <s:layout>
+            <s:VerticalLayout gap="20"
+                              horizontalAlign="contentJustify"
+                              paddingBottom="20"
+                              paddingLeft="20"
+                              paddingRight="20"
+                              paddingTop="20"/>
+        </s:layout>
+        <s:Label width="100%"
+                 fontSize="14"
+                 fontWeight="bold"
+                 text="Standard Geography Query Results"/>
+        <s:List id="standardGeographyQueryResultsList"
+                width="100%" height="100%"
+                change="standardGeographyQueryResultsList_changeHandler(event)"
+                dataProvider="{standardGeographyQueryResultsAC}">
+            <s:itemRenderer>
+                <fx:Component>
+                    <s:ItemRenderer>
+                        <s:states>
+                            <s:State name="normal"/>
+                            <s:State name="hovered"/>
+                            <s:State name="selected"/>
+                        </s:states>
+                        <s:Label height="20"
+                                 left="5"
+                                 color="0x000000"
+                                 fontWeight.selected="bold"
+                                 minWidth="75"
+                                 text="{data.attributes.AreaID}"
+                                 toolTip="{data.attributes.MajorSubdivisionName}"
+                                 verticalAlign="middle"/>
+                        <s:Label height="20"
+                                 color="0x000000"
+                                 fontWeight.selected="bold"
+                                 paddingLeft="85"
+                                 text="{data.attributes.DataLayerID}"
+                                 toolTip="{data.attributes.MajorSubdivisionName}"
+                                 verticalAlign="middle"/>
+                        <s:Label height="20"
+                                 right="5"
+                                 color="0x000000"
+                                 fontWeight.selected="bold"
+                                 text="{data.attributes.AreaName}"
+                                 toolTip="{data.attributes.MajorSubdivisionName}"
+                                 verticalAlign="middle"/>
+                    </s:ItemRenderer>
+                </fx:Component>
+            </s:itemRenderer>
+        </s:List>
+    </s:BorderContainer>
+
+    <s:BorderContainer cornerRadius="5"
+                       horizontalCenter="0"
+                       includeInLayout="false"
+                       includeInLayout.withProgressMessage="true"
+                       verticalCenter="0"
+                       visible="false"
+                       visible.withProgressMessage="true">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <components:ProgressMessage id="progressMessage" textColor="0x000000"/>
+    </s:BorderContainer>
+</s:Application>
