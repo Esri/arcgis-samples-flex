@@ -62,7 +62,7 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.events.LayerEvent;
-            
+
             import mx.controls.Alert;
 
             protected function geoRSSLayer_loadErrorHandler(event:LayerEvent):void
