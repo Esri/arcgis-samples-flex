@@ -412,7 +412,7 @@
         <esri:InfographicsCarousel id="carousel"
                                    complete="carousel_enrichCompleteHandler(event)"
                                    fault="carousel_faultHandler(event)"
-                                   proxyURL="https://developers.arcgis.com/sproxy">
+                                   proxyURL="https://developers.arcgis.com/sproxy/">
 
             <!--
                 // We use a GeometryStudyArea to send a user input geometry as the study area.
