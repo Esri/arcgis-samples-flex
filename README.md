@@ -2,20 +2,24 @@
 
 Basic API samples for the ArcGIS API for Flex.
 
-This is the source code for all the [samples](http://resources.arcgis.com/en/help/flex-api/samples/) in the  [ArcGIS API for Flex resource center](http://resources.arcgis.com/en/help/flex-api/).  This used to be part of the [Flex API Library download](http://links.esri.com/flex-api/latest-download) but is now available on GitHub.
+This is the source code for all the [samples](https://developers.arcgis.com/en/flex/sample-code/) in the  [ArcGIS API for Flex resource center](https://developers.arcgis.com/en/flex/).  This used to be part of the [Flex API Library download](http://links.esri.com/flex-api/latest-download) but is now available on GitHub.
 
-[View live samples here](http://resources.arcgis.com/en/help/flex-api/samples/)
+[View live samples here](https://developers.arcgis.com/en/flex/sample-code/)
 
 ## Requirements
 * ArcGIS Flex API Library
 * Adobe Flex or [Apache Flex SDK](http://flex.apache.org/)
 
 ## Resources
-* [Getting Started](http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Getting_started/017p0000001q000000/)
+* [Getting Started](https://developers.arcgis.com/en/flex/guide/getting-started.htm)
 * [ArcGIS API for Flex Resource Center](http://links.esri.com/flex)
 * [Flex API License agreement](http://www.esri.com/legal/pdfs/mla_e204_e300/english.pdf)
 * [Flex API forum](http://forums.arcgis.com/forums/18-ArcGIS-API-for-Flex)
 * [ArcGIS Blog](http://blogs.esri.com/esri/arcgis/tag/flex/)
+
+## Contributing
+
+Esri welcomes [contributions](CONTRIBUTING.md) from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
 ## License
 Copyright 2012-2013 Esri

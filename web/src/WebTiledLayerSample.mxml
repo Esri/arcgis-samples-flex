@@ -39,8 +39,8 @@
             private static const CM_MIDNIGHT_URL:String = "http://tile.cloudmade.com/1a1b06b230af4efdbb989ea99e9841af/999/256/{level}/{col}/{row}.png";
             private static const CM_PALE_URL:String = "http://{subDomain}.tile.cloudmade.com/1a1b06b230af4efdbb989ea99e9841af/998/256/{level}/{col}/{row}.png";
 
-            private static const MB_LIGHT_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-light/{level}/{col}/{row}.png";
-            private static const MB_STREETS_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-streets/{level}/{col}/{row}.png";
+            private static const MB_DARK_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/examples.map-cnkhv76j/{level}/{col}/{row}.png";
+            private static const MB_STREETS_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/examples.map-vyofok3q/{level}/{col}/{row}.png";
             private static const MB_TERRAIN_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-warden/{level}/{col}/{row}.png";
 
             private static const STMN_TERRAIN_URL:String = "http://{subDomain}.tile.stamen.com/terrain/{level}/{col}/{row}.jpg";
@@ -193,10 +193,10 @@
                                    subDomains="{ABC}"
                                    urlTemplate="{CM_PALE_URL}"/>
 
-                        <fx:Object copyright="Mapbox Light"
-                                   label="MapBox Light"
+                        <fx:Object copyright="Mapbox Dark"
+                                   label="MapBox Dark"
                                    subDomains="{ABCD}"
-                                   urlTemplate="{MB_LIGHT_URL}"/>
+                                   urlTemplate="{MB_DARK_URL}"/>
 
                         <fx:Object copyright="Mapbox Streets"
                                    label="MapBox Streets"

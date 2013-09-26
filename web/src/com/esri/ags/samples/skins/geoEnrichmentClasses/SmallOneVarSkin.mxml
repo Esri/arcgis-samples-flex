@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2013 ESRI
+
+    All rights reserved under the copyright laws of the United States
+    and applicable international laws, treaties, and conventions.
+
+    You may freely redistribute and use this sample code, with or
+    without modification, provided you include the original copyright
+    notice and use restrictions.
+
+    See use restrictions in use_restrictions.txt.
+-->
+<!---
+    @private
+
+    The skin class for the Infograhic component which displays one variables.
+    <p><b>Since:</b> ArcGIS API for Flex 3.5</p>
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        enabled.noData="false">
+
+    <!-- host component -->
+    <fx:Metadata>
+        [HostComponent("com.esri.ags.components.Infographic")]
+    </fx:Metadata>
+
+    <s:states>
+        <s:State name="noData"/>
+        <s:State name="loading"/>
+        <s:State name="hasData"/>
+    </s:states>
+
+    <fx:Declarations>
+        <s:ArrayList id="columnList"/>
+        <s:ArrayCollection id="rowList"/>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.components.geoEnrichmentClasses.InfographicData;
+            import com.esri.ags.skins.geoEnrichmentClasses.ChartItemGridRenderer;
+            import com.esri.ags.skins.geoEnrichmentClasses.LabelGridItemRenderer;
+            import com.esri.ags.skins.geoEnrichmentClasses.LowerUpperColumnHeader;
+            
+            import mx.collections.ArrayCollection;
+            import mx.collections.ArrayList;
+            
+            import spark.components.gridClasses.GridColumn;
+
+            [Bindable]
+            [Embed(source="../../../../../../assets/loader_tail.swf")]
+            private var loader:Class;
+
+            [Bindable]
+            private var labelTitleVisible:Boolean = true;
+
+            /**
+             *  @private
+             */
+            override public function styleChanged(styleProp:String):void
+            {
+                var allStyles:Boolean = !styleProp || styleProp == "styleName";
+
+                super.styleChanged(styleProp);
+
+                if (allStyles || styleProp == "showTitleLabel")
+                {
+                    labelTitleVisible = getStyle("showTitleLabel") as Boolean;
+                }
+            }
+
+            /**
+             *  @private
+             */
+            override protected function commitProperties():void
+            {
+                super.commitProperties();
+
+                if (currentState == "hasData")
+                {
+                    columnList.removeAll();
+                    rowList.removeAll();
+                    rowList.sort = null;
+                    rowList.refresh();
+
+                    var data:InfographicData = hostComponent.infographicData;
+                    if (data)
+                    {
+                        var vars:Object = calculate(data);
+                        var displayCol:GridColumn = vars.secondCol || vars.firstCol;
+                        var siteRow:Array = null;
+                        if (displayCol)
+                        {
+                            var rowCount:int = data.rows.length;
+
+                            var value:Number = data.rows.getItemAt(0)[displayCol.dataField];
+                            var isNum:Boolean = !isNaN(value);
+
+                            for (var i:int = 0; i < rowCount; i++)
+                            {
+                                var dataRow:Array = [];
+                                if (!siteRow)
+                                {
+                                    siteRow = dataRow;
+                                }
+                                dataRow["NAME"] = data.rows.getItemAt(i)["NAME"];
+                                dataRow[displayCol.dataField] = data.rows.getItemAt(i)[displayCol.dataField];
+                                dataRow["HIGHLIGHTED"] = false;
+                                rowList.addItemAt(dataRow, i);
+                            }
+                            siteRow["HIGHLIGHTED"] = true;
+
+                            var column:GridColumn;
+
+                            column = new GridColumn("NAME");
+                            column.headerText = resourceManager.getString("ESRIMessages", "geoenrichment_OneVar_areaCol");
+                            column.sortable = true;
+                            column.itemRenderer = new ClassFactory(LabelGridItemRenderer);
+                            columnList.addItem(column);
+
+                            column = new GridColumn(displayCol.dataField);
+                            column.headerText = resourceManager.getString("ESRIMessages", "geoenrichment_OneVar_valueCol");
+                            column.formatter = displayCol.formatter;
+                            column.itemRenderer = new ClassFactory(LabelGridItemRenderer);
+                            column.sortable = true;
+                            column.sortDescending = true;
+                            columnList.addItem(column);
+
+                            rowList.refresh();
+                        }
+                    }
+
+                    grid.sortByColumns(new <int>[ 1 ], true);
+                }
+            }
+
+            private function calculate(data:InfographicData):Object
+            {
+                var firstCol:GridColumn;
+                var secondCol:GridColumn;
+                for (var i:int = 0, n:int = data.columns.length; i < n; i++)
+                {
+                    var column:GridColumn = data.columns.getItemAt(i) as GridColumn;
+                    if (column.dataField == "NAME")
+                    {
+                        continue;
+                    }
+                    var formattedValue:String = "";
+                    if (column.formatter)
+                    {
+                        formattedValue = column.formatter.format(data.rows.getItemAt(0)[column.dataField]);
+                    }
+                    if (!firstCol)
+                    {
+                        primaryValueLabel.text = formattedValue;
+                        firstCol = column;
+                    }
+                    else if (column.dataField == firstCol.dataField + "_P")
+                    {
+                        secondCol = column;
+                        break;
+                    }
+                }
+
+                return { firstCol: firstCol, secondCol: secondCol };
+            }
+        ]]>
+    </fx:Script>
+
+    <s:VGroup width="100%" height="100%" gap="5">
+        <s:Label fontWeight="bold"
+                 includeInLayout="{labelTitleVisible}"
+                 text="{hostComponent.title}"
+                 visible="{labelTitleVisible}"/>
+        <s:VGroup width="100%" height="100%"
+                  gap="5"
+                  horizontalAlign="contentJustify"
+                  visible="false"
+                  visible.hasData="true">
+            <s:Label id="primaryValueLabel"
+                     color="#669933"
+                     fontSize="22"
+                     fontWeight="bold"/>
+            <s:DataGrid id="grid"
+                        width="100%" height="100%"
+                        alternatingRowColors="[0xFFFFFF, 0xEAEAEA]"
+                        columns="{columnList}"
+                        dataProvider="{rowList}"
+                        sortableColumns="true"/>
+        </s:VGroup>
+    </s:VGroup>
+
+    <s:Group left="0" right="0" top="0" bottom="0"
+             includeIn="loading">
+        <s:SWFLoader width="15" height="15"
+                     horizontalCenter="0"
+                     source="{loader}"
+                     verticalCenter="0"/>
+    </s:Group>
+
+</s:Skin>

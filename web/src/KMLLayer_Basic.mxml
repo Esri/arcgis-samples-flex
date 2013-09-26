@@ -53,10 +53,8 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.events.LayerEvent;
-            import com.esri.ags.layers.supportClasses.KMLFolder;
 
             import mx.controls.Alert;
-            import mx.rpc.events.FaultEvent;
 
             protected function lower48Reflectivity_loadHandler(event:LayerEvent):void
             {
@@ -72,10 +70,6 @@
             }
         ]]>
     </fx:Script>
-
-    <fx:Declarations>
-        <!-- Place non-visual elements (e.g., services, value objects) here -->
-    </fx:Declarations>
 
     <s:controlBarContent>
         <s:RichEditableText width="100%" editable="false">

@@ -62,8 +62,6 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.events.LayerEvent;
-            import com.esri.ags.layers.FeatureLayer;
-            import com.esri.ags.renderers.SimpleRenderer;
 
             import mx.controls.Alert;
 

@@ -3,11 +3,19 @@
                xmlns:s="library://ns.adobe.com/flex/spark"
                xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               initialize="application_initializeHandler(event)"
                pageTitle="Chaining Geoprocessor tasks">
     <!--
     Description:
     This sample demonstrates how to send multiple service requests
     through different tasks supporting advanced analysis workflows.
+
+    Attention:
+    To use this sample locally, delete the following line 'proxyURL="https://developers.arcgis.com/sproxy/"'
+    from the '<esri:Geoprocessor id="gp"' task in the Declarations section.
+    Note: Requires an ArcGIS Online Organizational subscription.
+
     The sample first issues a request to a geoprocessing service to
     calculate a 2 minute drive time around the click location, and then
     issues a second request to a census service using the drive time
@@ -36,10 +44,9 @@
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
+    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#submitJob()
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ParameterValue.html
     http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
 
@@ -69,12 +76,18 @@
     http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_ModelBuilder/00150000001t000000/
     A quick tour of creating tools with Python
     http://resources.arcgis.com/en/help/main/10.1/index.html#/A_quick_tour_of_creating_tools_with_Python/00150000002q000000/
+
+    ArcGIS Network Analyst:
+    Service Area Analysis
+    http://resources.arcgis.com/en/help/arcgis-rest-api/#/Service_Area_service_with_asynchronous_execution/02r3000000n0000000/
+    http://logistics.arcgis.com/arcgis/rest/directories/arcgisoutput/World/ServiceAreas_GPServer/World_ServiceAreas/GenerateServiceAreas.htm
     -->
 
     <fx:Script>
         <![CDATA[
             import com.esri.ags.FeatureSet;
             import com.esri.ags.Graphic;
+            import com.esri.ags.components.IdentityManager;
             import com.esri.ags.events.GeoprocessorEvent;
             import com.esri.ags.events.MapMouseEvent;
             import com.esri.ags.events.QueryEvent;
@@ -82,61 +95,113 @@
             import com.esri.ags.symbols.SimpleFillSymbol;
             import com.esri.ags.symbols.SimpleLineSymbol;
             import com.esri.ags.symbols.SimpleMarkerSymbol;
-            import com.esri.ags.tasks.supportClasses.ParameterValue;
+            import com.esri.ags.tasks.supportClasses.JobInfo;
 
-            private var gpPending:Boolean;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.FaultEvent;
 
-            private function onMapClick(event:MapMouseEvent):void
+            private var gpPending:Boolean = false;
+
+            protected function application_initializeHandler(event:FlexEvent):void
             {
+                IdentityManager.instance.enabled = true;
+            }
+
+            private function myMap_mapClickHandler(event:MapMouseEvent):void
+            {
+                if (gpPending)
+                {
+                    Alert.show("Please be patient while we determine your first analysis", "Drive Time");
+                    return; // a new gp request has been started
+                }
                 myMap.defaultGraphicsLayer.clear();
                 var mapPoint:MapPoint = event.mapPoint;
                 var graphic:Graphic = new Graphic(mapPoint);
-
+                graphic.symbol = new SimpleMarkerSymbol("cross", 10, 0, 1, 0, 0, 0, new SimpleLineSymbol("solid", 0, 1, 2));
+                myMap.defaultGraphicsLayer.add(graphic);
                 var featureSet:FeatureSet = new FeatureSet();
                 featureSet.features = [ graphic ];
                 var params:Object =
                     {
-                        "Input_Location": featureSet,
-                        "Drive_Times": 2
+                        "Facilities": featureSet,
+                        "Break_Values": "2",
+                        "Break_Units": "Minutes"
                     };
-                gp.execute(params);
+                gp.submitJob(params);
                 gpPending = true;
-                messages.text = "Calculating 2 minute drive time area (Executing GP Task)...";
+                progressMessage.showMessage("Determining 2 minute drive time", true);
             }
 
-            private function onGPExecuteComplete(event:GeoprocessorEvent):void
+            protected function gp_faultHandler(event:FaultEvent):void
             {
-                gpPending = false;
-                var parameterValue:ParameterValue = event.executeResult.results[0];
-                var fset:FeatureSet = FeatureSet(parameterValue.value);
-                var feature:Graphic = fset.features[0];
-                var symbol:SimpleFillSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, 0xFF0000, 0.1);
-                symbol.outline = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0xFF0000, 1.0, 2);
-                feature.symbol = symbol;
-                myMap.defaultGraphicsLayer.add(feature);
-
-                query.geometry = feature.geometry;
-                queryTask.execute(query);
-                messages.text = "Calculating population within drive time area (Executing Query)...";
+                Alert.show("This service request an ArcGIS Organizational subscription\nYou can also try the example on the ArcGIS API for Flex Resource Center"
+                           + event.fault.faultString, "Drive Time");
+                progressMessage.clearMessage();
             }
 
-            private function onQueryExecuteComplete(event:QueryEvent):void
+            protected function gp_jobCompleteHandler(event:GeoprocessorEvent):void
             {
-                if (gpPending)
+                if (event.jobInfo.jobStatus == JobInfo.STATUS_SUCCEEDED)
                 {
-                    return; // a new gp request has been started
+                    var jobID:String = event.jobInfo.jobId;
+                    progressMessage.setMessage("Retrieving drive time");
+                    gp.getResultData(gp.submitJobLastResult.jobId, "Service_Areas");
                 }
-                var symbol:SimpleMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_SQUARE, 8, 0xFFFF00, 0.5);
-                symbol.outline = new SimpleLineSymbol();
+                else
+                {
+                    Alert.show(event.jobInfo.jobStatus, "Analysis Status");
+                }
+            }
 
+            protected function gp_getResultDataCompleteHandler(event:GeoprocessorEvent):void
+            {
+                /* The parameterValue property is set when the type is getResultDataComplete,
+                 * getInputComplete or getResultImageComplete.
+                 */
+                if (event.parameterValue)
+                {
+                    progressMessage.showMessage("Calculating population within drive time", true);
+                    var serviceAreas:FeatureSet = event.parameterValue.value as FeatureSet;
+                    var feature:Graphic = serviceAreas.features[0];
+                    var symbol:SimpleFillSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, 0xCA0013, 0.1);
+                    symbol.outline = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0xB3B3B3, 1.0, 2);
+                    feature.symbol = symbol;
+                    myMap.defaultGraphicsLayer.add(feature);
+                    query.geometry = feature.geometry;
+                    queryTask.execute(query);
+                    //Note: the zoomTo method was added at version 3.1
+                    myMap.zoomTo(feature.geometry.extent);
+                }
+                else
+                {
+                    Alert.show("Service did not return any results", "Drive Time");
+                    gpPending = false;
+                }
+            }
+
+            private function queryTask_executeCompleteHandler(event:QueryEvent):void
+            {
                 var fset:FeatureSet = event.featureSet;
-                for each (var graphic:Graphic in fset.features)
+                if (fset.features.length > 0)
                 {
-                    graphic.symbol = symbol;
-                    myMap.defaultGraphicsLayer.add(graphic);
+                    var symbol:SimpleMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_SQUARE, 8, 0xFFFF00, 0.5);
+                    symbol.outline = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0xB3B3B3);
+
+                    for each (var graphic:Graphic in fset.features)
+                    {
+                        graphic.symbol = symbol;
+                        myMap.defaultGraphicsLayer.add(graphic);
+                    }
+                    var totalPopulation:Number = sumPopulation(fset);
+                    messages.text = "Total population within the drive time area is " + numberFormatter.format(totalPopulation) + ".";
                 }
-                var totalPopulation:Number = sumPopulation(fset);
-                messages.text = "Total population within the drive time area is " + numberFormatter.format(totalPopulation) + ".";
+                else
+                {
+                    messages.text = "We were unable to calculate the population within this region.";
+                }
+                progressMessage.clearMessage();
+                gpPending = false;
             }
 
             private function sumPopulation(fset:FeatureSet):Number
@@ -154,19 +219,18 @@
 
     <fx:Declarations>
         <esri:Geoprocessor id="gp"
-                           concurrency="last"
-                           executeComplete="onGPExecuteComplete(event)"
+                           fault="gp_faultHandler(event)"
+                           getResultDataComplete="gp_getResultDataCompleteHandler(event)"
+                           jobComplete="gp_jobCompleteHandler(event)"
                            outSpatialReference="{myMap.spatialReference}"
-                           showBusyCursor="true"
-                           url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Network/ESRI_DriveTime_US/GPServer/CreateDriveTimePolygons"
-                           useAMF="false"/>
+                           proxyURL="https://developers.arcgis.com/sproxy/"
+                           url="https://logistics.arcgis.com/arcgis/rest/services/World/ServiceAreas/GPServer/GenerateServiceAreas"/>
 
         <esri:QueryTask id="queryTask"
                         concurrency="last"
-                        executeComplete="onQueryExecuteComplete(event)"
+                        executeComplete="queryTask_executeCompleteHandler(event)"
                         showBusyCursor="true"
-                        url="http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/0"
-                        useAMF="false"/>
+                        url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/0"/>
 
         <esri:Query id="query"
                     outSpatialReference="{myMap.spatialReference}"
@@ -179,6 +243,7 @@
                 <fx:String>BLOCK</fx:String>
             </esri:outFields>
         </esri:Query>
+
         <s:NumberFormatter id="numberFormatter"/>
     </fx:Declarations>
 
@@ -204,7 +269,7 @@
                  fontWeight="bold"/>
     </s:controlBarContent>
 
-    <esri:Map id="myMap" mapClick="onMapClick(event)">
+    <esri:Map id="myMap" mapClick="myMap_mapClickHandler(event)">
         <esri:extent>
             <esri:Extent xmin="-10605000" ymin="4712000" xmax="-10601000" ymax="4718000">
                 <esri:SpatialReference wkid="102100"/>
@@ -213,4 +278,41 @@
         <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
     </esri:Map>
 
+    <s:BorderContainer id="driveTime"
+                       backgroundAlpha="0.5"
+                       backgroundColor="0x353930"
+                       borderColor="0x353930"
+                       cornerRadius="5"
+                       horizontalCenter="0"
+                       verticalCenter="0"
+                       visible="{progressMessage.visible}">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <components:ProgressMessage id="progressMessage" textColor="0xE6E6E6"/>
+    </s:BorderContainer>
+
+    <s:BorderContainer id="Search"
+                       width="250"
+                       right="20" top="20"
+                       backgroundAlpha="0.5"
+                       backgroundColor="0x353930"
+                       borderColor="0x353930"
+                       cornerRadius="5">
+        <s:layout>
+            <s:HorizontalLayout horizontalAlign="center"
+                                paddingBottom="5"
+                                paddingLeft="5"
+                                paddingRight="5"
+                                paddingTop="5"/>
+        </s:layout>
+
+        <esri:Geocoder width="100%"
+                       map="{myMap}"
+                       prompt="Where do you want to go?"/>
+    </s:BorderContainer>
 </s:Application>

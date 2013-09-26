@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2013 ESRI
+    
+    All rights reserved under the copyright laws of the United States
+    and applicable international laws, treaties, and conventions.
+    
+    You may freely redistribute and use this sample code, with or
+    without modification, provided you include the original copyright
+    notice and use restrictions.
+    
+    See use restrictions in use_restrictions.txt.
+-->
+<!---
+    @private
+-->
+<s:DataRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:s="library://ns.adobe.com/flex/spark"
+                dataChange="dataChangeHandler(event)"
+                disabledAlpha="0.1">
+    
+    <fx:Metadata>
+        [Event(name="selected", type="flash.events.Event")]
+    </fx:Metadata>
+
+    <fx:Script>
+        <![CDATA[
+            import mx.events.FlexEvent;
+            import mx.formatters.IFormatter;
+
+            //--------------------------------------------------------------------------
+            //
+            //  Properties
+            //
+            //--------------------------------------------------------------------------
+
+            //----------------------------------
+            //  percentageText
+            //----------------------------------
+
+            [Bindable]
+
+            public var percentageText:String;
+
+            //----------------------------------
+            //  nameText
+            //----------------------------------
+
+            [Bindable]
+
+            public var nameText:String;
+
+            //----------------------------------
+            //  valueText
+            //----------------------------------
+
+            [Bindable]
+
+            public var valueText:String;
+
+
+            //--------------------------------------------------------------------------
+            //
+            //  Event Handler
+            //
+            //--------------------------------------------------------------------------
+
+            protected function dataChangeHandler(event:FlexEvent):void
+            {
+                if (!data)
+                {
+                    percentageText = null;
+                    nameText = null;
+                    valueText = null;
+                }
+                else
+                {
+                    var prc:Object = data["PRC"];
+                    var valueObject:Object = data["VALUE"];
+
+                    percentageText = (prc.formatter as IFormatter).format(prc.value);
+                    nameText = data["NAME"].value;
+                    valueText = "(" + (valueObject.formatter as IFormatter).format(valueObject.value) + " " + resourceManager.getString("ESRIMessages", "geoenrichment_Tapestry_hhLabel") + ")";
+                }
+            }
+            
+            protected function clickHandler(event:MouseEvent):void
+            {
+                dispatchEvent(new Event("selected"));
+            }
+            
+        ]]>
+    </fx:Script>
+
+    <s:layout>
+        <s:HorizontalLayout gap="5" verticalAlign="contentJustify"/>
+    </s:layout>
+
+    <s:Label id="percentageLabel"
+             text="{percentageText}"
+             textAlign="right" verticalAlign="middle"/>
+
+    <s:VGroup width="100%" verticalAlign="middle">
+        <s:Label id="nameLabel" text="{nameText}"/>
+        <s:Label id="valueLabel" text="{valueText}"/>
+    </s:VGroup>
+    
+    <s:VGroup height="100%" verticalAlign="middle">
+        <s:Button id="nextButton"
+                  buttonMode="true"
+                  click="clickHandler(event)"
+                  icon="@Embed('../../../../../../assets/skins/geoenrichment/rightArrowTail.png')"
+                  skinClass="com.esri.ags.skins.supportClasses.IconButtonSkin"/>
+    </s:VGroup>
+
+</s:DataRenderer>

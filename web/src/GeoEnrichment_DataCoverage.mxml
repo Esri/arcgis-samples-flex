@@ -1,0 +1,659 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:components="com.esri.ags.samples.components.*"
+               initialize="application_initializeHandler(event)"
+               pageTitle="Data Coverage">
+    <!--
+    Description:
+    The GeoEnrichment service allows you to aggregate and append data to your locations.
+    Currently, the service is available for Canada, the United States and a number of other countries.
+    Additional countries will be added in the near future.
+    This sample provides a user interface for discovering the data coverage of the GeoEnrichment service.
+
+    Note:
+    To use this sample locally, delete the following line 'proxyURL="https://developers.arcgis.com/sproxy/"'
+    from the '<esri:StandardGeographyQueryTask' tag and the '<esri:GeoEnrichmentTask' tag.
+    Removing the proxyURL will force the IdentityManager to prompt for credentials to access the services.
+
+    Attention:
+    GeoEnrichment is a subscription based service available through ArcGIS Online.
+    Log-in credentials are always required when executing a GeoEnrichment task.
+    For demo purposes, this sample uses a proxy to bypass the login credentials.
+
+    Documentation:
+    For more information, see the API documentation.
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/IdentityManager.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/WebMercatorMapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeoEnrichmentTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/StandardGeographyQueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/Country.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/DataCollection.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/EnrichResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/EnrichVariable.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyCountry.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyDataset.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/geoEnrichmentClasses/GeographyQueryBase.html
+
+    ArcGIS Developers documentation:
+    https://developers.arcgis.com/en/features/geo-enrichment/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/GeoEnrichment_Service_Overview/02r30000021r000000/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/Accessing_the_Service/02r300000239000000/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/Data_Collections/02r30000021t000000/
+    http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/GeoEnrichment_Coverage/02r30000021q000000/
+
+    This sample also uses the following files:
+    com\esri\ags\samples\skins\SimpleNavigationSkin.mxml
+    -->
+
+    <s:states>
+        <!-- Normal application state -->
+        <s:State name="normal"/>
+        <!-- Second application state: show the progess message -->
+        <s:State name="withProgressMessage"/>
+    </s:states>
+
+    <fx:Style>
+        @namespace s "library://ns.adobe.com/flex/spark";
+        @namespace mx "library://ns.adobe.com/flex/mx";
+        @namespace esri "http://www.esri.com/2008/ags";
+        
+        s|BorderContainer
+        {
+            dropShadowVisible: true;
+            borderVisible: false;
+            backgroundColor: #F9F9F9;
+            backgroundAlpha: 0.8;
+        }
+        s|List
+        {
+            selectionColor: #EEEEEE;
+            focusColor: #D3D1D1;
+            borderColor: #D3D1D1;
+            rollOverColor: #EEEEEE;
+        }
+        mx|ToolTip
+        {
+            fontSize: 12;
+            color: #000000;
+            backgroundColor: #F9F9F9;
+            paddingLeft: 10; 
+            paddingRight: 10; 
+            paddingTop: 10;
+            paddingBottom: 10;
+        }
+        esri|Navigation
+        {
+            skinClass:ClassReference("com.esri.ags.samples.skins.SimpleNavigationSkin");
+        }
+    </fx:Style>
+
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.FeatureSet;
+            import com.esri.ags.Graphic;
+            import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.events.GeoEnrichmentEvent;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.tasks.geoEnrichmentClasses.Country;
+            import com.esri.ags.tasks.geoEnrichmentClasses.DataCollection;
+            import com.esri.ags.tasks.geoEnrichmentClasses.EnrichResult;
+            import com.esri.ags.tasks.geoEnrichmentClasses.EnrichVariable;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeographyCountry;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeographyDataset;
+            import com.esri.ags.tasks.geoEnrichmentClasses.GeographyLayer;
+
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.AsyncResponder;
+            import mx.rpc.events.FaultEvent;
+
+            import spark.events.IndexChangeEvent;
+
+            import assets.i_red_arrow;
+
+            [Bindable]
+            private var standardLevelGeographiesAC:ArrayCollection = new ArrayCollection();
+            [Bindable]
+            private var dataCollectionsAC:ArrayCollection = new ArrayCollection();
+            [Bindable]
+            private var analysisVariablesAC:ArrayCollection = new ArrayCollection();
+
+            [Bindable]
+            private var sourceCountryDisplayName:String = "";
+            [Bindable]
+            private var sourceCountryDisplay:String = "";
+            [Bindable]
+            private var stdGeogLayersDisplay:String = "";
+            [Bindable]
+            private var dataCollectionsDisplay:String = "";
+            [Bindable]
+            private var analysisVariablesDisplay:String = "";
+            [Bindable]
+            private var datasetsDisplay:String = "";
+
+            [Bindable]
+            private var serviceCallStdGeogCountryComplete:Boolean = false;
+            [Bindable]
+            private var serviceCallDataCollectionsComplete:Boolean = false;
+            [Bindable]
+            private var serviceCallStdGeogQueryTaskComplete:Boolean = false;
+
+            protected function application_initializeHandler(event:FlexEvent):void
+            {
+                IdentityManager.instance.enabled = true;
+
+                geoEnrichmentTask.getAvailableCountries(new AsyncResponder(getAvailableCountriesCompleteHandler, getAvailableCountriesFaultHandler));
+
+                function getAvailableCountriesCompleteHandler(result:Object, token:Object = null):void
+                {
+                    var countriesArr:Array = result as Array;
+                    if (countriesArr.length > 0)
+                    {
+                        availableCountriesDropDownList.dataProvider = new ArrayCollection(countriesArr);
+                    }
+                }
+
+                function getAvailableCountriesFaultHandler(error:Object, token:Object = null):void
+                {
+                    Alert.show("There was an error when attempting to retrieve the available countries.", "GeoEnrichment Service error");
+                }
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  GeoEnrichment service calls
+            //
+            //--------------------------------------------------------------------------
+
+            protected function geoEnrichmentTask_getStandardGeographyCountriesCompleteHandler(event:GeoEnrichmentEvent):void
+            {
+                serviceCallStdGeogCountryComplete = true;
+                checkProgressMessageState();
+                var geographyCountryArray:Array = event.standardGeographyCountries;
+                if (geographyCountryArray)
+                {
+                    //Array of GeographyCountry objects
+                    if (geographyCountryArray.length > 0)
+                    {
+                        //array of GeographyDataset objects
+                        var geographyCountryDatasetArray:Array = GeographyCountry(geographyCountryArray[i]).datasets;
+                        for (var i:int = 0; i < geographyCountryDatasetArray.length; i++)
+                        {
+                            var geographyDataset:GeographyDataset = geographyCountryDatasetArray[i] as GeographyDataset;
+                            if (geographyDataset)
+                            {
+                                var geographyDataLayersArray:Array = geographyDataset.geographyLayers;
+                                standardLevelGeographiesAC = new ArrayCollection(geographyDataLayersArray.sortOn("name"));
+                            }
+                        }
+                    }
+                }
+            }
+
+            protected function geoEnrichmentTask_getDataCollectionsCompleteHandler(event:GeoEnrichmentEvent):void
+            {
+                serviceCallDataCollectionsComplete = true;
+                checkProgressMessageState();
+                // array of DataCollection objects
+                var dataCollectionsArr:Array = event.dataCollections as Array;
+                dataCollectionsAC = new ArrayCollection(dataCollectionsArr.sortOn("id"));
+            }
+
+            protected function geoEnrichmentTask_faultHandler(event:FaultEvent):void
+            {
+                var error:String = "Some possible reasons are:\n\n" + event.fault.faultString + "\n" + event.fault.faultDetail;
+                Alert.show(error, "GeoEnrichment Service error");
+            }
+
+            protected function standardGeograpyQueryTask_standardGeographyQueryCompleteHandler(event:GeoEnrichmentEvent):void
+            {
+                serviceCallStdGeogQueryTaskComplete = true;
+                checkProgressMessageState();
+                graphicsLayer.clear();
+                if (EnrichResult(event.enrichResult).featureSets[0])
+                {
+                    var resultFeatures:Array = FeatureSet(EnrichResult(event.enrichResult).featureSets[0]).features;
+                    for (var i:int = 0; i < resultFeatures.length; i++)
+                    {
+                        var attributes:Object = Graphic(resultFeatures[i]).attributes;
+                        if (attributes['AreaID'] == sourceCountryDisplay)
+                        {
+                            var centroidGraphic:Graphic = resultFeatures[i] as Graphic;
+                            var locationCentroid:MapPoint = Graphic(resultFeatures[i]).geometry as MapPoint;
+                            if (sourceCountryDisplay == "US")
+                            {
+                                //fix for geoenrichment service us centroid
+                                locationCentroid = centroidUS;
+                                centroidGraphic.geometry = locationCentroid;
+                            }
+                            map.zoomTo(locationCentroid);
+                            var newX:Number = (map.extent.xmax + locationCentroid.x) * 0.5;
+                            var offsetMapPoint:MapPoint = new MapPoint(newX, locationCentroid.y);
+                            map.centerAt(offsetMapPoint);
+                            graphicsLayer.add(centroidGraphic);
+                            break;
+                        }
+                    }
+
+                }
+
+            }
+
+            protected function standardGeograpyQueryTask_faultHandler(event:FaultEvent):void
+            {
+                var error:String = "Some possible reasons are:\n\n" + event.fault.faultString + "\n" + event.fault.faultDetail;
+                Alert.show(error, "GeoEnrichment Service error");
+            }
+
+            //--------------------------------------------------------------------------
+            //
+            //  UI event handlers
+            //
+            //--------------------------------------------------------------------------
+
+            private function checkProgressMessageState():void
+            {
+                if (serviceCallDataCollectionsComplete && serviceCallStdGeogCountryComplete && serviceCallStdGeogQueryTaskComplete)
+                {
+                    currentState = 'normal';
+                    progressMessage.clearMessage();
+                }
+            }
+
+            protected function availableCountriesDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                //clear out the data providers when the country changes
+                analysisVariablesAC.removeAll();
+                dataCollectionsAC.removeAll();
+                standardLevelGeographiesAC.removeAll();
+                displayGeoEnrichmentData.selected = false;
+
+                datasetsDisplay = "";
+                dataCollectionsDisplay = "";
+                stdGeogLayersDisplay = "";
+                analysisVariablesDisplay = "";
+
+                var selectedItem:Country = DropDownList(event.currentTarget).selectedItem as Country;
+                sourceCountryDisplayName = selectedItem.name;
+                sourceCountryDisplay = selectedItem.id;
+                geographyQuery.countryId = selectedItem.id;
+
+                serviceCallStdGeogCountryComplete = false;
+                serviceCallDataCollectionsComplete = false;
+                serviceCallStdGeogQueryTaskComplete = false;
+                currentState = 'withProgressMessage';
+                progressMessage.showMessage("Determining data coverage", true);
+                //make the service calls
+                geoEnrichmentTask.getStandardGeographyCountries(selectedItem.id);
+                geoEnrichmentTask.getDataCollections(selectedItem.id);
+                standardGeograpyQueryTask.execute(geographyQuery);
+            }
+
+            protected function standardLevelGeographiesDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                // Standard Geography Levels
+                var selectedItems:Vector.<Object> = List(event.currentTarget).selectedItems as Vector.<Object>;
+                var selectedGeographyLevelsArray:Array = [];
+                //loop over the GeographyLayer objects
+                for each (var value:Object in selectedItems)
+                {
+                    if (value)
+                    {
+                        //standard level of geography layer: e.g., "UK.County" (County)
+                        selectedGeographyLevelsArray.push("'" + GeographyLayer(value).id + "'");
+                    }
+                }
+                stdGeogLayersDisplay = "[" + selectedGeographyLevelsArray.toString() + "]";
+            }
+
+            protected function dataCollectionsDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                datasetsDisplay = "";
+                analysisVariablesDisplay = "";
+                var selectedItems:Vector.<Object> = List(event.currentTarget).selectedItems as Vector.<Object>;
+
+                var selectedDataCollectionsArray:Array = [];
+                var selectedDataCollectionObjectsArray:Array = [];
+                analysisVariablesAC.removeAll();
+
+                /*
+                 * loop over the selected data collections,
+                 * create a custom data object to hold info for the Analysis Variables list
+                 */
+                for each (var value:Object in selectedItems)
+                {
+                    if (value is DataCollection)
+                    {
+                        var dataCollection:DataCollection = value as DataCollection;
+
+                        selectedDataCollectionsArray.push("'" + dataCollection.id + "'");
+                        for (var i:int = 0; i < dataCollection.variables.length; i++)
+                        {
+                            var enrichVariable:EnrichVariable = dataCollection.variables[i] as EnrichVariable;
+                            selectedDataCollectionObjectsArray.push({ data: dataCollection,
+                                                                        variableDescription: enrichVariable.alias,
+                                                                        dataset: dataCollection.metadata.datasets,
+                                                                        variable: dataCollection.id + '.' + enrichVariable.id }
+                                                                    );
+                        }
+                    }
+                }
+                if (selectedDataCollectionObjectsArray.length > 0)
+                {
+                    analysisVariablesAC.source = selectedDataCollectionObjectsArray.sortOn("variableDescription");
+                }
+                dataCollectionsDisplay = "[" + selectedDataCollectionsArray.toString() + "]";
+            }
+
+            protected function analysisVariablesDropDownList_changeHandler(event:IndexChangeEvent):void
+            {
+                var selectedItems:Vector.<Object> = List(event.currentTarget).selectedItems as Vector.<Object>;
+
+                var selectedDatasetsArray:Array = [];
+                var selectedAnalysisVariablesArray:Array = [];
+                for each (var value:Object in selectedItems)
+                {
+                    if (value)
+                    {
+                        //assemble the analysis variable, e.g., "GBFacts.PPPC_CY" (2011 Purchasing Power: Per Capita)
+                        selectedAnalysisVariablesArray.push("'" + value.variable + "'");
+                        if (selectedDatasetsArray.indexOf(value.dataset) < 0)
+                        {
+                            selectedDatasetsArray.push(value.dataset);
+                        }
+                    }
+                }
+
+                datasetsDisplay = selectedDatasetsArray.toString();
+                analysisVariablesDisplay = "[" + selectedAnalysisVariablesArray.toString() + "]";
+            }
+
+            protected function availableCountriesDropDownListLabelFunction(item:Object):String
+            {
+                if (item is Country)
+                {
+                    return Country(item).name;
+                }
+                else
+                {
+                    return "";
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <fx:Declarations>
+        <!-- Task URL defaults to geoenrich.arcgis.com -->
+        <esri:GeoEnrichmentTask id="geoEnrichmentTask"
+                                fault="geoEnrichmentTask_faultHandler(event)"
+                                getDataCollectionsComplete="geoEnrichmentTask_getDataCollectionsCompleteHandler(event)"
+                                getStandardGeographyCountriesComplete="geoEnrichmentTask_getStandardGeographyCountriesCompleteHandler(event)"
+                                proxyURL="https://developers.arcgis.com/sproxy/"/>
+
+        <!-- Task URL defaults to geoenrich.arcgis.com -->
+        <esri:StandardGeographyQueryTask id="standardGeograpyQueryTask"
+                                         fault="standardGeograpyQueryTask_faultHandler(event)"
+                                         proxyURL="https://developers.arcgis.com/sproxy/"
+                                         standardGeographyQueryComplete="standardGeograpyQueryTask_standardGeographyQueryCompleteHandler(event)"/>
+
+        <esri:GeographyQueryBase id="geographyQuery"
+                                 featureLimit="5"
+                                 outSpatialReference="{map.spatialReference}"
+                                 returnCentroids="true"
+                                 returnGeometry="true"/>
+
+        <esri:WebMercatorMapPoint id="centroidUS"
+                                  lon="-96.265257" lat="38.924548"/>
+    </fx:Declarations>
+
+    <s:controlBarContent>
+        <s:RichText width="100%">
+            The GeoEnrichment service allows you to aggregate and append data to your locations. 
+            Currently, the service is available for Canada, the United States and a number of other countries. 
+            Additional countries will be added in the near future.
+            This sample provides a user interface for discovering the data coverage of the GeoEnrichment service.
+        </s:RichText>
+    </s:controlBarContent>
+
+    <esri:Map id="map"
+              level="3"
+              scaleBarVisible="false"
+              wrapAround180="true">
+        <esri:center>
+            <esri:WebMercatorMapPoint lon="-22.474480" lat="29.442643"/>
+        </esri:center>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
+        <esri:ArcGISDynamicMapServiceLayer name="Geoenrichment Coverage"
+                                           alpha="0.7"
+                                           url="http://geoenrich.arcgis.com/arcgis/rest/services/GECoverage/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer"/>
+        <esri:GraphicsLayer id="graphicsLayer">
+            <esri:symbol>
+                <esri:PictureMarkerSymbol width="30" height="30"
+                                          source="{i_red_arrow}"
+                                          xoffset="10"/>
+            </esri:symbol>
+        </esri:GraphicsLayer>
+    </esri:Map>
+
+    <!-- SELECTION UI -->
+
+    <s:BorderContainer width="400"
+                       right="20" top="20">
+        <s:layout>
+            <s:VerticalLayout gap="20"
+                              horizontalAlign="contentJustify"
+                              paddingBottom="20"
+                              paddingLeft="20"
+                              paddingRight="20"
+                              paddingTop="20"/>
+        </s:layout>
+
+        <s:HGroup width="100%" verticalAlign="middle">
+            <s:Label text="GeoEnrichment Coverage for:"/>
+            <s:DropDownList id="availableCountriesDropDownList"
+                            width="100%"
+                            change="availableCountriesDropDownList_changeHandler(event)"
+                            horizontalCenter="0"
+                            labelFunction="availableCountriesDropDownListLabelFunction"
+                            prompt="-- country --"/>
+        </s:HGroup>
+        <!--                        STANDARD GEOGRAPHIES                      -->
+        <s:VGroup width="100%" visible="{standardLevelGeographiesAC.length > 0}">
+            <s:Label width="100%" text="Standard Geography Areas"/>
+            <s:Scroller width="100%">
+                <s:Group width="100%" height="60">
+                    <s:List id="standardLevelGeographiesDropDownList"
+                            width="100%"
+                            allowMultipleSelection="true"
+                            change="standardLevelGeographiesDropDownList_changeHandler(event)"
+                            dataProvider="{standardLevelGeographiesAC}"
+                            visible="{standardLevelGeographiesAC.length > 0}">
+                        <s:itemRenderer>
+                            <fx:Component>
+                                <s:ItemRenderer>
+                                    <s:states>
+                                        <s:State name="normal"/>
+                                        <s:State name="hovered"/>
+                                        <s:State name="selected"/>
+                                    </s:states>
+                                    <s:Label width="100%" height="20"
+                                             left="5"
+                                             color="0x000000"
+                                             fontWeight.selected="bold"
+                                             text="{data.name}"
+                                             toolTip="{data.id}"
+                                             verticalAlign="middle"/>
+                                </s:ItemRenderer>
+                            </fx:Component>
+                        </s:itemRenderer>
+                    </s:List>
+                </s:Group>
+            </s:Scroller>
+        </s:VGroup>
+        <!--                        DATA COLLECTIONS                 -->
+        <s:VGroup width="100%" visible="{dataCollectionsAC.length > 0}">
+            <s:Label width="100%" text="Data Collections"/>
+            <s:Scroller width="100%">
+                <s:Group width="100%" height="60">
+                    <s:List id="dataCollectionsDropDownList"
+                            width="100%"
+                            allowMultipleSelection="true"
+                            change="dataCollectionsDropDownList_changeHandler(event)"
+                            dataProvider="{dataCollectionsAC}"
+                            visible="{dataCollectionsAC.length > 0}">
+                        <s:itemRenderer>
+                            <fx:Component>
+                                <s:ItemRenderer>
+                                    <s:states>
+                                        <s:State name="normal"/>
+                                        <s:State name="hovered"/>
+                                        <s:State name="selected"/>
+                                    </s:states>
+                                    <s:Label width="100%" height="20"
+                                             left="5"
+                                             color="0x000000"
+                                             fontWeight.selected="bold"
+                                             text="{data.metadata.shortDescription}"
+                                             toolTip="Identifier: {data.id}"
+                                             verticalAlign="middle"/>
+                                </s:ItemRenderer>
+                            </fx:Component>
+                        </s:itemRenderer>
+                    </s:List>
+                </s:Group>
+            </s:Scroller>
+        </s:VGroup>
+        <!--                        VARIABLES                          -->
+        <s:VGroup width="100%" visible="{analysisVariablesAC.length > 0}">
+            <s:Label width="100%" text="Variables"/>
+            <s:Scroller width="100%">
+                <s:Group width="100%" height="100">
+                    <s:List id="analysisVariablesDropDownList"
+                            width="100%"
+                            allowMultipleSelection="true"
+                            change="analysisVariablesDropDownList_changeHandler(event)"
+                            dataProvider="{analysisVariablesAC}"
+                            visible="{analysisVariablesAC.length > 0}">
+                        <s:itemRenderer>
+                            <fx:Component>
+                                <s:ItemRenderer>
+                                    <s:states>
+                                        <s:State name="normal"/>
+                                        <s:State name="hovered"/>
+                                        <s:State name="selected"/>
+                                    </s:states>
+                                    <s:Label width="100%" height="20"
+                                             left="5"
+                                             color="0x000000"
+                                             fontWeight.selected="bold"
+                                             text="{data.variableDescription}"
+                                             toolTip="{data.variable}"
+                                             verticalAlign="middle"/>
+                                </s:ItemRenderer>
+                            </fx:Component>
+                        </s:itemRenderer>
+                    </s:List>
+                </s:Group>
+            </s:Scroller>
+        </s:VGroup>
+        <s:ToggleButton id="displayGeoEnrichmentData"
+                        fontSize="14"
+                        label="{displayGeoEnrichmentData.selected ? 'Hide selected characteristics' : 'Display selected characteristics'}"
+                        visible="{standardLevelGeographiesDropDownList.visible}"/>
+    </s:BorderContainer>
+
+    <!-- SELECTED DATA CHARACTERISTICS UI -->
+
+    <s:BorderContainer id="datasetSelection"
+                       width="300"
+                       left="79" top="20"
+                       backgroundAlpha="1"
+                       visible="{displayGeoEnrichmentData.selected}">
+        <s:layout>
+            <s:VerticalLayout gap="10"
+                              horizontalAlign="contentJustify"
+                              paddingBottom="10"
+                              paddingLeft="10"
+                              paddingRight="10"
+                              paddingTop="10"/>
+        </s:layout>
+        <s:HGroup width="100%">
+            <s:Label width="50%"
+                     fontWeight="bold"
+                     text="countryId"/>
+            <s:RichEditableText id="sourceCountryRET"
+                                width="70%"
+                                click="sourceCountryRET.selectAll();System.setClipboard(sourceCountryRET.text)"
+                                editable="false"
+                                selectable="true"
+                                text="{sourceCountryDisplay}"
+                                toolTip="Click to copy source country to the clipboard"/>
+        </s:HGroup>
+        <s:HGroup width="100%">
+            <s:Label width="50%"
+                     fontWeight="bold"
+                     text="datasetId"/>
+            <s:RichEditableText id="datasetsRET"
+                                width="70%"
+                                click="datasetsRET.selectAll();System.setClipboard(datasetsRET.text)"
+                                editable="false"
+                                selectable="true"
+                                text="{datasetsDisplay}"
+                                toolTip="Click to copy datasets to the clipboard"/>
+        </s:HGroup>
+        <s:HGroup width="100%">
+            <s:Label width="50%"
+                     fontWeight="bold"
+                     text="geographyLayerIds"/>
+            <s:RichEditableText id="stdGeogLayersRET"
+                                width="70%"
+                                click="stdGeogLayersRET.selectAll();System.setClipboard(stdGeogLayersRET.text)"
+                                editable="false"
+                                selectable="true"
+                                text="{stdGeogLayersDisplay}"
+                                toolTip="Click to copy layers to the clipboard"/>
+        </s:HGroup>
+        <s:HGroup width="100%">
+            <s:Label width="50%"
+                     fontWeight="bold"
+                     text="variableIds"/>
+            <s:Scroller width="70%">
+                <s:Group width="70%" height="100">
+                    <s:RichEditableText id="analysisVariablesRET"
+                                        width="70%"
+                                        click="analysisVariablesRET.selectAll();System.setClipboard(analysisVariablesRET.text)"
+                                        editable="false"
+                                        selectable="true"
+                                        text="{analysisVariablesDisplay}"
+                                        toolTip="Click to copy variables to the clipboard"/>
+                </s:Group>
+            </s:Scroller>
+        </s:HGroup>
+    </s:BorderContainer>
+
+    <s:BorderContainer cornerRadius="5"
+                       horizontalCenter="0"
+                       includeInLayout="false"
+                       includeInLayout.withProgressMessage="true"
+                       verticalCenter="0"
+                       visible="false"
+                       visible.withProgressMessage="true">
+        <s:layout>
+            <s:VerticalLayout horizontalAlign="center"
+                              paddingBottom="5"
+                              paddingLeft="5"
+                              paddingRight="5"
+                              paddingTop="5"/>
+        </s:layout>
+        <components:ProgressMessage id="progressMessage" textColor="0x000000"/>
+    </s:BorderContainer>
+</s:Application>

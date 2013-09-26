@@ -7,14 +7,13 @@
     Description:
     This sample demonstrates how to use the FeatureLayer property maxAllowableOffset to generalize features for display.
 
-    When a Feature Layer is created, one the options is maxAllowableOffset.
-    This parameter name has its roots in the ArcGIS Desktop generalization tools.
+    This property name has its roots in the ArcGIS Desktop generalization tools.
     For more technical details, please refer to the Wikipedia page for the Douglas-Peucker algorithm.
     If this is new terminology, refer to the ArcGIS Desktop Help for the Generalize tool.
 
-    Feature Layers come with a setter method setMaxAllowableOffset that is used to simplify features on the fly.
+    Feature Layers come with a property maxAllowableOffset that is used to simplify features on the fly.
     Since the web APIs fire an event when the map's extent/zoom level changes, you can listen for this event
-    and use setMaxAllowableOffset to indicate an appropriate value.
+    and use the property maxAllowableOffset to indicate an appropriate value.
 
     The recommended approach for generalizing features is that a feature's geometry should not display more than one vertex per pixel.
     The reasoning is that a pixel is the smallest unit for displays so displaying more than one vertex per pixel is wasted effort.
@@ -31,8 +30,8 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#maxAllowableOffset
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#maxAllowableOffset
     -->
 
     <fx:Script>

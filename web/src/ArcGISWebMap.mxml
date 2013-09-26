@@ -8,17 +8,41 @@
     Description:
     This sample demonstrates how to use a Web Map from www.arcgis.com
     to create the basemap and operational layers of your Flex map.
-    The itemId can be hard coded, passed though a url parameter,
+    The itemId can be hard coded, passed through a url parameter,
     or retrieved through searching by the Portal class.
     Using the WebMapUtil class and the itemId of a specific web map
     (on ArcGIS Online or Portal for ArcGIS) you can create a Flex Map object.
 
+    If the web map is secure you will be prompted to log in using OAuth.
+
+    To support OAuth (for secure web maps on ArcGIS.com) this sample was registered (with its URL)
+    as an application.  See http://flexteam.maps.arcgis.com/home/item.html?id=7ad4fbacebee4e9cbe28982e5d81d86a
+    To run this sample on your own URL, you need to add your application as an item on ArcGIS.com, and register your own URL(s).
+    Registration is only needed if you want to test secure web maps on ArcGIS.com.
+
+    Steps to set up for OAuth
+    =========================
+    #1 Obtain app id
+        See http://resources.arcgis.com/en/help/arcgisonline/index.html#/Adding_applications/010q00000077000000/ including "Registering your app"
+
+    #2 update code below with your own App ID
+        var oAuthInfo:OAuthInfo = new OAuthInfo("bDKOrqYvsLUewvMD");
+
+    #3 If you imported the full project from the samples repo, the following has already been done for you.
+        If you just copied this sample to a new project, you need to:
+        (A) Copy oauth-callback.html and oauth-helper.js to your Flex project's src folder.
+        (B) Add the following line to the index.template.html file inside the project's html-template folder just above the line for swfobject.js.
+            <script type="text/javascript" src="oauth-helper.js"></script>
+        The two oauth files can be found in the oauth folder inside the ZIP file with the API Library
+        (http://links.esri.com/flex-api/latest-download).
+
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/IdentityManager.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/WebMapEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/WebMapUtil.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html
+    https://developers.arcgis.com/en/authentication/
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/IdentityManager.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/WebMapEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/WebMapUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/Portal.html
 
     Author, design, configure your web map using ArcGIS.com and leverage that web map inside the ArcGIS API for Flex.
     http://www.arcgis.com/home/item.html?id=ff454fbb59844b259c861f39c027715e
@@ -27,6 +51,8 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.components.IdentityManager;
+            import com.esri.ags.components.supportClasses.OAuthInfo;
+            import com.esri.ags.events.IdentityManagerEvent;
             import com.esri.ags.events.WebMapEvent;
 
             import mx.controls.Alert;
@@ -40,11 +66,17 @@
             {
                 IdentityManager.instance.enabled = true;
 
+                // replace with your own App ID
+                var oAuthInfo:OAuthInfo = new OAuthInfo("bDKOrqYvsLUewvMD");
+                IdentityManager.instance.registerOAuthInfos([ oAuthInfo ]);
+                IdentityManager.instance.addEventListener(IdentityManagerEvent.SIGN_IN, signInHandler);
+                IdentityManager.instance.addEventListener(IdentityManagerEvent.SIGN_OUT, signOutHandler);
+
                 var urlParams:Object = getURLParameters();
 
                 if (urlParams.hasOwnProperty('webmapid'))
                 {
-                    //http://somename.mycompany.com/samples/ArcGISWebMap.html?webmapid=12148d94ace9424d934a085abe58b088
+                    // http://somename.mycompany.com/samples/ArcGISWebMap.html?webmapid=12148d94ace9424d934a085abe58b088
                     var webmapidParam:String = urlParams['webmapid'] as String;
                     webMapIDTextInput.prompt = webmapidParam;
                     webMapUtil.createMapById(webmapidParam);
@@ -116,6 +148,16 @@
                 var errorString:String = "Unable to load webmap\n" + event.fault.faultString;
                 Alert.show(errorString, "WebMap Loading Errors");
             }
+
+            private function signInHandler(event:IdentityManagerEvent):void
+            {
+                signOutBtn.visible = true;
+            }
+
+            private function signOutHandler(event:IdentityManagerEvent):void
+            {
+                signOutBtn.visible = false;
+            }
         ]]>
     </fx:Script>
 
@@ -128,6 +170,10 @@
                 <esri:GeometryService url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
             </esri:geometryService>
         </esri:WebMapUtil>
+        <!-- Log ERROR level messages -->
+        <s:TraceTarget includeCategory="true"
+                       includeLevel="true"
+                       level="8"/>
     </fx:Declarations>
 
     <s:controlBarLayout>
@@ -141,7 +187,7 @@
         <s:RichText width="100%">
             This sample demonstrates how to use a Web Map from www.arcgis.com
             to create the basemap and operational layers of your Flex map.
-            The itemId can be hard coded, passed though a url parameter,
+            The itemId can be hard coded, passed through a url parameter,
             or retrieved through searching by the Portal class.
         </s:RichText>
         <s:HGroup verticalAlign="baseline">
@@ -150,6 +196,10 @@
                          width="300"
                          enter="webMapIDTextInput_enterHandler(event)"
                          prompt="http://companyorg.maps.arcgis.com"/>
+            <s:Button id="signOutBtn"
+                      click="IdentityManager.instance.signOut()"
+                      label="Sign Out"
+                      visible="false"/>
         </s:HGroup>
         <s:HGroup verticalAlign="baseline">
             <s:Label width="100" text="Web map ID:"/>
