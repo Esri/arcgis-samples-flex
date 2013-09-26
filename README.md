@@ -19,7 +19,7 @@ This is the source code for all the [samples](https://developers.arcgis.com/en/f
 
 ## Contributing
 
-Anyone and everyone is welcome to [contribute](CONTRIBUTING.md).
+Esri welcomes [contributions](CONTRIBUTING.md) from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
 ## License
 Copyright 2012-2013 Esri
