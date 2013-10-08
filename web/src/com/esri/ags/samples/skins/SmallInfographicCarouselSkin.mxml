@@ -25,8 +25,8 @@
         /**
          * A strongly typed property that references the component to which this skin is applied.
          */
-		[HostComponent("com.esri.ags.components.InfographicsCarousel")]
-	</fx:Metadata>
+        [HostComponent("com.esri.ags.components.InfographicsCarousel")]
+    </fx:Metadata>
 
     <s:states>
         <s:State name="noData" stateGroups="noDataGroup"/>

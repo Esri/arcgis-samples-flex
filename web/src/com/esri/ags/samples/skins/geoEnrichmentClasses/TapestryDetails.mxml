@@ -140,11 +140,12 @@
                   skinClass="com.esri.ags.skins.supportClasses.IconButtonSkin"/>
         <s:Label id="nameLabel" text="{nameText}"/>
     </s:HGroup>
-    
-    <s:Scroller horizontalScrollPolicy="off" width="100%" height="100%">
+
+    <s:Scroller width="100%" height="100%"
+                horizontalScrollPolicy="off">
         <s:VGroup width="100%"
-                  variableRowHeight="true"
-                  clipAndEnableScrolling="true">
+                  clipAndEnableScrolling="true"
+                  variableRowHeight="true">
             <s:HGroup width="100%">
                 <s:Label width="100"
                          text="@Resource(bundle='ESRIMessages', key='geoenrichment_Tapestry_hhTypeLabel')"

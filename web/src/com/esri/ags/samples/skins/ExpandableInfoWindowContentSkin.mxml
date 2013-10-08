@@ -39,7 +39,7 @@
     <s:HGroup id="draggableGroup" gap="10">
         <s:Rect width="100%" height="16">
             <s:fill>
-               <s:BitmapFill id="fill" fillMode="repeat"/>
+                <s:BitmapFill id="fill" fillMode="repeat"/>
             </s:fill>
         </s:Rect>
         <s:Image id="expandButton"

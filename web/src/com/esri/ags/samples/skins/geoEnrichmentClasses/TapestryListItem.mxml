@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Copyright (c) 2013 ESRI
-    
+
     All rights reserved under the copyright laws of the United States
     and applicable international laws, treaties, and conventions.
-    
+
     You may freely redistribute and use this sample code, with or
     without modification, provided you include the original copyright
     notice and use restrictions.
-    
+
     See use restrictions in use_restrictions.txt.
 -->
 <!---
@@ -18,7 +18,7 @@
                 xmlns:s="library://ns.adobe.com/flex/spark"
                 dataChange="dataChangeHandler(event)"
                 disabledAlpha="0.1">
-    
+
     <fx:Metadata>
         [Event(name="selected", type="flash.events.Event")]
     </fx:Metadata>
@@ -83,12 +83,11 @@
                     valueText = "(" + (valueObject.formatter as IFormatter).format(valueObject.value) + " " + resourceManager.getString("ESRIMessages", "geoenrichment_Tapestry_hhLabel") + ")";
                 }
             }
-            
+
             protected function clickHandler(event:MouseEvent):void
             {
                 dispatchEvent(new Event("selected"));
             }
-            
         ]]>
     </fx:Script>
 
@@ -98,13 +97,14 @@
 
     <s:Label id="percentageLabel"
              text="{percentageText}"
-             textAlign="right" verticalAlign="middle"/>
+             textAlign="right"
+             verticalAlign="middle"/>
 
     <s:VGroup width="100%" verticalAlign="middle">
         <s:Label id="nameLabel" text="{nameText}"/>
         <s:Label id="valueLabel" text="{valueText}"/>
     </s:VGroup>
-    
+
     <s:VGroup height="100%" verticalAlign="middle">
         <s:Button id="nextButton"
                   buttonMode="true"

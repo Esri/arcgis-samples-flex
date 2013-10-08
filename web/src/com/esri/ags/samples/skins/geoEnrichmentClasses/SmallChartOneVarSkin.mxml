@@ -133,7 +133,7 @@
             <mx:series>
                 <mx:ColumnSeries id="serie"
                                  styleName="columnSeriesStyles"
-                                 xField="NAME" />
+                                 xField="NAME"/>
             </mx:series>
         </mx:ColumnChart>
     </s:VGroup>
