@@ -5,7 +5,6 @@ The default item renderer for the Legend skin.
 -->
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
-                xmlns:mx="library://ns.adobe.com/flex/mx"
                 name="LegendGroupItemRenderer"
                 width="150" height="35"
                 autoDrawBackground="false"
@@ -34,8 +33,7 @@ The default item renderer for the Legend skin.
                 var valuesArr:Array = value.label.split(' - ');
                 if (valuesArr)
                 {
-                    var str:String = numberFormatter.format(valuesArr[0]) + ' - ' + numberFormatter.format(valuesArr[1]);
-                    templateLabel.text = str;
+                    templateLabel.text = numberFormatter.format(valuesArr[0]) + ' - ' + numberFormatter.format(valuesArr[1]);
                 }
                 else
                 {

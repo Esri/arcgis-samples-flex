@@ -36,9 +36,7 @@
     -->
 
     <fx:Style>
-        @namespace s "library://ns.adobe.com/flex/spark";
         @namespace esri "http://www.esri.com/2008/ags";
-
         esri|Navigation
         {
             skinClass: ClassReference("com.esri.ags.samples.skins.NavigationHorizontalSkin");

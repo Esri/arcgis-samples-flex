@@ -34,29 +34,18 @@
     </s:states>
 
     <fx:Style>
-        @namespace s "library://ns.adobe.com/flex/spark";
-        @namespace mx "library://ns.adobe.com/flex/mx";
-        
         .axisStyles {
             tickPlacement:none;
         }
-        
         .columnSeriesStyles
         {
             fills: #6A3D9A, #3A6CB0, #E7298A, #FD7F00, #66A61E;
         }
-        
     </fx:Style>
 
     <fx:Script>
         <![CDATA[
             import com.esri.ags.components.geoEnrichmentClasses.InfographicData;
-            import com.esri.ags.skins.geoEnrichmentClasses.ChartItemGridRenderer;
-            import com.esri.ags.skins.geoEnrichmentClasses.LabelGridItemRenderer;
-            import com.esri.ags.skins.geoEnrichmentClasses.LowerUpperColumnHeader;
-
-            import mx.collections.ArrayCollection;
-            import mx.collections.ArrayList;
 
             import spark.components.gridClasses.GridColumn;
 
@@ -68,7 +57,7 @@
             private var labelTitleVisible:Boolean = true;
 
             /**
-             *  @private
+             * @private
              */
             override public function styleChanged(styleProp:String):void
             {
@@ -83,7 +72,7 @@
             }
 
             /**
-             *  @private
+             * @private
              */
             override protected function commitProperties():void
             {

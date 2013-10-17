@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:s="library://ns.adobe.com/flex/spark"
                backgroundColor="0xEEEEEE"
-               initialize="application1_initializeHandler(event)"
+               initialize="application_initializeHandler(event)"
                pageTitle="Template Picker Testing FeatureService Layer">
     <!--
     Description:
@@ -108,7 +107,7 @@
 
             protected function myFeatureLayer_loadHandler(event:LayerEvent):void
             {
-                // templatepicker expects layerDetails to be available (i.e. layer loaded)
+                // TemplatePicker expects layerDetails to be available (i.e. layer loaded)
                 myTemplatePicker.featureLayers = [ myFeatureLayer ];
                 if (myFeatureLayer.url != 'http://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/FeatureServer/0')
                 {
@@ -267,7 +266,7 @@
                     {
                         const projectParameters:ProjectParameters = new ProjectParameters;
                         projectParameters.geometries = [ layerExtent ];
-                        projectParameters.outSpatialReference = myMap.extent.spatialReference
+                        projectParameters.outSpatialReference = myMap.extent.spatialReference;
                         geometryService.project(projectParameters);
                     }
                 }
@@ -315,7 +314,7 @@
                 }
             }
 
-            protected function application1_initializeHandler(event:FlexEvent):void
+            protected function application_initializeHandler(event:FlexEvent):void
             {
                 IdentityManager.instance.enabled = true;
             }

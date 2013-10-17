@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                initialize="application_initializeHandler(event)"
                pageTitle="Draw and Measure lines">
@@ -62,7 +61,6 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.Graphic;
-            import com.esri.ags.SpatialReference;
             import com.esri.ags.events.DrawEvent;
             import com.esri.ags.events.GeometryServiceEvent;
             import com.esri.ags.geometry.MapPoint;
@@ -86,32 +84,31 @@
 
                 var lengthsParameters:LengthsParameters = new LengthsParameters();
                 /*
-                * Note:
-                * Starting ArcGIS 10.1 for Server, the geodesic property
-                * is deprecated, use the calculationType parameter instead.
-                */
-
+                 * Note:
+                 * Starting ArcGIS 10.1 for Server, the geodesic property
+                 * is deprecated, use the calculationType parameter instead.
+                 */
                 //lengthsParameters.geodesic = true;
 
                 /*
-                * "planar": Planar measurements use 2D Cartesian mathematics to
-                * calculate length. This type should only be used if the length
-                * needs to be calculated in the given spatial reference
-                * otherwise use "preserveShape".
-                *
-                * "geodesic": Use this type if you want to calculate the length
-                * using only the vertices of the polyline and define the lines
-                * between the points as geodesic segements independent of the
-                * actual shape of the polyline. A geodesic segment is the
-                * shortest path between two points on an ellipsoid.
+                 * "planar": Planar measurements use 2D Cartesian mathematics to
+                 * calculate length. This type should only be used if the length
+                 * needs to be calculated in the given spatial reference
+                 * otherwise use "preserveShape".
+                 *
+                 * "geodesic": Use this type if you want to calculate the length
+                 * using only the vertices of the polyline and define the lines
+                 * between the points as geodesic segements independent of the
+                 * actual shape of the polyline. A geodesic segment is the
+                 * shortest path between two points on an ellipsoid.
 
-                * "preserveShape": This type calculates the length of the geometry
-                * on the surface of the Earth ellipsoid, for geometry defined in
-                * projected or geographic coordinate system. This method preserves
-                * the shape of the geometry in its coordinate system. This means the
-                * true length will be calculated for the geometry you see in the map.
-                * (What you see is what you get.)
-                */
+                 * "preserveShape": This type calculates the length of the geometry
+                 * on the surface of the Earth ellipsoid, for geometry defined in
+                 * projected or geographic coordinate system. This method preserves
+                 * the shape of the geometry in its coordinate system. This means the
+                 * true length will be calculated for the geometry you see in the map.
+                 * (What you see is what you get.)
+                 */
                 lengthsParameters.calculationType = CalculationType.GEODESIC;
                 lengthsParameters.polylines = [ drawnLine ];
 
@@ -200,7 +197,7 @@
             Click and hold down on the map to draw a line that will be added to the map.
             The application will then use the geometry service to calculate the length of the line.
         </s:RichText>
-        <s:Button click="resultLayer.clear(),lineLayer.clear()" label="Clear measurements"/>
+        <s:Button click="resultLayer.clear(); lineLayer.clear()" label="Clear measurements"/>
     </s:controlBarContent>
 
     <esri:Map id="map">

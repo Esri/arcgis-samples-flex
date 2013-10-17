@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
-               initialize="application1_initializeHandler(event)"
+               initialize="application_initializeHandler(event)"
                pageTitle="Example - Query For Statistics">
     <!--
     Description:
@@ -40,7 +39,7 @@
             import mx.events.FlexEvent;
             import mx.rpc.events.FaultEvent;
 
-            protected function application1_initializeHandler(event:FlexEvent):void
+            protected function application_initializeHandler(event:FlexEvent):void
             {
                 var query:Query = new Query();
 
@@ -61,7 +60,6 @@
 
             protected function queryTask_executeCompleteHandler(event:QueryEvent):void
             {
-                var fields:Array = event.featureSet.fields;
                 var attributes:Array = event.featureSet.attributes;
                 dg.dataProvider = new ArrayCollection(attributes);
             }

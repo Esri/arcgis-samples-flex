@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Combining dynamic maps and projected map tiles">
     <!--
     Description:
-    This sample demonstrates how to combine mulitple map services together.
+    This sample demonstrates how to combine multiple map services together.
     This map combines a street map service (cached/tiles) with a census map
     service (dynamic) showing census block points (blue markers).
 
@@ -28,7 +27,7 @@
 
     <s:controlBarContent>
         <s:RichText width="100%">
-            This sample demonstrates how to combine mulitple map services together.
+            This sample demonstrates how to combine multiple map services together.
             This map combines a street map service (cached/tiles) with a census map
             service (dynamic) showing census block points (blue markers).
         </s:RichText>

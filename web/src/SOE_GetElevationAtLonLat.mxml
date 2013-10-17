@@ -148,7 +148,6 @@
                     params.latitude = mapPoint.y;
                     soeTask.executeGetElevationAtLatLon(params);
                 }
-
             }
 
             protected function soeTask_executeCompleteHandler(event:ElevationsSOEEvent):void

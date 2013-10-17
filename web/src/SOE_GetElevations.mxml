@@ -2,10 +2,10 @@
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
                xmlns:mx="library://ns.adobe.com/flex/mx"
-               xmlns:tasks="com.esri.ags.samples.tasks.*"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:components="com.esri.ags.samples.components.*"
-               currentState='selectionState'
+               xmlns:tasks="com.esri.ags.samples.tasks.*"
+               currentState="selectionState"
                pageTitle="Example - SOE GetElevations">
     <!--
     Description:
@@ -150,7 +150,6 @@
                     map.centerAt(webMercatorGeom);
                     currentState = 'drawingState';
                 }
-
             }
 
             protected function addPlace(value:MapPoint):void
@@ -227,7 +226,7 @@
              */
             private function distancesAlongProfile(aryLocs:Array):Array
             {
-                var aryDists:Array = new Array();
+                var aryDists:Array = [];
                 if (aryLocs.length > 0)
                 {
                     aryDists.push(0);
@@ -257,7 +256,7 @@
                     0
                     );
 
-                var aryData:Array = new Array();
+                var aryData:Array = [];
                 for (var iItem:int = 0; iItem < aryDistances.length; iItem++)
                 {
                     aryData.push({
@@ -272,7 +271,7 @@
 
             /**
              * Close chart window and remove user-drawn line graphic
-             **/
+             */
             private function closeChartWindow():void
             {
                 drawGraphicsLayer.clear();

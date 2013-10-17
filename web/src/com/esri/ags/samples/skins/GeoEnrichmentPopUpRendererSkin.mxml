@@ -13,8 +13,8 @@
 
     <fx:Metadata>
         /**
-        * A strongly typed property that references the component to which this skin is applied.
-        */
+         * A strongly typed property that references the component to which this skin is applied.
+         */
         [HostComponent("com.esri.ags.portal.PopUpRenderer")]
     </fx:Metadata>
 
@@ -65,15 +65,15 @@
                 // set the link styles
                 textLayoutConfiguration = new Configuration();
                 var textLayoutFormat:TextLayoutFormat = new TextLayoutFormat();
-                textLayoutFormat.color = getStyle("linkActiveColor")
+                textLayoutFormat.color = getStyle("linkActiveColor");
                 textLayoutFormat.textDecoration = TextDecoration.UNDERLINE;
                 textLayoutConfiguration.defaultLinkActiveFormat = textLayoutFormat;
                 textLayoutFormat = new TextLayoutFormat();
-                textLayoutFormat.color = getStyle("linkHoverColor")
+                textLayoutFormat.color = getStyle("linkHoverColor");
                 textLayoutFormat.textDecoration = TextDecoration.UNDERLINE;
                 textLayoutConfiguration.defaultLinkHoverFormat = textLayoutFormat;
                 textLayoutFormat = new TextLayoutFormat();
-                textLayoutFormat.color = getStyle("linkNormalColor")
+                textLayoutFormat.color = getStyle("linkNormalColor");
                 textLayoutFormat.textDecoration = TextDecoration.UNDERLINE;
                 textLayoutConfiguration.defaultLinkNormalFormat = textLayoutFormat;
 

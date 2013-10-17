@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                initialize="initializeHandler(event)"
                pageTitle="Perform geodesic buffering using the GeometryService">
@@ -39,7 +38,7 @@
             chromeColor: #6784BE;
             color: #FFFFFF;
         }
-            s|Button
+        s|Button
         {
             chromeColor: #000000;
             color: #EDEDE6;
@@ -56,10 +55,7 @@
             import mx.controls.Alert;
             import mx.events.FlexEvent;
             import mx.rpc.AsyncResponder;
-            import mx.rpc.AsyncToken;
             import mx.rpc.Fault;
-
-            import spark.events.IndexChangeEvent;
 
             private var distance:Number = 750;
             private var unit:Number = GeometryService.UNIT_KILOMETER;
@@ -100,7 +96,7 @@
                 {
                     for (var j:int = 0; j < euclideanBufferResultsArray.length; j++)
                     {
-                        var euclideanUserGraphic:Graphic = new Graphic(euclideanBufferResultsArray[i] as Polygon, euclideanSymbol);
+                        var euclideanUserGraphic:Graphic = new Graphic(euclideanBufferResultsArray[j] as Polygon, euclideanSymbol);
                         userResultsGraphicsLayer.add(euclideanUserGraphic);
                     }
 
@@ -121,7 +117,7 @@
                 {
                     for (var j:int = 0; j < geodesicBufferResultsArray.length; j++)
                     {
-                        var geodesicUserGraphic:Graphic = new Graphic(geodesicBufferResultsArray[i] as Polygon, geodesicSymbol);
+                        var geodesicUserGraphic:Graphic = new Graphic(geodesicBufferResultsArray[j] as Polygon, geodesicSymbol);
                         userResultsGraphicsLayer.add(geodesicUserGraphic);
                     }
                 }
@@ -138,7 +134,6 @@
             {
                 Alert.show("Error: " + fault.faultString, "Error code: " + fault.faultCode);
             }
-
 
             protected function drawTool_drawEndHandler(event:DrawEvent):void
             {

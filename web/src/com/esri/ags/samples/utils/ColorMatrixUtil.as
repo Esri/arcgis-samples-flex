@@ -44,8 +44,6 @@ public class ColorMatrixUtil
 
     /**
      * The color matrix array values for a dusk ColorMatrixFilter.
-     * @return
-     *
      */
     public static function get dusk():ColorMatrixFilter
     {

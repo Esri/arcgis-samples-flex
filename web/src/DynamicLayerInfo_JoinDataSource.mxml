@@ -166,8 +166,7 @@
                     ancestryLabelClass.labelExpression = '[' + classificationField + ']';
                     layerDrawingOptions.labelClasses = [ ancestryLabelClass ];
                 }
-                var layerDrawingOptionsArray:Array = [ layerDrawingOptions ];
-                censusMapServiceLayer.layerDrawingOptions = layerDrawingOptionsArray;
+                censusMapServiceLayer.layerDrawingOptions = [ layerDrawingOptions ];
                 legend.refresh(); // refresh the legend component to keep in-sync
             }
 

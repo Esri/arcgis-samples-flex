@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               pageTitle="Selecting graphcis and displaying results">
+               pageTitle="Selecting graphics and displaying results">
     <!--
     Description:
     This sample demonstrates how you can use the draw tool to select
@@ -57,7 +56,6 @@
 
             import mx.collections.ArrayCollection;
             import mx.controls.Alert;
-            import mx.events.FlexEvent;
             import mx.rpc.AsyncResponder;
 
             private function myMap_loadHandler():void

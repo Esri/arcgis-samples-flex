@@ -106,7 +106,7 @@
 
             protected function esriCensusService_layerLoadHander(event:LayerEvent):void
             {
-                esriCensusService.removeEventListener(LayerEvent.LOAD, esriCensusService_layerLoadHander)
+                esriCensusService.removeEventListener(LayerEvent.LOAD, esriCensusService_layerLoadHander);
                 var layer:ArcGISDynamicMapServiceLayer = event.layer as ArcGISDynamicMapServiceLayer;
                 var layerInfosArray:Array = layer.layerInfos;
                 for (var i:int = 0; i < layerInfosArray.length; i++)

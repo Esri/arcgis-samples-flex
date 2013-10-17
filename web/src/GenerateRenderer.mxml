@@ -111,8 +111,7 @@
                 layerDrawingOptions.layerId = layerMapSource.mapLayerId; //states layer id in the service
                 layerDrawingOptions.renderer = renderer;
                 demographicsLayer.alpha = 0.7;
-                var layerDrawingOptionsArr:Array = [ layerDrawingOptions ];
-                demographicsLayer.layerDrawingOptions = layerDrawingOptionsArr;
+                demographicsLayer.layerDrawingOptions = [ layerDrawingOptions ];
                 legend.refresh(); // refresh the legend component to keep in-sync
             }
 

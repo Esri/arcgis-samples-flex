@@ -23,6 +23,7 @@
     <s:layout>
         <s:VerticalLayout horizontalAlign="center"/>
     </s:layout>
+
     <fx:Script>
         <![CDATA[
             import com.esri.ags.SpatialReference;
@@ -55,7 +56,7 @@
                      new MapPoint(1913439, 6138225)
                      ]], new SpatialReference(102100));
                 var myGraphicLine:Graphic = new Graphic(myPolyline);
-                myGraphicLine.symbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, 0xDD2222, 1.0, 4)
+                myGraphicLine.symbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, 0xDD2222, 1.0, 4);
                 myGraphicsLayer.add(myGraphicLine);
 
                 var myPolygon:Polygon = new Polygon(

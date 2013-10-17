@@ -112,7 +112,6 @@
             import com.esri.ags.events.InfographicEvent;
             import com.esri.ags.geometry.Geometry;
             import com.esri.ags.geometry.MapPoint;
-            import com.esri.ags.tasks.geoEnrichmentClasses.GeometryStudyArea;
 
             import mx.controls.Alert;
             import mx.events.FlexEvent;
@@ -143,7 +142,6 @@
              * Flag set to true when we received result from the carousel.
              */
             public var hasEnrichResult:Boolean = false;
-
 
             //--------------------------------------------------------------------------
             //

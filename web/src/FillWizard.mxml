@@ -25,6 +25,8 @@
 
     <fx:Script>
         <![CDATA[
+            import com.esri.ags.SpatialReference;
+
             private function toHex(item:Number):String
             {
                 var hex:String = item.toString(16);

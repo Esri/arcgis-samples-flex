@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Manual on-demand mode">
     <!--
@@ -47,13 +46,12 @@
             import com.esri.ags.events.ExtentEvent;
             import com.esri.ags.geometry.Extent;
             import com.esri.ags.geometry.MapPoint;
-            import com.esri.ags.tasks.supportClasses.Query;
 
             import mx.collections.ArrayCollection;
             import mx.controls.Alert;
             import mx.rpc.AsyncResponder;
 
-            private var hashmapOfExistingGraphics:Object = new Object();
+            private var hashmapOfExistingGraphics:Object = {};
 
             private function onExtentChange(event:ExtentEvent):void
             {
@@ -78,7 +76,7 @@
                     }
                 }
                 // for fun, find out number of points within current extent
-                var featuresInExtent:int = 0
+                var featuresInExtent:int = 0;
                 var extent:Extent = myMap.extent;
                 var graphics:ArrayCollection = ArrayCollection(myGraphicsLayer.graphicProvider);
                 for each (var graphic:Graphic in graphics)

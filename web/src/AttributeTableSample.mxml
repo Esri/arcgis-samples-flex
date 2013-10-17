@@ -5,7 +5,7 @@
                pageTitle="Attribute Table">
     <!--
     Description:
-    This sample demonstrates how to use the AttributeTable component which allows viewing and editing feature atttributes.
+    This sample demonstrates how to use the AttributeTable component which allows viewing and editing feature attributes.
     The component uses a data grid where the columns correspond to the fields of a feature layer.
 
     The application also allows user to click on a feature and select it. The AttributeTable then displays the selection
@@ -44,7 +44,7 @@
                 {
                     var graphic:Graphic = event.target is Graphic ? Graphic(event.target) : Graphic(event.target.parent);
                     var query:Query = new Query;
-                    query.objectIds = [ graphic.attributes[myFeatureLayer.layerDetails.objectIdField]]
+                    query.objectIds = [ graphic.attributes[myFeatureLayer.layerDetails.objectIdField]];
                     myFeatureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
                 }
                 else
@@ -123,7 +123,7 @@
 
     <s:controlBarContent>
         <s:RichText width="100%">
-            This sample demonstrates how to use the AttributeTable component which allows viewing and editing feature atttributes.
+            This sample demonstrates how to use the AttributeTable component which allows viewing and editing feature attributes.
             The component uses a data grid where the columns correspond to the fields of a feature layer.
             The application also allows user to click on a feature and select it. The AttributeTable then displays the selection
             by highlighting the corresponding row in the grid.

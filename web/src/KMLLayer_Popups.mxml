@@ -42,7 +42,6 @@
 
     <fx:Style>
         @namespace s "library://ns.adobe.com/flex/spark";
-        @namespace mx "library://ns.adobe.com/flex/mx";
         @namespace esri "http://www.esri.com/2008/ags";
         esri|Navigation
         {

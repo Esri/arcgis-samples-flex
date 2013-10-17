@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Related records">
     <!--
@@ -56,7 +55,6 @@
             import com.esri.ags.events.MapMouseEvent;
             import com.esri.ags.geometry.Extent;
             import com.esri.ags.tasks.supportClasses.Query;
-            import com.esri.ags.tasks.supportClasses.RelationshipQuery;
 
             import mx.controls.Alert;
             import mx.rpc.AsyncResponder;
@@ -80,7 +78,7 @@
 
             private function wellsLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
             {
-                relatedDatagrid.dataProvider = null;
+                relatedDataGrid.dataProvider = null;
                 // check the first return feature to see if it has any related features
                 if (event.features.length > 0)
                 {
@@ -93,7 +91,7 @@
                         var fset:FeatureSet = (relatedRecords[event.features[0].attributes.OBJECTID]);
                         if (fset is FeatureSet)
                         {
-                            relatedDatagrid.dataProvider = new ArrayCollection(fset.attributes)
+                            relatedDataGrid.dataProvider = new ArrayCollection(fset.attributes);
                             relatedRecordsCount = fset.attributes.length;
                         }
                         else
@@ -117,7 +115,7 @@
 
             protected function showRelatedRecordsForObjectID(event:MouseEvent):void
             {
-                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0/queryRelatedRecords?objectIds=' + selectedObjectID + '&relationshipId=3&definitionExpression=&returnGeometry=true&outSR=&outFields=*&f=html'
+                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Petroleum/KSPetro/MapServer/0/queryRelatedRecords?objectIds=' + selectedObjectID + '&relationshipId=3&definitionExpression=&returnGeometry=true&outSR=&outFields=*&f=html';
                 navigateToURL(new URLRequest(url), "_blank");
             }
         ]]>
@@ -186,7 +184,7 @@
             </esri:infoWindowRenderer>
         </esri:FeatureLayer>
     </esri:Map>
-    <s:DataGrid id="relatedDatagrid"
+    <s:DataGrid id="relatedDataGrid"
                 width="100%" height="45%">
         <s:columns>
             <s:ArrayList>

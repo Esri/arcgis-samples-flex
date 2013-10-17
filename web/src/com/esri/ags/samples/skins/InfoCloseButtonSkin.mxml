@@ -10,25 +10,23 @@
 -->
 <s:SparkButtonSkin xmlns:fx="http://ns.adobe.com/mxml/2009"
                    xmlns:s="library://ns.adobe.com/flex/spark"
-                   xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
                    alpha.disabled="0.5"
                    minHeight="18"
                    minWidth="18">
 
     <fx:Metadata>
         <![CDATA[
-        /**
-         * @copy spark.skins.spark.ApplicationSkin#hostComponent
-         */
-        [HostComponent("spark.components.Button")]
+            /**
+             * @copy spark.skins.spark.ApplicationSkin#hostComponent
+             */
+            [HostComponent("spark.components.Button")]
         ]]>
     </fx:Metadata>
 
-    <fx:Script fb:purpose="styling">
+    <fx:Script>
         <![CDATA[
-            import spark.components.Group;
             /* Define the skin elements that should not be colorized.
-            For button, the graphics are colorized but the label is not. */
+             For button, the graphics are colorized but the label is not. */
             static private const exclusions:Array = [ "labelDisplay" ];
 
             /**
@@ -268,4 +266,5 @@
                                 weight="2"/>
         </s:stroke>
     </s:Path>
+
 </s:SparkButtonSkin>

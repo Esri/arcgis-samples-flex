@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Measure Distances">
     <!--
@@ -73,7 +72,6 @@
             import com.esri.ags.geometry.MapPoint;
             import com.esri.ags.geometry.Polyline;
             import com.esri.ags.symbols.CompositeSymbol;
-            import com.esri.ags.symbols.TextSymbol;
             import com.esri.ags.tasks.supportClasses.AddressCandidate;
             import com.esri.ags.tasks.supportClasses.AddressToLocationsParameters;
             import com.esri.ags.tasks.supportClasses.DistanceParameters;
@@ -86,7 +84,7 @@
 
             public var inputPoints:Array = [];
             public var endGraphic:Graphic;
-            public var totalDistance:Number = 0
+            public var totalDistance:Number = 0;
             public var segmentDistance:Array = [];
             public var newPointAdded:Boolean;
 

@@ -196,11 +196,7 @@ public class RotationWheel extends SkinnableComponent
 
     private function mouseOverOutHandler(event:MouseEvent):void
     {
-        if (m_mouseDown)
-        {
-            return;
-        }
-        else
+        if (!m_mouseDown)
         {
             m_overWheel = m_mouseOverNorth = false;
             if (event.target === north)
@@ -273,6 +269,6 @@ public class RotationWheel extends SkinnableComponent
             }
         }
     }
-
 }
+
 }

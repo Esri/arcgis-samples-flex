@@ -27,6 +27,8 @@
 
     <fx:Script>
         <![CDATA[
+            import com.esri.ags.SpatialReference;
+
             [Bindable]
             private var symbolCount:int = 1;
 

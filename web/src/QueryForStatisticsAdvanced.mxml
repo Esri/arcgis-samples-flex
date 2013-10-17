@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Example - Query For Statistics Advanced">
     <!--
@@ -175,7 +174,6 @@
             {
                 if (event.featureSet)
                 {
-                    var fields:Array = event.featureSet.fields;
                     var attributes:Array = event.featureSet.attributes;
                     dg.dataProvider = new ArrayCollection(attributes);
                     dg.visible = true;
@@ -352,7 +350,6 @@
                                                xoffset="0"
                                                yoffset="0"/>
                         </esri:LabelClass>
-
                     </esri:labelClasses>
                 </esri:LayerDrawingOptions>
             </esri:layerDrawingOptions>
