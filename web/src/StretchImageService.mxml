@@ -12,10 +12,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISImageServiceLayer.html#renderingRule
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html#arguments
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/RasterFunction.html#functionName
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISImageServiceLayer.html#renderingRule
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/RasterFunction.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/RasterFunction.html#arguments
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/RasterFunction.html#functionName
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/index.html?imageserver.html

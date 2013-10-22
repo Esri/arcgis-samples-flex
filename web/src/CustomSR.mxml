@@ -16,9 +16,9 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#extent
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html#wkid
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/SpatialReference.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#extent
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/SpatialReference.html#wkid
 
     ArcGIS for Desktop Help
     An overview of spatial references

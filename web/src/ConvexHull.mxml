@@ -24,12 +24,12 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#convexHullLastResult
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#convexHull()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeometryServiceEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html#convexHullLastResult
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html#convexHull()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/SpatialReference.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Geometry.html
 
     ArcGIS REST API Help
     http://resources.arcgis.com/en/help/rest/apiref/convexHull.html

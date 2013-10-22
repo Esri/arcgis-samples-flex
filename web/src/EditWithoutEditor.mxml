@@ -17,17 +17,17 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TemplatePicker.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/EditEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FeatureLayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/TemplatePickerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureTemplate.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureLayerDetails.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/EditTool.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TemplatePicker.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/EditEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/FeatureLayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/MapMouseEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/TemplatePickerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureTemplate.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureLayerDetails.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/EditTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/featureserver.html

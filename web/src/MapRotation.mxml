@@ -14,16 +14,16 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#crosshairVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#extent
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#mapRotation
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#middleButtonRotationEnabled
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#wrapAround180
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#zoomSliderVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/SpatialReference.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#crosshairVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#extent
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#mapRotation
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#middleButtonRotationEnabled
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#wrapAround180
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#zoomSliderVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Extent.html
 
     This sample also uses the following files:
     com/esri/ags/samples/components/RotationWheel.as

@@ -19,9 +19,9 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDefinitions
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDefinition.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDefinitions
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDefinition.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/export.html

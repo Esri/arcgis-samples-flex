@@ -33,34 +33,34 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GenerateRendererEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DetailsEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#dynamicLayerInfos
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/Field.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/DynamicLayerInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LabelClass.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDataSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDetails.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#labelClasses
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#layerId
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#renderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#showLabels
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerMapSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LabelOptions.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TableDataSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/DetailsTask.html#getDynamicDetails()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/DetailsTask.html#event:getDetailsComplete
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/DetailsTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GenerateRendererTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AlgorithmicColorRamp.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ClassBreaksDefinition.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/GenerateRendererParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GenerateRendererEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DetailsEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#dynamicLayerInfos
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/Field.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/DynamicLayerInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LabelClass.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDataSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDetails.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#labelClasses
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#layerId
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#renderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html#showLabels
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerMapSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LabelOptions.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/TableDataSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/ClassBreaksRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleLineSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/DetailsTask.html#getDynamicDetails()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/DetailsTask.html#event:getDetailsComplete
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/DetailsTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GenerateRendererTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/AlgorithmicColorRamp.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ClassBreaksDefinition.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/GenerateRendererParameters.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html

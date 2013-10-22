@@ -21,20 +21,20 @@
 
     Note:
     This sample uses the Portal API to search for symbols hosted on ArcGIS Online.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/Portal.html
     These symbols are found using search parameters such as (group, type, and typekeywords).
     For more information on query syntax, please see the link below: ArcGIS Online -> 'Using search' -> 'Finding and opening content'.
     http://help.arcgis.com/en/arcgisonline/help/010q/010q0000000n000000.htm
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/PortalEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalGroup.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalItem.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryResult.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/PictureMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/PortalEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalGroup.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalItem.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalQueryResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/PictureMarkerSymbol.html
     -->
 
     <fx:Script>

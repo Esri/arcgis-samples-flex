@@ -14,25 +14,25 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#featureCollection
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#renderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:load
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#trackRenderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#latestObservationRenderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#observationRenderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#observationAger
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/AlphaRange.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/SizeRange.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/TimeRampAger.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/TimeRampAger.html#alphaRange
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/TimeRampAger.html#sizeRange
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureCollection.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDetails.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#featureCollection
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html#renderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html#event:load
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html#trackRenderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html#latestObservationRenderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html#observationRenderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html#observationAger
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/AlphaRange.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/SizeRange.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/TimeRampAger.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/TimeRampAger.html#alphaRange
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/TimeRampAger.html#sizeRange
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureCollection.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDetails.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/TimeInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html
 
     This sample also uses the following files:
     com/esri/ags/samples/GPXFeed.as

@@ -15,8 +15,8 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/virtualearth/VETiledLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/virtualearth/VETiledLayer.html
 
     To use VETiledLayer/VEGeocoder you will need access to Bing Maps (formerly Microsoft Virtual Earth).
     http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Introduction_to_Bing_Maps_in_ArcGIS_API_for_Flex/017p0000001t000000/

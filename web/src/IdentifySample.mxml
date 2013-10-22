@@ -34,18 +34,18 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#defaultGraphicsLayer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/IdentifyEvent.html#identifyResults
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#dataProvider
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#selectedItem
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#event:change
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#event:close
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/IdentifyTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/IdentifyTask.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/IdentifyResult.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/IdentifyParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/IdentifyParameters.html#LAYER_OPTION_VISIBLE
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#defaultGraphicsLayer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/IdentifyEvent.html#identifyResults
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html#dataProvider
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html#selectedItem
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html#event:change
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html#event:close
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/IdentifyTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/IdentifyTask.html#execute()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/IdentifyResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/IdentifyParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/IdentifyParameters.html#LAYER_OPTION_VISIBLE
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/identify.html

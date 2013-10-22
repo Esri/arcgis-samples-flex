@@ -12,12 +12,12 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#center
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#level
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorMapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WebTiledLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#center
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#level
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/WebMercatorMapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/TiledMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/WebTiledLayer.html
     -->
 
     <fx:Script>

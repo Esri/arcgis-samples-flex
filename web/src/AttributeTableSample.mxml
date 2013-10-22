@@ -13,12 +13,12 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeTable.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResult.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResults.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/Field.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/AttributeTable.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureEditResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureEditResults.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/Field.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html
     -->
 
     <s:layout>

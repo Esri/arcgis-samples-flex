@@ -16,25 +16,25 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#style:infoWindowRendererHighlightColor
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#style:headerBackgroundAlpha
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#style:backgroundAlpha
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#infoWindowRenderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/PopUpRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PopUpFieldFormat.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PopUpFieldInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PopUpInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleFillSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GraphicUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#style:infoWindowRendererHighlightColor
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html#style:headerBackgroundAlpha
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/InfoWindow.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/InfoWindow.html#style:backgroundAlpha
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/QueryEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html#infoWindowRenderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/PopUpRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpFieldFormat.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpFieldInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PopUpInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleFillSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleLineSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/GraphicUtil.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/core/ClassFactory.html
     -->

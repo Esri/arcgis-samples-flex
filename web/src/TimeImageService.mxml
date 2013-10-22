@@ -12,12 +12,12 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#timeSlider
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISImageServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#timeSlider
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISImageServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/TimeExtent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/TimeInfo.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/index.html?imageserver.html

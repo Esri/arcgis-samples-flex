@@ -17,17 +17,17 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GenerateRendererEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DetailsEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/DynamicLayerInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDetails.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerMapSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GenerateRendererTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ClassBreaksDefinition.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/GenerateRendererParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GenerateRendererEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DetailsEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/DynamicLayerInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDetails.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerMapSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/ClassBreaksRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GenerateRendererTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ClassBreaksDefinition.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/GenerateRendererParameters.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html

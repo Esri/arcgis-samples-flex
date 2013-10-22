@@ -29,10 +29,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/DataFile.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/JobInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Geoprocessor.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeoprocessorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/DataFile.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/JobInfo.html
 
     What is Geoprocessing?
     http://resources.arcgis.com/en/help/main/10.1/#/What_is_geoprocessing/002s00000001000000/

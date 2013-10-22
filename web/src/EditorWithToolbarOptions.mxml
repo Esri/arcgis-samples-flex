@@ -12,16 +12,16 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarCutVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarMergeVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarReshapeVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#createOptions
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/CreateOptions.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#toolbarVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#toolbarCutVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#toolbarMergeVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#toolbarReshapeVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#createOptions
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/CreateOptions.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/featureserver.html

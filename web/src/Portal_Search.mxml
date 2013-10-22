@@ -19,9 +19,9 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html#queryItems()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/Portal.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/Portal.html#queryItems()
 
     ArcGIS Portal API documentation:
     Searching:  http://www.arcgis.com/apidocs/rest/searchreference.html

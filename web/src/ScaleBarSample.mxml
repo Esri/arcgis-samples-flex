@@ -20,9 +20,9 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarMetricSkin.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarSkin.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarUSSkin.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/skins/ScaleBarMetricSkin.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/skins/ScaleBarSkin.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/skins/ScaleBarUSSkin.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/supportClasses/SkinnableComponent.html
     About Spark skins

@@ -14,13 +14,13 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/AttributeInspectorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeInspector.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/FieldInspector.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResult.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureEditResults.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/Field.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/AttributeInspectorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/AttributeInspector.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/FieldInspector.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureEditResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureEditResults.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/Field.html
 
     This sample also uses the following file:
     com/esri/ags/samples/components/MyCalendarEditor.as

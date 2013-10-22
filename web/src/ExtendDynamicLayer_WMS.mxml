@@ -15,8 +15,8 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/DynamicMapServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/DynamicMapServiceLayer.html#loadMapImage()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/DynamicMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/DynamicMapServiceLayer.html#loadMapImage()
 
     This sample also uses the following file:
     com/esri/ags/samples/CityStatesWMSLayer.as

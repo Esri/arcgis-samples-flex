@@ -14,10 +14,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/UniqueValueRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/UniqueValueInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerDrawingOptions
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDrawingOptions.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/UniqueValueRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/UniqueValueInfo.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html

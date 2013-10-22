@@ -24,10 +24,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#definitionExpression
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:updateStart
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:updateEnd
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#definitionExpression
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html#event:updateStart
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html#event:updateEnd
     -->
 
     <fx:Script>
