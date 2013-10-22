@@ -18,8 +18,8 @@
     Note:
     All the source code for the skins can be found in the ArcGIS API for Flex
     download.  Once you unzip the api you can find the skins under the following
-    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins' and the skin assets
-    in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    directory 'ArcGIS_Flex/src/com/esri/ags/skins' and the skin assets
+    in the directory 'ArcGIS_Flex/src/assets/skins'.
     NavigationSkin.mxml
     NavigationVSliderSkin.mxml
     NavigationZoomInButtonSkin.mxml
