@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                backgroundColor="#D3D1D1"
                initialize="initializeHandler(event)"
@@ -79,7 +78,6 @@
                 var queryParameters:PortalQueryParameters = PortalQueryParameters.forItemsInGroup(symbolGroup.id).withSortField("name").withLimit(20);
                 queryParameters.addQueryCondition('typekeywords:"by value"', "+");
                 portalService.queryItems(queryParameters);
-
             }
 
             protected function portalService_unloadHandler(event:PortalEvent):void
@@ -89,8 +87,8 @@
 
             protected function portalService_faultHandler(event:FaultEvent):void
             {
-                var faultstring:String = event.fault.faultString;
-                Alert.show(faultstring);
+                var faultString:String = event.fault.faultString;
+                Alert.show(faultString);
             }
 
             protected function portalService_queryItemsCompleteHandler(event:PortalEvent):void
@@ -205,7 +203,7 @@
                      queryGroupsComplete="portalService_queryGroupsCompleteHandler(event)"
                      queryItemsComplete="portalService_queryItemsCompleteHandler(event)"
                      unload="portalService_unloadHandler(event)"
-                     url="http://www.arcgis.com/sharing/rest/"/>
+                     url="https://www.arcgis.com/"/>
 
         <s:NumberFormatter id="numberFormatter" fractionalDigits="2"/>
     </fx:Declarations>
