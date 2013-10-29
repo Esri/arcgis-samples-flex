@@ -49,8 +49,6 @@
 
             import mx.events.ItemClickEvent;
 
-            import spark.events.IndexChangeEvent;
-
             protected function tbb_itemClickHandler(event:ItemClickEvent):void
             {
                 if (tbb.selectedIndex < 0)
