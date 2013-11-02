@@ -24,8 +24,6 @@
         <![CDATA[
             import com.esri.ags.events.LayerEvent;
 
-            import flash.net.navigateToURL;
-
             import mx.controls.Alert;
             import mx.events.CloseEvent;
 
@@ -49,7 +47,7 @@
 
             private static const APPLE_OSM_URL:String = "http://gsp2.apple.com/tile?api=1&style=slideshow&layers=default&lang=en_GB&z={level}&x={col}&y={row}&v=9";
 
-            //subdomains
+            // subdomains
             private static const MQ_SUBDOMAINS:Array = [ "mtile01", "mtile02", "mtile03", "mtile04" ];
             private static const ABC:Array = [ "a", "b", "c" ];
             private static const ABCD:Array = [ "a", "b", "c", "d" ];
@@ -135,7 +133,6 @@
             protected function webTiledLayer_loadErrorHandler(event:LayerEvent):void
             {
                 Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "WebTiledLayer load error " + event.fault.faultCode);
-
             }
         ]]>
     </fx:Script>
