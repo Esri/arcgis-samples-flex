@@ -87,11 +87,6 @@
             </esri:Graphic>
         </esri:GraphicsLayer>
     </esri:Map>
-	
-	<esri:Geocoder width="300" height="30"
-				   top="20"
-				   horizontalCenter="0"
-				   map="{myMap}"/>
 
     <s:Button id="zoomToCurrentLocationBtn"
               bottom="6"
