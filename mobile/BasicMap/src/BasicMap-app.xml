@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<application xmlns="http://ns.adobe.com/air/application/3.1">
+<application xmlns="http://ns.adobe.com/air/application/3.9">
 
     <!-- Adobe AIR Application Descriptor File Template.
 
@@ -15,7 +15,7 @@
 
     <!-- A universally unique application identifier. Must be unique across all AIR applications.
     Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-    <id>com.esri.flexmobile.BasicMap</id>
+    <id>com.esri.support.BasicMap</id>
 
     <!-- Used as the filename for the application. Required. -->
     <filename>BasicMap</filename>

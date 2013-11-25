@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        width="50" height="50"
+        alpha.disabled="0.5"
+        buttonMode="true"
+        minHeight="30"
+        minWidth="30">
+
+    <!--
+
+    selected-1: 0x0064A2
+    selected-2: 0x01538B
+
+    up-1: 0x006FB1
+    up-2: 0x015F9C
+
+    over-1: 0x007BC1
+    over-2: 0x016AAB
+
+    -->
+
+    <fx:Metadata>
+        [HostComponent("components.Compass")]
+    </fx:Metadata>
+
+    <fx:Declarations>
+        <s:Rotate id="rotateEffect"
+                  duration="1500"
+                  target="{needle}">
+            <s:easer>
+                <s:Elastic/>
+            </s:easer>
+        </s:Rotate>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+            override protected function createChildren():void
+            {
+                super.createChildren();
+
+                // Create the backgroud of the compass.
+                var bitmapFillSource:BitmapData = new BitmapData(2, 2, true, 0xFFEEEEEE);
+                bitmapFillSource.setPixel32(0, 0, 0x00000000);
+                bitmapFillSource.setPixel32(1, 1, 0x00000000);
+                bitmapFill.source = bitmapFillSource;
+            }
+
+            override protected function commitProperties():void
+            {
+                super.commitProperties();
+
+                if (needle.rotation != hostComponent.mapRotation)
+                {
+                    if (rotateEffect.isPlaying)
+                    {
+                        rotateEffect.stop();
+                    }
+                    var shortestAngle:Number = hostComponent.mapRotation - needle.rotation;
+                    if (shortestAngle > 180)
+                    {
+                        shortestAngle -= 360;
+                    }
+                    if (shortestAngle < -180)
+                    {
+                        shortestAngle += 360;
+                    }
+                    rotateEffect.angleBy = shortestAngle;
+                    rotateEffect.play();
+                }
+            }
+
+            override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+            {
+                super.updateDisplayList(unscaledWidth, unscaledHeight);
+
+                //
+                // Update the ellipses sizes
+                //
+                const ellipseWeight:Number = Math.floor(Math.max(Math.min(4, unscaledHeight * 0.05), 2));
+                if (outerStroke.weight !== ellipseWeight)
+                {
+                    innerStroke.weight = outerStroke.weight = ellipseWeight;
+                    innerEllipse.left = innerEllipse.right = innerEllipse.top = innerEllipse.bottom = ellipseWeight;
+                    invalidateDisplayList();
+                }
+
+                //
+                // Update the needle
+                //
+                const needleHeight:Number = unscaledHeight - 4 * ellipseWeight - 2;
+                const needleWidth:Number = Math.round(Math.max(Math.min(12, needleHeight * 0.4), 5));
+                needle.width = needleWidth;
+                needle.height = needleHeight;
+                needle.move(unscaledWidth * .5 - needleWidth * .5, unscaledHeight * .5 - needleHeight * .5);
+                needle.transformX = needleWidth * .5;
+                needle.transformY = needleHeight * .5;
+
+            }
+        ]]>
+    </fx:Script>
+
+    <!-- states -->
+    <s:states>
+        <s:State name="up"/>
+        <s:State name="over"/>
+        <s:State name="down"/>
+        <s:State name="disabled"/>
+    </s:states>
+
+    <!-- layer 1: shadow -->
+    <s:Ellipse left="0" right="0" top="0" bottom="1">
+        <s:fill>
+            <s:SolidColor color="#000000"/>
+        </s:fill>
+        <s:filters>
+            <s:DropShadowFilter alpha="0.5"
+                                angle="90"
+                                blurX="4"
+                                blurY="4"
+                                knockout="true"/>
+        </s:filters>
+    </s:Ellipse>
+
+    <s:Ellipse left="0" right="0" top="0" bottom="0">
+        <s:fill>
+            <s:BitmapFill id="bitmapFill" fillMode="repeat"/>
+        </s:fill>
+    </s:Ellipse>
+
+    <s:Ellipse id="outerEllipse"
+               left="0" right="0" top="0" bottom="0">
+        <s:stroke>
+            <s:LinearGradientStroke id="outerStroke" rotation="90">
+                <s:GradientEntry color="#FFFFFF" ratio="0"/>
+                <s:GradientEntry color="#CCCCCC" ratio="1"/>
+            </s:LinearGradientStroke>
+        </s:stroke>
+    </s:Ellipse>
+
+    <s:Ellipse id="innerEllipse"
+               left="0" right="0" top="0" bottom="0">
+        <s:stroke>
+            <s:LinearGradientStroke id="innerStroke" rotation="90">
+                <s:GradientEntry color="#CCCCCC" ratio="0"/>
+                <s:GradientEntry color="#FFFFFF" ratio="1"/>
+            </s:LinearGradientStroke>
+        </s:stroke>
+    </s:Ellipse>
+
+    <s:Group id="needle"
+             width="100%" height="100%">
+        <s:Path width="100%" height="50%"
+                data="M 0 20 L 10 0 L 20 20 L 10 18 Z">
+            <s:fill>
+                <s:LinearGradient>
+                    <s:GradientEntry color="#1F78B4" ratio="0.4"/>
+                    <s:GradientEntry color="#2692DA" ratio="0.6"/>
+                </s:LinearGradient>
+            </s:fill>
+        </s:Path>
+        <s:Path width="100%" height="50%"
+                data="M 1 22 L 10 40 L 19 22 L 10 20 Z">
+            <s:fill>
+                <s:LinearGradient>
+                    <s:GradientEntry color="#F5F5F5" ratio="0.4"/>
+                    <s:GradientEntry color="#DDDDDD" ratio="0.6"/>
+                </s:LinearGradient>
+            </s:fill>
+        </s:Path>
+        <s:filters>
+            <s:DropShadowFilter alpha="0.5"
+                                angle="90"
+                                blurX="4"
+                                blurY="4"
+                                distance="2"/>
+        </s:filters>
+    </s:Group>
+
+</s:Skin>
