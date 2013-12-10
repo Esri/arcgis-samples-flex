@@ -259,19 +259,20 @@
                 <s:TextArea id="customCopyright"
                             width="220" height="50"
                             editable="true"
-                            text="Mapbox Light"/>
+                            text="Humanitarian OSM"/>
             </s:FormItem>
             <s:FormItem label="subdomains:">
                 <s:TextArea id="customSubDomains"
                             width="220" height="50"
                             editable="true"
-                            text="a,b,c,d"/>
+                            text="a,b"/>
             </s:FormItem>
             <s:FormItem label="URL template:">
                 <s:TextArea id="customURLTemplate"
                             width="220" height="50"
                             editable="true"
-                            text="http://\{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-light/\{level}/\{col}/\{row}.png"/>
+                            text="http://\{subDomain}.tile.openstreetmap.fr/hot/\{level}/\{col}/\{row}.png"/>
+
             </s:FormItem>
             <s:Spacer height="20"/>
             <s:HGroup width="100%" horizontalAlign="center">
