@@ -16,14 +16,14 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html#locationToAddress()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LocatorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/MapMouseEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Locator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Locator.html#locationToAddress()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/WebMercatorUtil.html
 
     For more details on the World Geocoding Service follow the link below.
     http://geocode.arcgis.com/arcgis/index.html

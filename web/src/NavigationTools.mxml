@@ -15,11 +15,11 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html#activate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html#deactivate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html#zoomToNextExtent()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/NavigationTool.html#zoomToPrevExtent()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/NavigationTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/NavigationTool.html#activate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/NavigationTool.html#deactivate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/NavigationTool.html#zoomToNextExtent()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/NavigationTool.html#zoomToPrevExtent()
     -->
 
     <fx:Script>

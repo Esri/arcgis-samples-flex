@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="WMTS Layer">
     <!--
@@ -15,8 +14,8 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WMTSLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/WMTSLayer.html
 
     http://www.opengeospatial.org/standards/wmts
 
@@ -41,7 +40,7 @@
                 richText.textFlow = TextConverter.importToFlow(htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT);
             }
 
-            protected function wmtslayer1_loadErrorHandler(event:LayerEvent):void
+            protected function wmtslayer_loadErrorHandler(event:LayerEvent):void
             {
                 Alert.show(event.fault.faultString, "Error");
             }
@@ -70,7 +69,7 @@
     <esri:Map wrapAround180="true">
         <esri:WMTSLayer layerId="WorldTimeZones"
                         imageFormat="png"
-                        loadError="wmtslayer1_loadErrorHandler(event)"
+                        loadError="wmtslayer_loadErrorHandler(event)"
                         serviceMode="KVP"
                         url="http://sampleserver6.arcgisonline.com/arcgis/rest/services/WorldTimeZones/MapServer/WMTS"/>
     </esri:Map>

@@ -25,13 +25,13 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html#infoWindowRenderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#infoWindowRenderersEnabled
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/IGraphicRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/Symbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html#infoWindowRenderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#infoWindowRenderersEnabled
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/IGraphicRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleLineSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/Symbol.html
 
     This sample also uses the following files:
     com/esri/ags/samples/BalloonSymbol.as

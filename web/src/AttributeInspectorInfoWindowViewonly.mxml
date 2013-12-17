@@ -23,9 +23,9 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeInspector.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FeatureLayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/AttributeInspector.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/FeatureLayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
     -->
     <fx:Style>
         @namespace s "library://ns.adobe.com/flex/spark";

@@ -13,21 +13,21 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#joinType
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#leftTableKey
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#leftTableSource
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#rightTableKey
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/JoinDataSource.html#rightTableSource
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDataSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerMapSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TableDataSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#source
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/QueryEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/JoinDataSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/JoinDataSource.html#joinType
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/JoinDataSource.html#leftTableKey
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/JoinDataSource.html#leftTableSource
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/JoinDataSource.html#rightTableKey
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/JoinDataSource.html#rightTableSource
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDataSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerMapSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/TableDataSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html#source
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html#execute()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/DataGrid.html
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/DataGrid.html#event:gridClick

@@ -16,10 +16,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#event:mapClick
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#event:mapClick
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/MapMouseEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/WebMercatorUtil.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/Number.html#toFixed()
     -->

@@ -40,13 +40,8 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.components.geoEnrichmentClasses.InfographicData;
-            import com.esri.ags.skins.geoEnrichmentClasses.ChartItemGridRenderer;
             import com.esri.ags.skins.geoEnrichmentClasses.LabelGridItemRenderer;
-            import com.esri.ags.skins.geoEnrichmentClasses.LowerUpperColumnHeader;
-            
-            import mx.collections.ArrayCollection;
-            import mx.collections.ArrayList;
-            
+
             import spark.components.gridClasses.GridColumn;
 
             [Bindable]
@@ -94,10 +89,6 @@
                         if (displayCol)
                         {
                             var rowCount:int = data.rows.length;
-
-                            var value:Number = data.rows.getItemAt(0)[displayCol.dataField];
-                            var isNum:Boolean = !isNaN(value);
-
                             for (var i:int = 0; i < rowCount; i++)
                             {
                                 var dataRow:Array = [];
@@ -169,7 +160,8 @@
         ]]>
     </fx:Script>
 
-    <s:VGroup width="100%" height="100%" gap="5">
+    <s:VGroup width="100%" height="100%"
+              gap="5">
         <s:Label fontWeight="bold"
                  includeInLayout="{labelTitleVisible}"
                  text="{hostComponent.title}"

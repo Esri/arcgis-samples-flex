@@ -12,19 +12,17 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#center
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#level
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorMapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WebTiledLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#center
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#level
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/WebMercatorMapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/TiledMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/WebTiledLayer.html
     -->
 
     <fx:Script>
         <![CDATA[
             import com.esri.ags.events.LayerEvent;
-
-            import flash.net.navigateToURL;
 
             import mx.controls.Alert;
             import mx.events.CloseEvent;
@@ -49,7 +47,7 @@
 
             private static const APPLE_OSM_URL:String = "http://gsp2.apple.com/tile?api=1&style=slideshow&layers=default&lang=en_GB&z={level}&x={col}&y={row}&v=9";
 
-            //subdomains
+            // subdomains
             private static const MQ_SUBDOMAINS:Array = [ "mtile01", "mtile02", "mtile03", "mtile04" ];
             private static const ABC:Array = [ "a", "b", "c" ];
             private static const ABCD:Array = [ "a", "b", "c", "d" ];
@@ -135,7 +133,6 @@
             protected function webTiledLayer_loadErrorHandler(event:LayerEvent):void
             {
                 Alert.show(event.fault.faultString + "\n\n" + event.fault.faultDetail, "WebTiledLayer load error " + event.fault.faultCode);
-
             }
         ]]>
     </fx:Script>
@@ -262,19 +259,20 @@
                 <s:TextArea id="customCopyright"
                             width="220" height="50"
                             editable="true"
-                            text="Mapbox Light"/>
+                            text="Humanitarian OSM"/>
             </s:FormItem>
             <s:FormItem label="subdomains:">
                 <s:TextArea id="customSubDomains"
                             width="220" height="50"
                             editable="true"
-                            text="a,b,c,d"/>
+                            text="a,b"/>
             </s:FormItem>
             <s:FormItem label="URL template:">
                 <s:TextArea id="customURLTemplate"
                             width="220" height="50"
                             editable="true"
-                            text="http://\{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-light/\{level}/\{col}/\{row}.png"/>
+                            text="http://\{subDomain}.tile.openstreetmap.fr/hot/\{level}/\{col}/\{row}.png"/>
+
             </s:FormItem>
             <s:Spacer height="20"/>
             <s:HGroup width="100%" horizontalAlign="center">

@@ -52,22 +52,18 @@ public class HeatMapGradientDict
             case RAINBOW_TYPE:
             {
                 return RAINBOW;
-                break;
             }
             case RED_WHITE_BLUE_TYPE:
             {
                 return RED_WHITE_BLUE;
-                break;
             }
             case THERMAL_TYPE:
             {
                 return THERMAL;
-                break;
             }
             case WEATHER_RADAR_TYPE:
             {
                 return WEATHER_RADAR;
-                break;
             }
             case CUSTOM_TYPE:
             {
@@ -79,7 +75,6 @@ public class HeatMapGradientDict
                 {
                     return RAINBOW;
                 }
-                break;
             }
             default:
             {
@@ -96,18 +91,16 @@ public class HeatMapGradientDict
      *
      * <listing version="3.0">
      * var customColors:Array = [ 0x7E81FF, 0x3EFF1C, 0xFFE919, 0xFF5E07, 0xFF0694, 0xFF8684 ];
-     * HeatMapGradientDict.fillCustomPaletteMap(customcolors);
+     * HeatMapGradientDict.fillCustomPaletteMap(customColors);
      * myHeatMapLayer.theme = HeatMapGradientDict.CUSTOM_TYPE;
      * </listing>
      *
      * @param colors The array of colors to be used to fill in the heatmap.
-     * @param alpha The transparency of the custom palette.
+     * @param alphaValue The transparency of the custom palette.
      * @return
-     *
      */
     public static function fillCustomPaletteMap(colors:Array, alphaValue:Number = 1):void
     {
-
         const bitmapData:BitmapData = new BitmapData(256, 2, true, 0);
 
         const matrix:Matrix = new Matrix();
@@ -144,4 +137,5 @@ public class HeatMapGradientDict
         bitmapData.dispose();
     }
 }
+
 }

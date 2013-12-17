@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Incident Tracker: query and edit a related table">
     <!--
@@ -32,12 +31,12 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FeatureLayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#event:editsComplete
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#queryRelatedFeatures()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#event:queryRelatedFeaturesComplete
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RelationshipQuery.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/FeatureLayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#event:editsComplete
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#queryRelatedFeatures()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#event:queryRelatedFeaturesComplete
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/RelationshipQuery.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/queryrelatedrecords.html
@@ -153,7 +152,7 @@
 
             protected function showRelatedRecordsForObjectID(event:MouseEvent):void
             {
-                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer/0/queryRelatedRecords?objectIds=' + selectedObjectID + '&relationshipId=1&definitionExpression=&returnGeometry=true&outSR=&outFields=*&f=html'
+                var url:String = 'http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer/0/queryRelatedRecords?objectIds=' + selectedObjectID + '&relationshipId=1&definitionExpression=&returnGeometry=true&outSR=&outFields=*&f=html';
                 navigateToURL(new URLRequest(url), "_blank");
             }
 

@@ -17,9 +17,9 @@
     Note:
     All the source code for the skins can be found in the ArcGIS API for Flex
     download.  Once you unzip the api you can find the skins under the following
-    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins',
-    'ArcGIS_Flex/skins/src/com/esri/ags/skins/supportClasses'
-    and the skin assets in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    directory 'ArcGIS_Flex/src/com/esri/ags/skins',
+    'ArcGIS_Flex/src/com/esri/ags/skins/supportClasses'
+    and the skin assets in the directory 'ArcGIS_Flex/src/assets/skins'.
     TimeSliderNextButtonSkin.mxml
     TimeSliderSkin.mxml
     TimeSliderPreviousButtonSkin.mxml
@@ -45,20 +45,20 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/TimeExtentEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html#createTimeStopsByTimeInterval()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#renderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/TimeExtent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/TimeExtentEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/QueryEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html#createTimeStopsByTimeInterval()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html#renderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/TimeInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/ClassBreaksRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleLineSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleMarkerSymbol.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
 

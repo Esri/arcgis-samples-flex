@@ -35,21 +35,21 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ScaleBar.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarMetricSkin.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/ScaleBarSkin.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/BufferParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ScaleBar.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeometryServiceEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeoprocessorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/skins/ScaleBarMetricSkin.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/skins/ScaleBarSkin.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Geoprocessor.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Geoprocessor.html#execute()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/BufferParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#event:drawEnd
     http://sampleserver1.arcgisonline.com/arcgisoutput/Demographics_ESRI_Population_World/PopulationSummary.htm
 
     ArcGIS REST API documentation:

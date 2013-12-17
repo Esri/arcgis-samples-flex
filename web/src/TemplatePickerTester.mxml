@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:s="library://ns.adobe.com/flex/spark"
                backgroundColor="0xEEEEEE"
-               initialize="application1_initializeHandler(event)"
+               initialize="application_initializeHandler(event)"
                pageTitle="Template Picker Testing FeatureService Layer">
     <!--
     Description:
@@ -20,40 +19,40 @@
     Note:
     All the source code for the skins can be found in the ArcGIS API for Flex
     download.  Once you unzip the api you can find the skins under the following
-    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins',
-    'ArcGIS_Flex/skins/src/com/esri/ags/skins/supportClasses'
-    and the skin assets in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    directory 'ArcGIS_Flex/src/com/esri/ags/skins',
+    'ArcGIS_Flex/src/com/esri/ags/skins/supportClasses'
+    and the skin assets in the directory 'ArcGIS_Flex/src/assets/skins'.
     TemplatePickerSimpleSkin.mxml
     TemplatePickerSkin.mxml
     TemplatePickerListItemRenderer.mxml
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/TemplatePickerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/IdentityManager.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureLayerDetails.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/FeatureTemplate.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/TemplatePickerSkin.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/FillSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/LineSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/MarkerSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ProjectParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html#graphic
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeometryServiceEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/TemplatePickerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Extent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Geometry.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/IdentityManager.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureLayerDetails.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/FeatureTemplate.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/skins/TemplatePickerSkin.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/FillSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/LineSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/MarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ProjectParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#map
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#activate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#deactivate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#event:drawStart
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/WebMercatorUtil.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/supportClasses/SkinnableComponent.html
     About Spark skins
@@ -108,7 +107,7 @@
 
             protected function myFeatureLayer_loadHandler(event:LayerEvent):void
             {
-                // templatepicker expects layerDetails to be available (i.e. layer loaded)
+                // TemplatePicker expects layerDetails to be available (i.e. layer loaded)
                 myTemplatePicker.featureLayers = [ myFeatureLayer ];
                 if (myFeatureLayer.url != 'http://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/FeatureServer/0')
                 {
@@ -267,7 +266,7 @@
                     {
                         const projectParameters:ProjectParameters = new ProjectParameters;
                         projectParameters.geometries = [ layerExtent ];
-                        projectParameters.outSpatialReference = myMap.extent.spatialReference
+                        projectParameters.outSpatialReference = myMap.extent.spatialReference;
                         geometryService.project(projectParameters);
                     }
                 }
@@ -315,7 +314,7 @@
                 }
             }
 
-            protected function application1_initializeHandler(event:FlexEvent):void
+            protected function application_initializeHandler(event:FlexEvent):void
             {
                 IdentityManager.instance.enabled = true;
             }

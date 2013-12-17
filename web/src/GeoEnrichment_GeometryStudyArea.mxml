@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:components="com.esri.ags.samples.components.*"
                initialize="application_initializeHandler(event)"
@@ -212,9 +211,11 @@
 
                     var countries:Array = [];
                     var features:Array = enrichResult.featureSets[0].features;
-                    for (var i:int = 0, n:int = features.length; i < n; i++) {
+                    for (var i:int = 0, n:int = features.length; i < n; i++)
+                    {
                         var countryId:String = features[i].attributes["sourceCountry"];
-                        if (countries.indexOf(countries, countryId) < 0) {
+                        if (countries.indexOf(countries, countryId) < 0)
+                        {
                             countries.push(countryId);
                         }
                     }
@@ -248,7 +249,6 @@
                     }
                     progressMessage.clearMessage();
                 }
-
             }
 
             protected function geoEnrichmentTask_getStandardGeographyCountriesCompleteHandler(event:GeoEnrichmentEvent):void
@@ -412,10 +412,17 @@
                         contentNavigator.dataProvider = new ArrayList([ geoEnrichGraphic ]);
                         graphicsLayer.add(geoEnrichGraphic);
 
-                        var locationCentroid:MapPoint = new MapPoint();
-                        (geoEnrichGraphic.geometry is MapPoint ? locationCentroid = geoEnrichGraphic.geometry as MapPoint : locationCentroid = geoEnrichGraphic.geometry.extent.center)
+                        var locationCentroid:MapPoint;
+                        if (geoEnrichGraphic.geometry is MapPoint)
+                        {
+                            locationCentroid = geoEnrichGraphic.geometry as MapPoint;
+                        }
+                        else
+                        {
+                            locationCentroid = geoEnrichGraphic.geometry.extent.center;
+                        }
 
-                        map.infoWindow.show(geoEnrichGraphic.geometry is MapPoint ? geoEnrichGraphic.geometry as MapPoint : geoEnrichGraphic.geometry.extent.center);
+                        map.infoWindow.show(locationCentroid);
                     }
                 }
                 progressMessage.clearMessage();

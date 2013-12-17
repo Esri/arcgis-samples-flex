@@ -12,8 +12,8 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/WebMapEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/WebMapUtil.html#createMapByItem()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/WebMapEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/WebMapUtil.html#createMapByItem()
     -->
 
     <fx:Script>
@@ -82,22 +82,21 @@
             protected function webMapUtil_createMapByItemCompleteHandler(event:WebMapEvent):void
             {
                 /*
-                * event.item (the web map item)
-                * event.itemData (the actual information that makes up the web map [ baseMap, operationalLayers, version, etc])
-                *
-                * var webMapItem:Object = event.item;
-                * webMapItem.id (web map id)
-                * webMapItem.owner (Who owns the document on ArcGIS.com)
-                * webMapItem.snippet (web map summary)
-                * webMapItem.title (web map title)
-                */
+                 * event.item (the web map item)
+                 * event.itemData (the actual information that makes up the web map [ baseMap, operationalLayers, version, etc])
+                 *
+                 * var webMapItem:Object = event.item;
+                 * webMapItem.id (web map id)
+                 * webMapItem.owner (Who owns the document on ArcGIS.com)
+                 * webMapItem.snippet (web map summary)
+                 * webMapItem.title (web map title)
+                 */
                 webMapTitle.text = event.item.title;
                 webMapDescription.text = event.item.snippet;
                 var map:Map = event.map;
                 mapContainer.addElement(map);
                 var legendLayer:ArcGISTiledMapServiceLayer = ArrayCollection(map.layers).getItemAt(1) as ArcGISTiledMapServiceLayer;
-                var legendLayers:Array = [ legendLayer ];
-                webMapLegend.layers = legendLayers;
+                webMapLegend.layers = [ legendLayer ];
                 webMapLegend.map = map;
             }
 

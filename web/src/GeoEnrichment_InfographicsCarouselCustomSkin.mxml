@@ -139,7 +139,6 @@
         {
             fontSize: 12px;
         }
-        
     </fx:Style>
 
     <fx:Script>
@@ -149,7 +148,6 @@
             import com.esri.ags.events.MapMouseEvent;
             import com.esri.ags.geometry.Geometry;
             import com.esri.ags.geometry.MapPoint;
-            import com.esri.ags.tasks.geoEnrichmentClasses.GeometryStudyArea;
 
             import mx.controls.Alert;
             import mx.events.FlexEvent;
@@ -203,7 +201,6 @@
             private function application_completeHandler(event:FlexEvent):void
             {
                 IdentityManager.instance.enabled = true;
-                map.infoWindowContent = infoWindowContent;
             }
 
             private function map_clickHandler(event:MapMouseEvent):void
@@ -235,47 +232,6 @@
         ]]>
     </fx:Script>
 
-    <fx:Declarations>
-
-        <!--
-            // The ExpandableInfoWindowContent is a container with a expand/collapse button.
-        -->
-        <components:ExpandableInfoWindowContent id="infoWindowContent"
-                                                change="infoWindowContentChangeHandler(event)"
-                                                skinClass="com.esri.ags.samples.skins.ExpandableInfoWindowContentSkin">
-            <!--
-                // The carousel component.
-                // Note: remove or change the proxyURL if you use arcgis.com authentication.
-            -->
-            <esri:InfographicsCarousel id="carousel"
-                                       complete="carousel_enrichCompleteHandler(event)"
-                                       fault="carousel_faultHandler(event)"
-                                       proxyURL="https://developers.arcgis.com/sproxy/"
-                                       styleName="small">
-                <!--
-                    // We use a GeometryStudyArea to send a user input geometry as the study area.
-                -->
-                <geoEnrichmentClasses:GeometryStudyArea id="geometryStudyArea"
-                                                        geometry="{inputGeometry}"
-                                                        options="{bufferOptions.studyAreaOptions}"
-                                                        returnGeometry="true">
-                    <!--
-                        //  Each country has its own standard geography levels
-                        //  The AdminLevels are aliases that correspond to various levels of
-                        //  geography for each individual country
-                        //
-                        //  US: Admin3 (US.Counties), Admin2 (US.States), Admin1 (US.WholeUSA)
-                    -->
-                    <geoEnrichmentClasses:comparisonGeographyLevels>
-                        <geoEnrichmentClasses:GeographyLevel layerId="Admin3"/>
-                        <geoEnrichmentClasses:GeographyLevel layerId="Admin2"/>
-                        <geoEnrichmentClasses:GeographyLevel layerId="Admin1"/>
-                    </geoEnrichmentClasses:comparisonGeographyLevels>
-                </geoEnrichmentClasses:GeometryStudyArea>
-            </esri:InfographicsCarousel>
-        </components:ExpandableInfoWindowContent>
-    </fx:Declarations>
-
     <s:controlBarContent>
         <s:RichText width="100%">
             This sample demonstrates how to apply custom skins to the InfographicsCarousel.
@@ -291,10 +247,48 @@
             <esri:WebMercatorMapPoint lon="-122.45" lat="37.75"/>
         </esri:center>
 
+        <esri:infoWindowContent>
+            <!--
+                // The ExpandableInfoWindowContent is a container with a expand/collapse button.
+            -->
+            <components:ExpandableInfoWindowContent id="infoWindowContent"
+                                                    change="infoWindowContentChangeHandler(event)"
+                                                    skinClass="com.esri.ags.samples.skins.ExpandableInfoWindowContentSkin">
+                <!--
+                    // The carousel component.
+                    // Note: remove or change the proxyURL if you use arcgis.com authentication.
+                -->
+                <esri:InfographicsCarousel id="carousel"
+                                           complete="carousel_enrichCompleteHandler(event)"
+                                           fault="carousel_faultHandler(event)"
+                                           proxyURL="https://developers.arcgis.com/sproxy/"
+                                           styleName="small">
+                    <!--
+                        // We use a GeometryStudyArea to send a user input geometry as the study area.
+                    -->
+                    <geoEnrichmentClasses:GeometryStudyArea id="geometryStudyArea"
+                                                            geometry="{inputGeometry}"
+                                                            options="{bufferOptions.studyAreaOptions}"
+                                                            returnGeometry="true">
+                        <!--
+                            //  Each country has its own standard geography levels
+                            //  The AdminLevels are aliases that correspond to various levels of
+                            //  geography for each individual country
+                            //
+                            //  US: Admin3 (US.Counties), Admin2 (US.States), Admin1 (US.WholeUSA)
+                        -->
+                        <geoEnrichmentClasses:comparisonGeographyLevels>
+                            <geoEnrichmentClasses:GeographyLevel layerId="Admin3"/>
+                            <geoEnrichmentClasses:GeographyLevel layerId="Admin2"/>
+                            <geoEnrichmentClasses:GeographyLevel layerId="Admin1"/>
+                        </geoEnrichmentClasses:comparisonGeographyLevels>
+                    </geoEnrichmentClasses:GeometryStudyArea>
+                </esri:InfographicsCarousel>
+            </components:ExpandableInfoWindowContent>
+        </esri:infoWindowContent>
+
         <!--
-            //
-            //      LAYERS
-            //
+            // LAYERS
         -->
         <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
 

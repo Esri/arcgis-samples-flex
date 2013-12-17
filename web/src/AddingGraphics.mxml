@@ -10,19 +10,20 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polyline.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polygon.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/PictureMarkerSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleFillSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/SpatialReference.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Polyline.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Polygon.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/PictureMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleLineSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleFillSymbol.html
     -->
 
     <s:layout>
         <s:VerticalLayout horizontalAlign="center"/>
     </s:layout>
+
     <fx:Script>
         <![CDATA[
             import com.esri.ags.SpatialReference;
@@ -55,7 +56,7 @@
                      new MapPoint(1913439, 6138225)
                      ]], new SpatialReference(102100));
                 var myGraphicLine:Graphic = new Graphic(myPolyline);
-                myGraphicLine.symbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, 0xDD2222, 1.0, 4)
+                myGraphicLine.symbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, 0xDD2222, 1.0, 4);
                 myGraphicsLayer.add(myGraphicLine);
 
                 var myPolygon:Polygon = new Polygon(

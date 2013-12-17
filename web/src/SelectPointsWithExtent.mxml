@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               pageTitle="Selecting graphcis and displaying results">
+               pageTitle="Selecting graphics and displaying results">
     <!--
     Description:
     This sample demonstrates how you can use the draw tool to select
@@ -15,26 +14,26 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Geometry.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html#contains()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleLineSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleFillSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html#graphic
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Geometry.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Extent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Extent.html#contains()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleLineSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleFillSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#map
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#activate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#deactivate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#event:drawStart
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#event:drawEnd
     ArcGIS REST API documentation:
 
     ArcGIS for Server documentation:
@@ -57,7 +56,6 @@
 
             import mx.collections.ArrayCollection;
             import mx.controls.Alert;
-            import mx.events.FlexEvent;
             import mx.rpc.AsyncResponder;
 
             private function myMap_loadHandler():void

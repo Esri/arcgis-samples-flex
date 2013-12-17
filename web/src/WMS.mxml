@@ -11,8 +11,8 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WMSLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/WMSLayer.html
 
     http://en.wikipedia.org/wiki/Web_Map_Service
     http://www.opengeospatial.org/standards/wms

@@ -33,18 +33,18 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ExtentEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorExtent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/TiledMapServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/ExtentEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LocatorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Extent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/WebMercatorExtent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/TiledMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Locator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/WebMercatorUtil.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
 

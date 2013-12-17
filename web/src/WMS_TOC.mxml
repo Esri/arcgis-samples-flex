@@ -24,10 +24,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WMSLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/WMSLayerInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/WMSLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/WMSLayerInfo.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/DataGrid.html
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/gridClasses/GridColumn.html

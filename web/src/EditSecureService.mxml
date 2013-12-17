@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
-               initialize="application1_initializeHandler(event)"
+               initialize="application_initializeHandler(event)"
                pageTitle="Editing Secure Service">
     <!--
     Description:
@@ -21,13 +20,13 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/IdentityManager.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttributeInspector.html#fieldInspectors
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/FieldInspector.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/IdentityManager.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/AttributeInspector.html#fieldInspectors
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/FieldInspector.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/featureserver.html
@@ -54,10 +53,11 @@
         <![CDATA[
             import com.esri.ags.components.IdentityManager;
             import com.esri.ags.events.LayerEvent;
+            import com.esri.ags.tasks.GeometryService;
 
             import mx.events.FlexEvent;
 
-            protected function application1_initializeHandler(event:FlexEvent):void
+            protected function application_initializeHandler(event:FlexEvent):void
             {
                 IdentityManager.instance.enabled = true;
             }

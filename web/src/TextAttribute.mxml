@@ -12,11 +12,11 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#symbol
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/CompositeSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/TextSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html#symbol
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/CompositeSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/TextSymbol.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html
     -->

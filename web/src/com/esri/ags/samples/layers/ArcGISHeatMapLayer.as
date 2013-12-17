@@ -14,7 +14,6 @@ import com.esri.ags.geometry.MapPoint;
 import com.esri.ags.layers.Layer;
 import com.esri.ags.layers.supportClasses.LayerDetails;
 import com.esri.ags.samples.events.HeatMapEvent;
-import com.esri.ags.samples.geometry.HeatMapPoint;
 import com.esri.ags.samples.layers.supportClasses.HeatMapGradientDict;
 import com.esri.ags.tasks.DetailsTask;
 import com.esri.ags.tasks.QueryTask;
@@ -28,7 +27,6 @@ import flash.events.Event;
 import flash.filters.BlurFilter;
 import flash.geom.Matrix;
 import flash.geom.Point;
-import flash.geom.Rectangle;
 import flash.utils.Dictionary;
 
 import mx.collections.ArrayList;
@@ -176,9 +174,8 @@ public class ArcGISHeatMapLayer extends Layer
      * @param url URL to the ArcGIS Server REST resource that represents a point layer in map service or feature service.
      * @param proxyURL The URL to proxy the request through.
      * @param token Token for accessing a secure dynamic ArcGIS service.
-     *
      */
-    public function ArcGISHeatMapLayer(url:String = null, proxyUrl:String = null, token:String = null)
+    public function ArcGISHeatMapLayer(url:String = null, proxyURL:String = null, token:String = null)
     {
         mouseEnabled = false;
         mouseChildren = false;
@@ -371,7 +368,6 @@ public class ArcGISHeatMapLayer extends Layer
         _urlPartsArray[0] = parseString.substr(0, lastPos);
         _urlPartsArray[1] = parseString.substr(lastPos + 1);
     }
-
 
     //--------------------------------------
     // overridden methods
@@ -775,7 +771,6 @@ public class ArcGISHeatMapLayer extends Layer
      * Gets the detailed information for the ArcGIS layer used to generate the heatmap.
      *
      * @return The <code>LayerDetails</code> of the point layer being queried in the map or feature service.
-     *
      */
     public function get layerDetails():LayerDetails
     {
@@ -792,10 +787,10 @@ public class ArcGISHeatMapLayer extends Layer
     //  cluster max weight
     //--------------------------------------
 
+    [Bindable("clusterMaxWeightChanged")]
     /**
      * The maximum weight of the cluster.
      */
-    [Bindable("clusterMaxWeightChanged")]
     public function get clusterMaxWeight():Number
     {
         return _clusterMaxWeight;
@@ -805,10 +800,10 @@ public class ArcGISHeatMapLayer extends Layer
     //  cluster count
     //--------------------------------------
 
+    [Bindable("clusterCountChanged")]
     /**
      * The cluster count.
      */
-    [Bindable("clusterCountChanged")]
     public function get clusterCount():int
     {
         return _clusterCount;
@@ -818,10 +813,10 @@ public class ArcGISHeatMapLayer extends Layer
     //  cluster size
     //--------------------------------------
 
+    [Bindable]
     /**
      * The cluster size.
      */
-    [Bindable]
     public function get clusterSize():int
     {
         return _clusterSize;
@@ -843,11 +838,11 @@ public class ArcGISHeatMapLayer extends Layer
     //  density radius
     //--------------------------------------
 
+    [Bindable]
     /**
      * The density radius.  This controls the size of the heat
      * radius for a given point.
      */
-    [Bindable]
     public function get densityRadius():int
     {
         return _densityRadius;
@@ -871,56 +866,56 @@ public class ArcGISHeatMapLayer extends Layer
     //
     //--------------------------------------------------------------------------
 
+    [Bindable(event="featureRadiusCalculatorChanged")]
     /**
      * The function to use to calculate the density radius.
      * If not set the heatmap layer will default to the internal function.
      */
-    [Bindable(event="featureRadiusCalculatorChanged")]
     public function set featureRadiusCalculator(value:Function):void
     {
         _featureRadiusCalculator = value === null ? internalFeatureRadiusCalculator : value;
         invalidateLayer();
     }
 
+    [Bindable(event="featureIndexCalculatorChanged")]
     /**
      * The function to use to calculate the index used to retrieve colors from
      * the gradient dictionary.
      * If not set the heatmap layer will default to the internal function.
      */
-    [Bindable(event="featureIndexCalculatorChanged")]
     public function set featureIndexCalculator(value:Function):void
     {
         _featureIndexCalculator = value === null ? internalFeatureCalculator : value;
         invalidateLayer();
     }
 
+    [Bindable(event="clusterRadiusCalculatorChanged")]
     /**
      * The function to use to calculate the cluster radius.
      * If not set the heatmap layer will default to the internal function.
      */
-    [Bindable(event="clusterRadiusCalculatorChanged")]
     public function set clusterRadiusCalculator(value:Function):void
     {
         _clusterRadiusCalculator = value === null ? internalClusterRadiusCalculator : value;
         invalidateLayer();
     }
 
+    [Bindable(event="clusterIndexCalculatorChanged")]
     /**
      * The function to use to calculate the cluster index.
      * If not set the heatmap layer will default to the internal function.
      */
-    [Bindable(event="clusterIndexCalculatorChanged")]
     public function set clusterIndexCalculator(value:Function):void
     {
         _clusterIndexCalculator = value === null ? internalClusterCalculator : value;
         invalidateLayer();
     }
 
+    [Bindable(event="clusterWeightCalculatorChanged")]
     /**
      * The function to use to calculate the cluster weight.
      * If not set the heatmap layer will default to the internal function.
      */
-    [Bindable(event="clusterWeightCalculatorChanged")]
     public function set clusterWeightCalculator(value:Function):void
     {
         _clusterWeightCalculator = value === null ? internalWeightCalculator : value;
@@ -951,6 +946,6 @@ public class ArcGISHeatMapLayer extends Layer
     {
         return radius;
     }
-
 } //end class
+
 }

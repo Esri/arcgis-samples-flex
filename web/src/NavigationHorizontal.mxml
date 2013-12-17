@@ -13,8 +13,8 @@
     Note:
     All the source code for the skins can be found in the ArcGIS API for Flex
     download.  Once you unzip the api you can find the skins under the following
-    directory 'ArcGIS_Flex/skins/src/com/esri/ags/skins' and the skin assets
-    in the directory 'ArcGIS_Flex/skins/src/assets/skins'.
+    directory 'ArcGIS_Flex/src/com/esri/ags/skins' and the skin assets
+    in the directory 'ArcGIS_Flex/src/assets/skins'.
     NavigationSkin.mxml
     NavigationVSliderSkin.mxml
     NavigationZoomInButtonSkin.mxml
@@ -24,8 +24,8 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Navigation.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/skins/NavigationSkin.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Navigation.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/skins/NavigationSkin.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/supportClasses/SkinnableComponent.html
     About Spark skins
@@ -36,9 +36,7 @@
     -->
 
     <fx:Style>
-        @namespace s "library://ns.adobe.com/flex/spark";
         @namespace esri "http://www.esri.com/2008/ags";
-
         esri|Navigation
         {
             skinClass: ClassReference("com.esri.ags.samples.skins.NavigationHorizontalSkin");

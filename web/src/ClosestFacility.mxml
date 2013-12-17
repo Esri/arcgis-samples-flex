@@ -20,11 +20,11 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ClosestFacilityEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/ClosestFacilityTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ClosestFacilityParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ClosestFacilitySolveResult.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/NAMessage.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/ClosestFacilityEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/ClosestFacilityTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ClosestFacilityParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ClosestFacilitySolveResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/NAMessage.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/naserver.html

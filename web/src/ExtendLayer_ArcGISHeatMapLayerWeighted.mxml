@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
-               xmlns:layers="com.esri.ags.samples.layers.*"
                xmlns:esri="http://www.esri.com/2008/ags"
+               xmlns:layers="com.esri.ags.samples.layers.*"
                pageTitle="Extending Layer: ArcGISHeatMapLayer sample"
-               preinitialize="application1_preinitializeHandler(event)">
+               preinitialize="application_preinitializeHandler(event)">
     <!--
     Description:
     This sample demonstrates some of the new functionality introduced in the latest
@@ -30,11 +29,11 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/DetailsTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DetailsEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDetails.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/DetailsTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DetailsEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDetails.html
 
     This sample also uses the following files:
     com\esri\ags\samples\events\HeatMapEvent.as
@@ -47,24 +46,19 @@
         <![CDATA[
             import com.esri.ags.Graphic;
             import com.esri.ags.events.DetailsEvent;
-            import com.esri.ags.geometry.MapPoint;
             import com.esri.ags.layers.supportClasses.TimeInfo;
             import com.esri.ags.samples.events.HeatMapEvent;
             import com.esri.ags.samples.layers.supportClasses.HeatMapGradientDict;
             import com.esri.ags.samples.utils.ColorMatrixUtil;
 
-            import mx.collections.ArrayCollection;
             import mx.events.FlexEvent;
-            import mx.utils.ObjectUtil;
 
-            import spark.events.GridEvent;
-            import spark.events.GridSortEvent;
             import spark.events.IndexChangeEvent;
 
             [Bindable]
             private var timeInfo:TimeInfo;
 
-            protected function application1_preinitializeHandler(event:FlexEvent):void
+            protected function application_preinitializeHandler(event:FlexEvent):void
             {
                 var customColors:Array = [ 0xEBED95, 0xEDB019, 0xD24F0B, 0xD21813, 0xBA5B6D ];
                 HeatMapGradientDict.fillCustomPaletteMap(customColors);
@@ -132,7 +126,7 @@
             /*
              * Custom function to calculate the color index value
              * to be used in the heatmap color palette.
-            */
+             */
             private function indexCalculator(feature:Graphic):int
             {
                 // use the graphic's attribute magnitude
@@ -148,18 +142,17 @@
                  * and for greater magnitude earthquakes the color
                  * values will be pulled from the higher (warmer) end
                  * of the color palette.
-                */
+                 */
                 var calcuatedIndex:int = int((mag / 10) * 255);
                 return calcuatedIndex;
-
             }
 
             /*
-            * Custom function to calculate the radius or density
-            * of the heatmap for a given graphic.  This function
-            * will give earthquakes with a greater magnitude a
-            * larger heatmap radius.
-            */
+             * Custom function to calculate the radius or density
+             * of the heatmap for a given graphic.  This function
+             * will give earthquakes with a greater magnitude a
+             * larger heatmap radius.
+             */
             private function radiusCalculator(feature:Graphic, radius:Number):Number
             {
                 var mag:Number = feature.attributes.Magnitude;
@@ -185,7 +178,6 @@
     </fx:Script>
 
     <fx:Declarations>
-        <!-- Place non-visual elements (e.g., services, value objects) here -->
         <s:Fade id="fadeEffectOut"
                 alphaFrom="1"
                 alphaTo="0.5"

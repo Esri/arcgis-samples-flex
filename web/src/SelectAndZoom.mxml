@@ -25,19 +25,19 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#level
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html#contains()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#add()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#remove()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LOD.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GraphicUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#level
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/MapMouseEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/QueryEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Extent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Extent.html#contains()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html#add()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html#remove()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LOD.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/GraphicUtil.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/MouseEvent.html
     -->

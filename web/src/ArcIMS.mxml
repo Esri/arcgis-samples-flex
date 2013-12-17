@@ -9,7 +9,7 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcIMSMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcIMSMapServiceLayer.html
     -->
 
     <s:controlBarContent>

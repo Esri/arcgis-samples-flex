@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Locator task">
     <!--
@@ -18,11 +17,11 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html#addressToLocations()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LocatorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Locator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Locator.html#addressToLocations()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
 
     For more details on the World Geocoding Service follow the link below.
     http://geocode.arcgis.com/arcgis/index.html
@@ -126,7 +125,7 @@
 
                         Alert.show("Sorry, couldn't find a location for this address"
                                    + "\nAddress: " + onelineaddress.text);
-                    };
+                    }
                 }
 
                 function onFault(info:Object, token:Object = null):void

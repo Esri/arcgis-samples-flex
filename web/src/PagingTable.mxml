@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                backgroundColor="0xEEEEEE"
                creationComplete="doExecuteForIdsQuery()"
@@ -25,18 +24,18 @@
     Steps involved:
     1) Use executeForIds() method to get ids for all records.
     The executeForIds() method will return an array of object id's.
-    2) Use execute() with WHERE clause to get the attibutes for a subset of features.
+    2) Use execute() with WHERE clause to get the attributes for a subset of features.
     This will return a FeatureSet to show within the DataGrid.
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#executeLastResult
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html#executeForIds()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html#orderByFields
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/QueryEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html#executeLastResult
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html#executeForIds()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html#orderByFields
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
 
@@ -59,7 +58,7 @@
             //Number of records per page
             private const recordsPerPage:int = 10;
 
-            //Number of pages beween Previous and Next
+            //Number of pages between Previous and Next
             private const defaultNumberOfPagesBetweenPrevNext:int = 10;
 
             private var currentNumberOfPagesBetweenPrevNext:int = defaultNumberOfPagesBetweenPrevNext;
@@ -78,15 +77,15 @@
             private var numberOfPages:int; //calculated using objectIdsArray and recordsPerPage
 
             /*
-            * ************************************************
-            * ************************************************
-            * SET THE VARIABLE BELOW TO FALSE TO TURN OFF
-            * THE ORDER BY CLAUSE.
-            * NOTE: REQUIRES ARCGIS 10.1 AND YOUR DATA MUST
-            * BE IN AN ENTERPRISE GEODATABASE SUCH AS SQLSERVER
-            * ************************************************
-            * ************************************************
-            */
+             * ************************************************
+             * ************************************************
+             * SET THE VARIABLE BELOW TO FALSE TO TURN OFF
+             * THE ORDER BY CLAUSE.
+             * NOTE: REQUIRES ARCGIS 10.1 AND YOUR DATA MUST
+             * BE IN AN ENTERPRISE GEODATABASE SUCH AS SQLSERVER
+             * ************************************************
+             * ************************************************
+             */
             [Bindable]
             private var useOrderByFieldsArray:Boolean = true;
 
@@ -121,7 +120,7 @@
                 objectIdsArray = event.objectIds;
                 lbl_RecordsCount.text = objectIdsArray.length.toString();
                 //calculate number of pages
-                var n:Number = objectIdsArray.length / recordsPerPage
+                var n:Number = objectIdsArray.length / recordsPerPage;
                 numberOfPages = Math.floor(n);
 
                 if (n - Math.floor(n) > 0)
@@ -183,15 +182,14 @@
             private function next():void
             {
                 currentPage++;
-                setPreviousNextVisibility()
+                setPreviousNextVisibility();
 
                 //shift pages array if the requested page number is not currently displayed.
                 if (currentPage > tbb_pageNumbers.dataProvider[tbb_pageNumbers.dataProvider.length - 1])
                 {
                     currentPageListStartIndex += 1;
-                    var lastpageIndex:int;
-                    lastpageIndex = currentPageListStartIndex + currentNumberOfPagesBetweenPrevNext
-                    tbb_pageNumbers.dataProvider = new ArrayCollection(pagesArray.slice(currentPageListStartIndex, lastpageIndex));
+                    var lastPageIndex:int = currentPageListStartIndex + currentNumberOfPagesBetweenPrevNext;
+                    tbb_pageNumbers.dataProvider = new ArrayCollection(pagesArray.slice(currentPageListStartIndex, lastPageIndex));
                     tbb_pageNumbers.selectedIndex = tbb_pageNumbers.dataProvider.length - 1;
                 }
                 else
@@ -212,8 +210,7 @@
                 {
                     //btn_Next.visible = true;
                     currentPageListStartIndex -= 1;
-                    var lastPageIndex:int;
-                    lastPageIndex = currentPageListStartIndex + currentNumberOfPagesBetweenPrevNext
+                    var lastPageIndex:int = currentPageListStartIndex + currentNumberOfPagesBetweenPrevNext;
                     if (lastPageIndex > pagesArray.length - 1)
                     {
                         lastPageIndex = pagesArray.length - 1
@@ -255,14 +252,7 @@
                     btn_Next.visible = false;
                 }
 
-                if (currentPage <= 1)
-                {
-                    btn_Previous.visible = false;
-                }
-                else
-                {
-                    btn_Previous.visible = true
-                }
+                btn_Previous.visible = currentPage > 1;
             }
 
             private function formatPopulation(item:Object, dgColumn:GridColumn):String

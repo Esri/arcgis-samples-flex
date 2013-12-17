@@ -10,8 +10,8 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/Symbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#wrapAround180
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/Symbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#wrapAround180
 
     This sample also uses the following file:
     com/esri/ags/samples/symbols/CustomMarkerSymbol.as

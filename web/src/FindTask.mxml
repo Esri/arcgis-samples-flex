@@ -33,11 +33,11 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/FindTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/FindParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/FindTask.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FindEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/FindEvent.html#findResults
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/FindTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/FindParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/FindTask.html#execute()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/FindEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/FindEvent.html#findResults
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/index.html?find.html

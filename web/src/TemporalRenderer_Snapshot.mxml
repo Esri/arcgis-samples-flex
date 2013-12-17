@@ -33,27 +33,27 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html#createTimeStopsByTimeInterval()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#mode
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#MODE_SNAPSHOT
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#renderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:load
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/ClassBreaksRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#latestObservationRenderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#observationRenderer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html#observationAger
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/AlphaRange.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/TimeRampAger.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/TimeRampAger.html#alphaRange
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TimeInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/TemporalRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/PictureMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html#createTimeStopsByTimeInterval()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#mode
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#MODE_SNAPSHOT
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html#renderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html#event:load
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/TimeInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/ClassBreaksRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/ClassBreakInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html#latestObservationRenderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html#observationRenderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html#observationAger
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/AlphaRange.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/TimeRampAger.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/TimeRampAger.html#alphaRange
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/TimeInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/TemporalRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/PictureMarkerSymbol.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
 

@@ -5,12 +5,12 @@ function AGS_oAuthSignIn(portalURL, appId, expiration, locale, objectId)
 {
     var path = location.pathname;
     var idx = path.lastIndexOf("/");
-    var redirectURI = location.protocol + "//" + location.host
-        + path.substring(0, idx) + "/oauth-callback.html";
-    var oAuthURL = portalURL + "/sharing/oauth2/authorize?response_type=token"
-        + "&client_id=" + encodeURIComponent(appId)
-        + "&redirect_uri=" + encodeURIComponent(redirectURI)
-        + "&expiration=" + expiration;
+    var redirectURI = location.protocol + "//" + location.host +
+        path.substring(0, idx) + "/oauth-callback.html";
+    var oAuthURL = portalURL + "/sharing/oauth2/authorize?response_type=token" +
+        "&client_id=" + encodeURIComponent(appId) +
+        "&redirect_uri=" + encodeURIComponent(redirectURI) +
+        "&expiration=" + expiration;
     if (locale)
     {
         oAuthURL += "&locale=" + locale;

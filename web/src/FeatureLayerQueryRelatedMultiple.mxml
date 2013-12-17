@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Multiple RelationshipQuery and Selections">
     <!--
@@ -40,16 +39,16 @@
     NOTE: this sample code requires a relationshipId. FeatureLayers can have more than one
     relationship and each relationship is identified by a unique identifier.
     Use the Services Directory to find the relationship id.
-    Selected features are fetched from the server when selected (using the 'selection' mode) and drawn clientside.
+    Selected features are fetched from the server when selected (using the 'selection' mode) and drawn client-side.
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#selectFeatures()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#queryRelatedFeatures()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#event:queryRelatedFeaturesComplete
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/RelationshipQuery.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/Query.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#selectFeatures()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#queryRelatedFeatures()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#event:queryRelatedFeaturesComplete
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/RelationshipQuery.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/Query.html
 
     ArcGIS REST API documentation
     http://resources.arcgis.com/en/help/rest/apiref/queryrelatedrecords.html
@@ -73,10 +72,7 @@
             import com.esri.ags.Graphic;
             import com.esri.ags.events.FeatureLayerEvent;
             import com.esri.ags.events.MapMouseEvent;
-            import com.esri.ags.geometry.Extent;
             import com.esri.ags.geometry.MapPoint;
-            import com.esri.ags.tasks.supportClasses.Query;
-            import com.esri.ags.tasks.supportClasses.RelationshipQuery;
 
             import mx.controls.Alert;
             import mx.rpc.AsyncResponder;
@@ -90,10 +86,10 @@
             [Bindable]
             private var relatedTopsCount:String = "";
 
-            /*
-            *   After you click on the map, issue a query to find the
-            *   Field at the click location of the map.
-            */
+            /**
+             * After you click on the map, issue a query to find the
+             * Field at the click location of the map.
+             */
             protected function map_mapClickHandler(event:MapMouseEvent):void
             {
                 fieldsSelectionQuery.geometry = event.mapPoint;
@@ -101,12 +97,12 @@
                 fieldsFeatureLayer.selectFeatures(fieldsSelectionQuery, FeatureLayer.SELECTION_NEW);
             }
 
-            /*
-            *   The selection complete event handler for the fields layer
-            *   Selects the field, if there was one found
-            *   Issue the query to find the wells (in the wells layer) that are related to
-            *   the fields layer.
-            */
+            /**
+             * The selection complete event handler for the fields layer
+             * Selects the field, if there was one found
+             * Issue the query to find the wells (in the wells layer) that are related to
+             * the fields layer.
+             */
             private function fieldsLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
             {
                 relatedWellsRelationshipQuery.outFields = [ "OBJECTID" ];
@@ -126,7 +122,7 @@
                     {
                         var fset:FeatureSet = (relatedRecords[event.features[0].attributes.OBJECTID]);
                         relatedWellsCount = String(fset.features.length);
-                        var objIds:Array = new Array();
+                        var objIds:Array = [];
                         for each (var g:Graphic in fset.features)
                         {
                             objIds.push(g.attributes.OBJECTID)
@@ -152,18 +148,18 @@
                 }
             }
 
-            /*
-            *   The selection complete handler for the wells layer
-            *   Selects the wells that were found, if any
-            *   Finds the related tops records for the wells layer
-            */
+            /**
+             * The selection complete handler for the wells layer
+             * Selects the wells that were found, if any
+             * Finds the related tops records for the wells layer
+             */
             private function wellsLayer_selectionCompleteHandler(event:FeatureLayerEvent):void
             {
                 relatedTopsRelationshipQuery.outFields = [ "API_NUMBER", "ELEVATION", "FORMATION", "TOP" ];
                 relatedTopsRelationshipQuery.relationshipId = 3;
                 // The "3" comes from the service directory of the layer:
                 // Well 2 Tops (3)  -- Related To: TOPS  (2)
-                var objIds:Array = new Array();
+                var objIds:Array = [];
                 for each (var g:Graphic in event.features)
                 {
                     objIds.push(g.attributes.OBJECTID)
@@ -173,7 +169,7 @@
                 //STEP 4: Perform the related query to find the tops that are related to the selected wells in STEP 3
                 wellsFeatureLayer.queryRelatedFeatures(relatedTopsRelationshipQuery, new AsyncResponder(onResult, onFault));
                 relatedDatagrid.dataProvider = null;
-                var attrs:Array = new Array();
+                var attrs:Array = [];
                 function onResult(relatedRecords:Object, token:Object = null):void
                 {
                     var relatedRecordsCount:int = 0;

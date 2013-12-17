@@ -9,14 +9,7 @@
             {
                 var layerVisibility:WMSLayerVisibility = WMSLayerVisibility(data);
 
-                if (cb.selected)
-                {
-                    layerVisibility.visible = true;
-                }
-                else
-                {
-                    layerVisibility.visible = false;
-                }
+                layerVisibility.visible = cb.selected;
                 WMSLayerTOC(grid.dataGrid).updateVisibleLayers();
             }
         ]]>

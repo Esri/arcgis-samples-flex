@@ -25,15 +25,15 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/MapMouseEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/ServiceAreaEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/ServiceAreaTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/ServiceAreaTask.html#solve()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ServiceAreaParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ServiceAreaSolveResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/MapMouseEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/ServiceAreaEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/ServiceAreaTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/ServiceAreaTask.html#solve()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ServiceAreaParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ServiceAreaSolveResult.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/naserver.html

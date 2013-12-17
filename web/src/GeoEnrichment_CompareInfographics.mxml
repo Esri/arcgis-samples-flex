@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:geoEnrichmentClasses="com.esri.ags.tasks.geoEnrichmentClasses.*"
                initialize="application_initializeHandler(event)"
@@ -126,7 +125,6 @@
         {
             fontSize: 12px;
         }
-        
     </fx:Style>
 
     <fx:Script>
@@ -136,8 +134,6 @@
             import com.esri.ags.events.InfographicEvent;
             import com.esri.ags.events.MapMouseEvent;
             import com.esri.ags.geometry.MapPoint;
-            import com.esri.ags.tasks.geoEnrichmentClasses.GeographyLevel;
-            import com.esri.ags.tasks.geoEnrichmentClasses.GeometryStudyArea;
 
             import mx.controls.Alert;
             import mx.events.FlexEvent;

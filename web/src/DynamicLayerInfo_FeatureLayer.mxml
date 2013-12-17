@@ -25,12 +25,12 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#source
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/SimpleRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDataSource.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerDataSource.html#fields
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/TableDataSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#source
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/SimpleRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDataSource.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerDataSource.html#fields
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/TableDataSource.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/dynamicLayer.html

@@ -12,14 +12,14 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#infoWindow
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#hide()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#show()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GraphicEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#infoWindow
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/InfoWindow.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/InfoWindow.html#hide()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/InfoWindow.html#show()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GraphicEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/WebMercatorUtil.html
 
     This sample also uses the following files:
     com/esri/ags/samples/InfoWindowRollOverContent.mxml
@@ -69,7 +69,7 @@
             public static function format(decDeg:Number, decDir:String):String
             {
                 var d:Number = Math.abs(decDeg);
-                const deg:Number = Math.floor(d);
+                var deg:Number = Math.floor(d);
                 d = d - deg;
                 var min:Number = Math.floor(d * 60);
                 const av:Number = d - min / 60;

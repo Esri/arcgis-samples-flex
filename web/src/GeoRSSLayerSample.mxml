@@ -16,26 +16,26 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#center
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#level
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#style:headerColor
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/ContentNavigator.html#style:headerBackgroundColor
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#style:backgroundColor
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#style:shadowAlpha
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/InfoWindow.html#style:shadowDistance
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/WebMercatorMapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GeoRSSLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#attributionVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#copyright
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:load
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html#event:loadError
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/SimpleRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/PictureMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#center
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#level
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html#style:headerColor
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/ContentNavigator.html#style:headerBackgroundColor
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/InfoWindow.html#style:backgroundColor
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/InfoWindow.html#style:shadowAlpha
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/InfoWindow.html#style:shadowDistance
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/WebMercatorMapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GeoRSSLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html#attributionVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html#copyright
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html#event:load
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html#event:loadError
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/SimpleRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/PictureMarkerSymbol.html
 
     http://resources.arcgis.com/en/help/flex-api/concepts/index.html#/Types_of_layers/017p00000027000000/
     -->

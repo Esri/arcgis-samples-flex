@@ -21,13 +21,13 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html#polygonSelfIntersecting()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#simplify()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html#geodesicLengths()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/GeometryUtil.html#geodesicAreas()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Units.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/WebMercatorUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/GeometryUtil.html#polygonSelfIntersecting()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html#simplify()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/GeometryUtil.html#geodesicLengths()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/GeometryUtil.html#geodesicAreas()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Units.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/simplify.html

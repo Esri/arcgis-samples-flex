@@ -18,13 +18,13 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Legend.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/QueryEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/WebMapEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/WebMapUtil.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/QueryTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Legend.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/QueryEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/WebMapEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/WebMapUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/QueryTask.html
 
     View the web map item using the ArcGIS.com map viewer
     http://www.arcgis.com/home/item.html?id=5728c3bf56b446a2b2cfaf0f7f9690f1
@@ -106,7 +106,7 @@
 
             protected function esriCensusService_layerLoadHander(event:LayerEvent):void
             {
-                esriCensusService.removeEventListener(LayerEvent.LOAD, esriCensusService_layerLoadHander)
+                esriCensusService.removeEventListener(LayerEvent.LOAD, esriCensusService_layerLoadHander);
                 var layer:ArcGISDynamicMapServiceLayer = event.layer as ArcGISDynamicMapServiceLayer;
                 var layerInfosArray:Array = layer.layerInfos;
                 for (var i:int = 0; i < layerInfosArray.length; i++)

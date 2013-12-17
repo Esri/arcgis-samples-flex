@@ -17,10 +17,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/supportClasses/LayerInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerInfos
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/Layer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LayerInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#layerInfos
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/Layer.html
 
     This sample also uses the following files:
     com/esri/ags/samples/LayerTOC.mxml

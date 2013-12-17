@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                initialize="application_initializeHandler(event)"
                pageTitle="Draw and Measure lines">
@@ -25,24 +24,24 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Graphic.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeometryServiceEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/MapPoint.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Polyline.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#lengths()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html#event:lengthsComplete
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/CalculationType.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/LengthsParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/LengthsParameters.html#geodesic
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/InfoSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Graphic.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/SpatialReference.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeometryServiceEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/MapPoint.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Polyline.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html#lengths()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html#event:lengthsComplete
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/CalculationType.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/LengthsParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/LengthsParameters.html#geodesic
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#activate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#map
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/InfoSymbol.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/components/DataRenderer.html
 
@@ -62,7 +61,6 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.Graphic;
-            import com.esri.ags.SpatialReference;
             import com.esri.ags.events.DrawEvent;
             import com.esri.ags.events.GeometryServiceEvent;
             import com.esri.ags.geometry.MapPoint;
@@ -86,32 +84,31 @@
 
                 var lengthsParameters:LengthsParameters = new LengthsParameters();
                 /*
-                * Note:
-                * Starting ArcGIS 10.1 for Server, the geodesic property
-                * is deprecated, use the calculationType parameter instead.
-                */
-
+                 * Note:
+                 * Starting ArcGIS 10.1 for Server, the geodesic property
+                 * is deprecated, use the calculationType parameter instead.
+                 */
                 //lengthsParameters.geodesic = true;
 
                 /*
-                * "planar": Planar measurements use 2D Cartesian mathematics to
-                * calculate length. This type should only be used if the length
-                * needs to be calculated in the given spatial reference
-                * otherwise use "preserveShape".
-                *
-                * "geodesic": Use this type if you want to calculate the length
-                * using only the vertices of the polyline and define the lines
-                * between the points as geodesic segements independent of the
-                * actual shape of the polyline. A geodesic segment is the
-                * shortest path between two points on an ellipsoid.
+                 * "planar": Planar measurements use 2D Cartesian mathematics to
+                 * calculate length. This type should only be used if the length
+                 * needs to be calculated in the given spatial reference
+                 * otherwise use "preserveShape".
+                 *
+                 * "geodesic": Use this type if you want to calculate the length
+                 * using only the vertices of the polyline and define the lines
+                 * between the points as geodesic segements independent of the
+                 * actual shape of the polyline. A geodesic segment is the
+                 * shortest path between two points on an ellipsoid.
 
-                * "preserveShape": This type calculates the length of the geometry
-                * on the surface of the Earth ellipsoid, for geometry defined in
-                * projected or geographic coordinate system. This method preserves
-                * the shape of the geometry in its coordinate system. This means the
-                * true length will be calculated for the geometry you see in the map.
-                * (What you see is what you get.)
-                */
+                 * "preserveShape": This type calculates the length of the geometry
+                 * on the surface of the Earth ellipsoid, for geometry defined in
+                 * projected or geographic coordinate system. This method preserves
+                 * the shape of the geometry in its coordinate system. This means the
+                 * true length will be calculated for the geometry you see in the map.
+                 * (What you see is what you get.)
+                 */
                 lengthsParameters.calculationType = CalculationType.GEODESIC;
                 lengthsParameters.polylines = [ drawnLine ];
 
@@ -200,7 +197,7 @@
             Click and hold down on the map to draw a line that will be added to the map.
             The application will then use the geometry service to calculate the length of the line.
         </s:RichText>
-        <s:Button click="resultLayer.clear(),lineLayer.clear()" label="Clear measurements"/>
+        <s:Button click="resultLayer.clear(); lineLayer.clear()" label="Clear measurements"/>
     </s:controlBarContent>
 
     <esri:Map id="map">

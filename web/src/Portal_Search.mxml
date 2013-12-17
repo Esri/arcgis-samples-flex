@@ -19,9 +19,9 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html#queryItems()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/Portal.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/Portal.html#queryItems()
 
     ArcGIS Portal API documentation:
     Searching:  http://www.arcgis.com/apidocs/rest/searchreference.html
@@ -227,15 +227,15 @@
             protected function webMapUtil_createMapByIdCompleteHandler(event:WebMapEvent):void
             {
                 /*
-                * event.item (the web map item)
-                * event.itemData (the actual information that makes up the web map [ baseMap, operationalLayers, version, etc])
-                *
-                * var webMapItem:Object = event.item;
-                * webMapItem.id (web map id)
-                * webMapItem.owner (Who owns the document on ArcGIS.com)
-                * webMapItem.snippet (web map summary)
-                * webMapItem.title (web map title)
-                */
+                 * event.item (the web map item)
+                 * event.itemData (the actual information that makes up the web map [ baseMap, operationalLayers, version, etc])
+                 *
+                 * var webMapItem:Object = event.item;
+                 * webMapItem.id (web map id)
+                 * webMapItem.owner (Who owns the document on ArcGIS.com)
+                 * webMapItem.snippet (web map summary)
+                 * webMapItem.title (web map title)
+                 */
                 currentState = 'mapState';
                 loadingLabel.visible = true;
                 mapGroup.removeAllElements();
@@ -268,8 +268,7 @@
 
             protected function showPortalItemLoadErrors(resourceErrors:String, resourceTitle:String):void
             {
-                var str:String = resourceErrors;
-                str = "I'm really sorry, but we were unable to load some resources.\nThe server might be missing a cross domain policy file, the web map might need a Bing maps key or the item may no longer be available.";
+                var str:String = "I'm really sorry, but we were unable to load some resources.\nThe server might be missing a cross domain policy file, the web map might need a Bing maps key or the item may no longer be available.";
                 str += "\n\nWould you like to view the item (" + portalResultItemTitle + ") on ArcGIS Online?\n";
                 Alert.show(str, resourceTitle, Alert.YES | Alert.NO, null, alertWindowCloseHandler);
 

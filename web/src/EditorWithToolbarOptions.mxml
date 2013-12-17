@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
-               initialize="application1_initializeHandler(event)"
+               initialize="application_initializeHandler(event)"
                pageTitle="Editor with all toolbar options">
     <!--
     Description:
@@ -12,16 +11,16 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarCutVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarMergeVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#toolbarReshapeVisible
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Editor.html#createOptions
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/supportClasses/CreateOptions.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/GeometryService.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#toolbarVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#toolbarCutVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#toolbarMergeVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#toolbarReshapeVisible
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Editor.html#createOptions
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/supportClasses/CreateOptions.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/featureserver.html
@@ -41,8 +40,8 @@
 
         esri|InfoWindow
         {
-            background-color : #FFFFFF;
-            border-thickness : 2;
+            background-color: #FFFFFF;
+            border-thickness: 2;
         }
     </fx:Style>
 
@@ -54,12 +53,12 @@
 
             import mx.events.FlexEvent;
 
-            protected function application1_initializeHandler(event:FlexEvent):void
+            protected function application_initializeHandler(event:FlexEvent):void
             {
                 myEditor.featureLayers = [ fireAreas ];
                 var myDrawTypePreferences:CreateOptions = new CreateOptions();
-                // change the defauls drawing tool from "point-to-point" to "freehand"
-                myDrawTypePreferences.polygonDrawTools = [ DrawTool.FREEHAND_POLYGON, DrawTool.POLYLINE, CreateOptions.AUTO_COMPLETE ];
+                // change the default drawing tool from "point-to-point" to "freehand"
+                myDrawTypePreferences.polygonDrawTools = [ DrawTool.FREEHAND_POLYGON, CreateOptions.AUTO_COMPLETE ];
                 myEditor.createOptions = myDrawTypePreferences;
             }
 
@@ -88,7 +87,7 @@
 
     <esri:Map id="myMap" wrapAround180="true">
         <esri:extent>
-            <esri:Extent id="sheepfire"
+            <esri:Extent id="sheepFire"
                          xmin="-13144000" ymin="4033000" xmax="-13066000" ymax="4099000">
                 <esri:SpatialReference wkid="102100"/>
             </esri:Extent>

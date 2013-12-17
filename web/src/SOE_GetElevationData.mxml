@@ -21,21 +21,21 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/DrawEvent.html#graphic
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LocatorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/BaseTask.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Locator.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressCandidate.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#graphicsLayer
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#map
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#activate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#deactivate()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawStart
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tools/DrawTool.html#event:drawEnd
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/utils/WebMercatorUtil.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/DrawEvent.html#graphic
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LocatorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/BaseTask.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Locator.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/AddressCandidate.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/AddressToLocationsParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#graphicsLayer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#map
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#activate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#deactivate()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#event:drawStart
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tools/DrawTool.html#event:drawEnd
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/utils/WebMercatorUtil.html
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/spark/formatters/NumberFormatter.html
 

@@ -4,6 +4,12 @@
                xmlns:esri="http://www.esri.com/2008/ags"
                pageTitle="Directions component sample">
 
+    <fx:Script>
+        <![CDATA[
+            import com.esri.ags.SpatialReference;
+        ]]>
+    </fx:Script>
+
     <s:layout>
         <s:HorizontalLayout paddingLeft="2"/>
     </s:layout>

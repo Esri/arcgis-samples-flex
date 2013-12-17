@@ -15,9 +15,9 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/AttachmentInspector.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/AttachmentEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/AttachmentInspector.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/AttachmentEvent.html
     com.esri.ags.skins.supportClasses.AttachmentMouseEvent - Source code included in the API download
 
     ArcGIS for Server - Authoring feature services

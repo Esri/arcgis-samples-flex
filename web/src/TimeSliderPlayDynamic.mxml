@@ -27,18 +27,18 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#timeExtent
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#timeSlider
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/SpatialReference.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/geometry/Extent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/TimeExtent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/LayerEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/TimeSlider.html#createTimeStopsByCount()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#visibleLayers
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#timeExtent
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#timeSlider
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/SpatialReference.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/TimeExtent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/geometry/Extent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/TimeExtent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/LayerEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/TimeSlider.html#createTimeStopsByCount()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISDynamicMapServiceLayer.html#visibleLayers
 
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/globalization/DateTimeFormatter.html#setDateTimePattern()
 

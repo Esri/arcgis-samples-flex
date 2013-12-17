@@ -59,13 +59,13 @@ public class ExpandableInfoWindowContent extends SkinnableContainer implements I
     //  Skin Parts
     //
     //--------------------------------------------------------------------------
-    
+
     //----------------------------------
     //  draggableGroup
     //----------------------------------
-    
+
     [SkinPart(required="false")]
-    
+
     public var draggableGroup:Group;
 
     //----------------------------------
@@ -89,15 +89,15 @@ public class ExpandableInfoWindowContent extends SkinnableContainer implements I
     //  Properties
     //
     //--------------------------------------------------------------------------
-    
+
     //----------------------------------
     //  title
     //----------------------------------
-    
+
     private var m_title:String = null;
-    
+
     [Bindable("titleChange")]
-    
+
     /**
      * Title text of the container.
      */
@@ -105,7 +105,7 @@ public class ExpandableInfoWindowContent extends SkinnableContainer implements I
     {
         return m_title;
     }
-    
+
     /**
      * @private
      */
@@ -121,26 +121,26 @@ public class ExpandableInfoWindowContent extends SkinnableContainer implements I
             dispatchEvent(new Event("titleChange"));
         }
     }
-    
+
     //----------------------------------
     //  title
     //----------------------------------
-    
+
     private var m_expanded:Boolean = false;
-    
+
     [Bindable(event="change")]
     [Bindable(event="valueCommit")]
-    
+
     /**
      * The expandable state of the container
-     * 
+     *
      * @default false
      */
     public function get expanded():Boolean
     {
         return m_expanded;
     }
-    
+
     /**
      * @private
      */
@@ -160,7 +160,7 @@ public class ExpandableInfoWindowContent extends SkinnableContainer implements I
     //----------------------------------
     //  showInfoWindowHeader
     //----------------------------------
-    
+
     /**
      * @private
      */
@@ -168,7 +168,7 @@ public class ExpandableInfoWindowContent extends SkinnableContainer implements I
     {
         return false;
     }
-    
+
     //----------------------------------
     //  draggableContent
     //----------------------------------
@@ -186,7 +186,7 @@ public class ExpandableInfoWindowContent extends SkinnableContainer implements I
     //  Overridden Methods
     //
     //--------------------------------------------------------------------------
-    
+
     /**
      * @private
      */

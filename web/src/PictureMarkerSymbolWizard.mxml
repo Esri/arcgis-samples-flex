@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                backgroundColor="#D3D1D1"
                initialize="initializeHandler(event)"
@@ -21,20 +20,20 @@
 
     Note:
     This sample uses the Portal API to search for symbols hosted on ArcGIS Online.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/Portal.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/Portal.html
     These symbols are found using search parameters such as (group, type, and typekeywords).
     For more information on query syntax, please see the link below: ArcGIS Online -> 'Using search' -> 'Finding and opening content'.
     http://help.arcgis.com/en/arcgisonline/help/010q/010q0000000n000000.htm
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/PortalEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalGroup.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalItem.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/portal/supportClasses/PortalQueryResult.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/PictureMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/PortalEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalGroup.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalItem.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalQueryParameters.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/portal/supportClasses/PortalQueryResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/PictureMarkerSymbol.html
     -->
 
     <fx:Script>
@@ -79,7 +78,6 @@
                 var queryParameters:PortalQueryParameters = PortalQueryParameters.forItemsInGroup(symbolGroup.id).withSortField("name").withLimit(20);
                 queryParameters.addQueryCondition('typekeywords:"by value"', "+");
                 portalService.queryItems(queryParameters);
-
             }
 
             protected function portalService_unloadHandler(event:PortalEvent):void
@@ -89,8 +87,8 @@
 
             protected function portalService_faultHandler(event:FaultEvent):void
             {
-                var faultstring:String = event.fault.faultString;
-                Alert.show(faultstring);
+                var faultString:String = event.fault.faultString;
+                Alert.show(faultString);
             }
 
             protected function portalService_queryItemsCompleteHandler(event:PortalEvent):void
@@ -205,7 +203,7 @@
                      queryGroupsComplete="portalService_queryGroupsCompleteHandler(event)"
                      queryItemsComplete="portalService_queryItemsCompleteHandler(event)"
                      unload="portalService_unloadHandler(event)"
-                     url="http://www.arcgis.com/sharing/rest/"/>
+                     url="https://www.arcgis.com/"/>
 
         <s:NumberFormatter id="numberFormatter" fractionalDigits="2"/>
     </fx:Declarations>

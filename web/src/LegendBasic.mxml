@@ -24,10 +24,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Legend.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Legend.html#layers
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/Legend.html#respectCurrentMapScale
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Legend.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Legend.html#layers
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/Legend.html#respectCurrentMapScale
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/mslegend.html

@@ -18,16 +18,16 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/Map.html#style:infoWindowRendererHighlightColor
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/FeatureLayer.html#selectionColor
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/GraphicsLayer.html#infoWindowRenderer
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/Map.html#style:infoWindowRendererHighlightColor
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/FeatureLayer.html#selectionColor
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/GraphicsLayer.html#infoWindowRenderer
     http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/core/ClassFactory.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/components/LabelDataRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/UniqueValueRenderer.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/renderers/supportClasses/UniqueValueInfo.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/CompositeSymbol.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/symbols/SimpleMarkerSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/components/LabelDataRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/UniqueValueRenderer.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/renderers/supportClasses/UniqueValueInfo.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/CompositeSymbol.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/symbols/SimpleMarkerSymbol.html
     -->
 
     <fx:Style>

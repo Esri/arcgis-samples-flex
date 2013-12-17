@@ -49,8 +49,8 @@ import mx.rpc.IResponder;
  *
  * @since Your API for Flex 1.0
  *
+ * @see com.esri.ags.samples.events.ElevationsSOEEvent
  * @see com.esri.ags.samples.tasks.supportClasses.ElevationsSOEParameters
- * @see com.esri.ags.samples.tasks.supportClasses.ElevationsSOEEvent
  * @see com.esri.ags.samples.tasks.supportClasses.ElevationsSOEResult
  *
  * @see http://blogs.esri.com/Dev/blogs/apl/archive/2010/10/07/Elevation-Server-Object-Extension.aspx Read more about the Applications Prototype Lab's Elevation Server Object Extension
@@ -99,7 +99,6 @@ public class ElevationsSOETask extends BaseTask
      *
      * @param elevationsSOEParameters The criteria used to get the elevation at a location.
      * @param responder The responder to call on result or fault.
-     *
      */
     public function executeGetElevationAtLatLon(elevationsSOEParameters:ElevationsSOEParameters, responder:IResponder = null):AsyncToken
     {
@@ -141,7 +140,6 @@ public class ElevationsSOETask extends BaseTask
      *
      * @param elevationsSOEParameters The criteria used to get the elevation along a polyline.
      * @param responder The responder to call on result or fault.
-     *
      */
     public function executeGetElevations(elevationsSOEParameters:ElevationsSOEParameters, responder:IResponder = null):AsyncToken
     {
@@ -189,7 +187,6 @@ public class ElevationsSOETask extends BaseTask
      *
      * @param elevationsSOEParameters The criteria used to get the elevation get all the elevation values within an extent.
      * @param responder The responder to call on result or fault.
-     *
      */
     public function executeGetElevationData(elevationsSOEParameters:ElevationsSOEParameters, responder:IResponder = null):AsyncToken
     {
@@ -204,7 +201,7 @@ public class ElevationsSOETask extends BaseTask
         urlVariables.Rows = elevationsSOEParameters.rows;
         urlVariables.Columns = elevationsSOEParameters.columns;
 
-        var handleGetElevationData:Function = function(decodedObject:Object, asyncToken:AsyncToken):void
+        function handleGetElevationData(decodedObject:Object, asyncToken:AsyncToken):void
         {
             if (Log.isDebug())
             {
@@ -244,7 +241,6 @@ public class ElevationsSOETask extends BaseTask
      *
      * @param elevationsSOEParameters The criteria used to get the elevation profile over a polyline and create an image of the profile chart.
      * @param responder The responder to call on result or fault.
-     *
      */
     public function executeGetElevationProfile(elevationsSOEParameters:ElevationsSOEParameters, responder:IResponder = null):AsyncToken
     {

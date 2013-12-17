@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
                xmlns:s="library://ns.adobe.com/flex/spark"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:components="com.esri.ags.samples.components.*"
                initialize="application_initializeHandler(event)"
@@ -183,8 +182,8 @@
                     //Array of GeographyCountry objects
                     if (geographyCountryArray.length > 0)
                     {
-                        //array of GeographyDataset objects
-                        var geographyCountryDatasetArray:Array = GeographyCountry(geographyCountryArray[i]).datasets;
+                        //Array of GeographyDataset objects
+                        var geographyCountryDatasetArray:Array = GeographyCountry(geographyCountryArray[0]).datasets;
                         for (var i:int = 0; i < geographyCountryDatasetArray.length; i++)
                         {
                             var geographyDataset:GeographyDataset = geographyCountryDatasetArray[i] as GeographyDataset;

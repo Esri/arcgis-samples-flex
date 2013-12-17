@@ -216,8 +216,7 @@
             </s:Group>
 
             <geoEnrichmentClasses:TapestryDetails id="details"
-                                                  width="100%"
-                                                  height="100%"
+                                                  width="100%" height="100%"
                                                   back="backHandler(event)"
                                                   data="{selectedData}"
                                                   styleName="{selectedStyleName}"/>

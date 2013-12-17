@@ -310,7 +310,7 @@ The default skin class for a Legend component.
                 if (!checkDefaultVisibility)
                 {
                     var actualVisibleLayers:Array = getActualVisibleLayers(dynamicMapServiceLayer.visibleLayers.toArray(), dynamicMapServiceLayer.dynamicLayerInfos ? dynamicMapServiceLayer.dynamicLayerInfos.slice() : dynamicMapServiceLayer.layerInfos.slice());
-                    layerLegendInfo.visible = actualVisibleLayers.indexOf(Number(layerLegendInfo.layerId)) != -1 ? true : false;
+                    layerLegendInfo.visible = (actualVisibleLayers.indexOf(Number(layerLegendInfo.layerId)) != -1);
                 }
                 else
                 {
@@ -661,6 +661,7 @@ The default skin class for a Legend component.
                         }
                     }
                 }
+
                 isLegendShown();
             }
 

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
-               xmlns:mx="library://ns.adobe.com/flex/mx"
                xmlns:esri="http://www.esri.com/2008/ags"
                xmlns:s="library://ns.adobe.com/flex/spark"
                pageTitle="Message in a bottle GP">
@@ -26,12 +25,12 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeoprocessorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Geoprocessor.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Geoprocessor.html#execute()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ExecuteResult.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/gpserver.html
@@ -84,7 +83,7 @@
                 var featureSet:FeatureSet = new FeatureSet();
                 featureSet.features = [{ geometry: mapPoint }];
 
-                var parms:Object = new Object();
+                var parms:Object = {};
                 parms.Input_Point = featureSet;
                 parms.Days = Number(numberOfDays.text);
 

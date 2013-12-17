@@ -39,13 +39,13 @@
 
     Documentation:
     For more information, see the API documentation.
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/FeatureSet.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/Geoprocessor.html#execute()
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/ExecuteResult.html
-    http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/tasks/supportClasses/LinearUnit.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/FeatureSet.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeoprocessorEvent.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/events/GeoprocessorEvent.html#EXECUTE_COMPLETE
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Geoprocessor.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/Geoprocessor.html#execute()
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/ExecuteResult.html
+    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/LinearUnit.html
 
     ArcGIS REST API documentation:
     http://resources.arcgis.com/en/help/rest/apiref/gpserver.html
