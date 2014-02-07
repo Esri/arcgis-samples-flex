@@ -21,10 +21,10 @@
 
     Documentation:
     For more information, see the API documentation.
-    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html
-    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html#buffer()
-    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/supportClasses/BufferParameters.html
-    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/tasks/GeometryService.html#constantSummary
+    https://developers.arcgis.com/flex/api-reference/com/esri/ags/tasks/GeometryService.html
+    https://developers.arcgis.com/flex/api-reference/com/esri/ags/tasks/GeometryService.html#buffer()
+    https://developers.arcgis.com/flex/api-reference/com/esri/ags/tasks/supportClasses/BufferParameters.html
+    https://developers.arcgis.com/flex/api-reference/com/esri/ags/tasks/GeometryService.html#constantSummary
 
     ArcGIS REST API - buffer operation
     http://resources.arcgis.com/en/help/rest/apiref/index.html?buffer.html
@@ -86,6 +86,8 @@
 
                 geometryService.buffer(euclideanBuffer, new AsyncResponder(euclideanBufferCompleteHandler, esriService_faultHandler, null));
                 geometryService.buffer(geodesicBuffer, new AsyncResponder(geodesicBufferCompleteHandler, esriService_faultHandler, null));
+                
+                legend.layers = [graphicsLayer, euclideanGraphicsLayer, geodesicGraphicsLayer];
             }
 
             private function euclideanBufferCompleteHandler(item:Object, token:Object = null):void
@@ -276,6 +278,6 @@
                 <s:SolidColorStroke color="0xFFFFFF" weight="1"/>
             </s:stroke>
         </s:Line>
-        <esri:Legend layers="{[graphicsLayer, euclideanGraphicsLayer, geodesicGraphicsLayer]}" map="{map}"/>
+        <esri:Legend id="legend" map="{map}"/>
     </s:Panel>
 </s:Application>
