@@ -80,7 +80,7 @@
         <esri:SimpleLineSymbol id="sls"
                                alpha="0.8"
                                color="0x666666"/>
-        <esri:ClassBreaksRenderer id="magnitudeRenderer" field="Magnitude">
+        <esri:ClassBreaksRenderer id="magnitudeRenderer" field="mag">
             <esri:defaultSymbol>
                 <esri:SimpleMarkerSymbol color="0xEEEEEE"
                                          outline="{sls}"
@@ -170,28 +170,28 @@
         <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer"/>
         <esri:CSVLayer id="csvLayer"
                        fault="csvLayer_faultHandler(event)"
-                       latitudeFieldName="Lat"
+                       latitudeFieldName="latitude"
                        loadError="csvLayer_loadErrorHandler(event)"
-                       longitudeFieldName="Lon"
+                       longitudeFieldName="longitude"
                        renderer="{magnitudeRenderer}"
-                       url="http://earthquake.usgs.gov/earthquakes/catalogs/eqs7day-M2.5.txt">
+                       url="http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.csv">
             <esri:sourceFields>
-                <esri:Field name="Magnitude"/>
-                <esri:Field name="Depth"/>
-                <esri:Field name="Region" alias="Location"/>
-                <esri:Field name="Datetime"/>
+                <esri:Field name="mag"/>
+                <esri:Field name="depth"/>
+                <esri:Field name="place" alias="Location"/>
+                <esri:Field name="time"/>
             </esri:sourceFields>
             <esri:infoWindowRenderer>
                 <fx:Component>
-                    <esri:LabelDataRenderer label="{data.Region}">
+                    <esri:LabelDataRenderer label="{data.place}">
                         <s:Scroller width="100%" height="100%">
                             <s:VGroup paddingBottom="5"
                                       paddingLeft="5"
                                       paddingRight="5"
                                       paddingTop="5">
-                                <s:Label text="{ data.Datetime }"/>
-                                <s:Label text="Magnitude: { data.Magnitude }"/>
-                                <s:Label text="Depth: { data.Depth }"/>
+                                <s:Label text="{ data.time }"/>
+                                <s:Label text="Magnitude: { data.mag }"/>
+                                <s:Label text="Depth: { data.depth }"/>
                             </s:VGroup>
                         </s:Scroller>
                     </esri:LabelDataRenderer>
