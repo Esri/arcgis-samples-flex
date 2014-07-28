@@ -96,7 +96,8 @@
         <esri:center>
             <esri:WebMercatorMapPoint lon="-171.009636" lat="27.355359"/>
         </esri:center>
-        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Reference/MapServer"/>
         <esri:GeoRSSLayer id="geoRSSLayer"
                           copyright="NOAA, NWS, Pacific Region Headquarters"
                           loadError="geoRSSLayer_loadErrorHandler(event)"

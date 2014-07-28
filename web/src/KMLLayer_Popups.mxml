@@ -95,7 +95,7 @@
                 <esri:SpatialReference wkid="102100"/>
             </esri:Extent>
         </esri:extent>
-        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer"/>
         <esri:KMLLayer id="earthquakes" name="Latest earthquakes"
                        load="earthquakes_loadHandler(event)"
                        loadError="earthquakes_loadErrorHandler(event)"

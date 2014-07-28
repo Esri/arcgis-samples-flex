@@ -246,7 +246,8 @@
     <esri:Map id="map"
               extent="{initialExtent}"
               wrapAround180="true">
-        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Reference/MapServer"/>
         <esri:GraphicsLayer id="geodesicGraphicsLayer" name="Geodesic Buffer"
                             symbol="{geodesicSymbol}"/>
         <esri:GraphicsLayer id="euclideanGraphicsLayer" name="Euclidean Buffer"

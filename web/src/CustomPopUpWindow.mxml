@@ -66,7 +66,7 @@
                 <esri:SpatialReference wkid="102100"/>
             </esri:Extent>
         </esri:extent>
-        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer"/>
         <esri:GraphicsLayer>
             <esri:Graphic symbol="{balloonSymbol}">
                 <esri:geometry>

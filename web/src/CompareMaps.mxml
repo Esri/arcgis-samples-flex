@@ -149,7 +149,7 @@
         <esri:Map id="mapC"
                   scaleBarVisible="false"
                   zoomSliderVisible="false">
-            <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+            <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
             <esri:ArcGISDynamicMapServiceLayer id="operationalLayerC" name="Unemployment Rate"
                                                alpha="0.7"
                                                load="layer_loadHandler(event)"

@@ -322,7 +322,6 @@
                     <fx:String>Imagery</fx:String>
                     <fx:String>Streets</fx:String>
                     <fx:String>Topographic</fx:String>
-                    <fx:String>Oceans</fx:String>
                 </s:ArrayList>
             </s:dataProvider>
         </s:ButtonBar>

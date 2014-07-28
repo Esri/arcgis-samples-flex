@@ -11,11 +11,9 @@
 
     Documentation:
     For more information, see the API documentation.
-    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
-    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html#tileInfo
-    https://developers.arcgis.com/en/flex/api-reference/com/esri/ags/layers/supportClasses/LOD.html
-
-    http://resources.arcgis.com/en/help/main/10.1/#/What_is_ArcGIS_Online/01w100000045000000/
+    https://developers.arcgis.com/flex/api-reference/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html
+    https://developers.arcgis.com/flex/api-reference/com/esri/ags/layers/ArcGISTiledMapServiceLayer.html#tileInfo
+    https://developers.arcgis.com/flex/api-reference/com/esri/ags/layers/supportClasses/LOD.html
     -->
 
     <fx:Script>
@@ -45,7 +43,7 @@
             click the info graphic to find out more about each service.
         </s:RichText>
         <s:Button bottom="4"
-                  click="navigateToURL(new URLRequest('http://resources.arcgis.com/en/help/main/10.1/#/What_is_ArcGIS_Online/01w100000045000000/'))"
+                  click="navigateToURL(new URLRequest('http://doc.arcgis.com/en/arcgis-online/reference/what-is-agol.htm'))"
                   fontWeight="bold"
                   horizontalCenter="0"
                   label="Read more about ArcGIS Online"/>
@@ -70,13 +68,8 @@
                         width="225"
                         cornerRadius="0"
                         requireSelection="true"
-                        selectedIndex="1">
+                        selectedIndex="0">
             <s:ArrayList>
-                <fx:String>Ocean_Basemap</fx:String>
-                <fx:String>NatGeo_World_Map</fx:String>
-                <fx:String>World_Imagery</fx:String>
-                <fx:String>World_Street_Map</fx:String>
-                <fx:String>World_Topo_Map</fx:String>
                 <fx:String>World_Shaded_Relief</fx:String>
                 <fx:String>Specialty/World_Navigation_Charts</fx:String>
             </s:ArrayList>
