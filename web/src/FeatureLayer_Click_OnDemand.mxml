@@ -26,12 +26,6 @@
             headerBackgroundAlpha: 1.0;
             headerBackgroundColor: #E90000;
         }
-        /* The "header" of the InfoWindow */
-        esri|InfoWindowLabel
-        {
-            color: white;
-            font-size: 20;
-        }
     </fx:Style>
 
     <s:controlBarContent>
