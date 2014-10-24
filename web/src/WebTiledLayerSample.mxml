@@ -96,7 +96,7 @@
                         switch (event.detail) {
                             case Alert.OK:
                             {
-                                navigateToURL(new URLRequest("http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WebTiledLayer.html"), "_blank");
+                                navigateToURL(new URLRequest("https://developers.arcgis.com/flex/api-reference/com/esri/ags/layers/WebTiledLayer.html"), "_blank");
                                 break;
                             }
                             case Alert.CANCEL:
