@@ -86,8 +86,8 @@
 
                 geometryService.buffer(euclideanBuffer, new AsyncResponder(euclideanBufferCompleteHandler, esriService_faultHandler, null));
                 geometryService.buffer(geodesicBuffer, new AsyncResponder(geodesicBufferCompleteHandler, esriService_faultHandler, null));
-                
-                legend.layers = [graphicsLayer, euclideanGraphicsLayer, geodesicGraphicsLayer];
+
+                legend.layers = [ graphicsLayer, euclideanGraphicsLayer, geodesicGraphicsLayer ];
             }
 
             private function euclideanBufferCompleteHandler(item:Object, token:Object = null):void
