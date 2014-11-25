@@ -13,6 +13,7 @@
 
     Feed provided by NOAA, NWS Pacific Region Headquarters
     http://www.nws.noaa.gov/rss/
+    http://ptwc.weather.gov/feeds/ptwc_rss_pacific.xml
 
     Documentation:
     For more information, see the API documentation.
@@ -96,12 +97,13 @@
         <esri:center>
             <esri:WebMercatorMapPoint lon="-171.009636" lat="27.355359"/>
         </esri:center>
-        <esri:ArcGISTiledMapServiceLayer url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer"/>
+        <esri:ArcGISTiledMapServiceLayer url="http://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Reference/MapServer"/>
         <esri:GeoRSSLayer id="geoRSSLayer"
                           copyright="NOAA, NWS, Pacific Region Headquarters"
                           loadError="geoRSSLayer_loadErrorHandler(event)"
                           pointSymbol="{tsunamiPMS}"
-                          url="http://www.prh.noaa.gov/ptwc/feeds/ptwc_rss_pacific.xml"/>
+                          url="https://developers.arcgis.com/flex/sample-code/assets/ptwc_rss_pacific.xml"/>
     </esri:Map>
 
     <s:BorderContainer width="150"

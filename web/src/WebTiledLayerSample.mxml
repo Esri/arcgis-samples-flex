@@ -8,7 +8,7 @@
     This sample demonstrates how to add various third-party (tiled|cached)
     map services to your ArcGIS API for Flex application using the WebTiledLayer class.
     Select one of the various options from the drop down list or load a custom service
-    using the "Load custom web tiled layer" button.
+    using the "custom web tiled layer" button.
 
     Documentation:
     For more information, see the API documentation.
@@ -30,7 +30,7 @@
             import spark.events.IndexChangeEvent;
 
             private static const ESRI_NATGEO_URL:String = "http://{subDomain}.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{level}/{row}/{col}";
-            private static const MQ_URL:String = "http://{subDomain}.mqcdn.com/tiles/1.0.0/vx/map/{level}/{col}/{row}.jpg";
+            private static const MQ_URL:String = "http://{subDomain}.mqcdn.com/tiles/1.0.0/vx/map/{level}/{col}/{row}.png";
             private static const OCM_URL:String = "http://{subDomain}.tile.opencyclemap.org/cycle/{level}/{col}/{row}.png";
             private static const Trulia_CRIME_URL:String = "http://tiles.trulia.com/tiles/crime_heatmap/{level}/{col}/{row}.png";
 
@@ -38,7 +38,7 @@
             private static const CM_PALE_URL:String = "http://{subDomain}.tile.cloudmade.com/1a1b06b230af4efdbb989ea99e9841af/998/256/{level}/{col}/{row}.png";
 
             private static const MB_DARK_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/examples.map-cnkhv76j/{level}/{col}/{row}.png";
-            private static const MB_STREETS_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/examples.map-vyofok3q/{level}/{col}/{row}.png";
+            private static const MB_STREETS_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/examples.map-i87786ca/{level}/{col}/{row}.png";
             private static const MB_TERRAIN_URL:String = "http://{subDomain}.tiles.mapbox.com/v3/mapbox.mapbox-warden/{level}/{col}/{row}.png";
 
             private static const STMN_TERRAIN_URL:String = "http://{subDomain}.tile.stamen.com/terrain/{level}/{col}/{row}.jpg";
@@ -48,7 +48,7 @@
             private static const APPLE_OSM_URL:String = "http://gsp2.apple.com/tile?api=1&style=slideshow&layers=default&lang=en_GB&z={level}&x={col}&y={row}&v=9";
 
             // subdomains
-            private static const MQ_SUBDOMAINS:Array = [ "mtile01", "mtile02", "mtile03", "mtile04" ];
+            private static const MQ_SUBDOMAINS:Array = [ "ttiles01", "ttiles02", "ttiles03", "ttiles04" ];
             private static const ABC:Array = [ "a", "b", "c" ];
             private static const ABCD:Array = [ "a", "b", "c", "d" ];
 
@@ -96,7 +96,7 @@
                         switch (event.detail) {
                             case Alert.OK:
                             {
-                                navigateToURL(new URLRequest("http://resources.arcgis.com/en/help/flex-api/apiref/com/esri/ags/layers/WebTiledLayer.html"), "_blank");
+                                navigateToURL(new URLRequest("https://developers.arcgis.com/flex/api-reference/com/esri/ags/layers/WebTiledLayer.html"), "_blank");
                                 break;
                             }
                             case Alert.CANCEL:
@@ -149,7 +149,7 @@
             This sample demonstrates how to add various third-party (tiled|cached)
             map services to your ArcGIS API for Flex application using the WebTiledLayer class.
             Select one of the various options from the drop down list or load a custom service
-            using the "Load custom web tiled layer" button.
+            using the "custom web tiled layer" button.
         </s:RichText>
 
         <s:HGroup width="100%" verticalAlign="middle">
