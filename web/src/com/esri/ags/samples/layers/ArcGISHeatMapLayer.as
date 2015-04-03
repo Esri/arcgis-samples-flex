@@ -167,6 +167,8 @@ public class ArcGISHeatMapLayer extends Layer
     private var _featureIndexCalculator:Function = internalFeatureCalculator;
     private var _clusterIndexCalculator:Function = internalClusterCalculator;
     private var _clusterWeightCalculator:Function = internalWeightCalculator;
+    
+    private var flagupdate:Boolean=false;
 
     /**
      * Creates a new ArcGISHeatMapLayer object.
@@ -235,6 +237,7 @@ public class ArcGISHeatMapLayer extends Layer
             _detailsTask.addEventListener(FaultEvent.FAULT, getDetailsFaultHandler, false, 0, true);
             _detailsTask.getDetails(layerID);
         }
+        flagupdate=true;
     }
 
     /**
@@ -268,6 +271,11 @@ public class ArcGISHeatMapLayer extends Layer
     {
         if (map && map.extent)
         {
+        if(flagupdate==false)
+			{
+				var tagEvent:LayerEvent=new LayerEvent(LayerEvent.UPDATE_START,this);
+				updateStartCompleteHandler(tagEvent);
+			}
             generateHeatMap(map.extent);
         }
     }
